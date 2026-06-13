@@ -25,36 +25,38 @@
 ; The version-specific bits live here. Confirm each against your ES build during
 ; the first supervised run; the defaults are the common cases, not guarantees.
 CONFIG := {
-    ; ES window title (substring match). Find the exact text in your title bar.
-    esTitle:    "EmbroideryStudio",
+    ; Main-window title (substring match). Find the exact text in your title bar.
+    ; Wilcom EmbroideryStudio -> "EmbroideryStudio";  Hatch -> "Hatch Embroidery".
+    esTitle:    "Hatch Embroidery",
 
-    ; Optional: full path to the ES executable, to auto-launch if it isn't open.
-    ; Leave "" to require ES already running (recommended / safest).
+    ; Optional: full path to the app exe, to auto-launch if it isn't open.
+    ; Leave "" to require the app already running (recommended / safest).
     esExe:      "",
 
     ; Output: "" = write the .emb next to the source VP3, same base name.
     outDir:     "",
 
-    ; Run object/outline recognition after opening? (the thing that makes
-    ; Reshape / Break Apart work). If your ES recognises on import, set false.
-    recognize:  true,
+    ; HATCH recognises stitches into objects AT OPEN, via the Open dialog's
+    ; "Options" button -> "Convert stitches into object shapes". That checkbox
+    ; can't be ticked reliably blind, so on open the script pauses for you to do
+    ; it (in safeMode). So there is no separate post-open recognise step here.
+    recognize:  false,
 
     ; Supervised mode: confirm before each irreversible step. Keep true early.
     safeMode:   true,
 
-    ;--- keystrokes / menus — VERIFY THESE against your ES version -------------
-    openKeys:   "^o",       ; File > Open                       (Ctrl+O, standard)
-    saveAsKeys: "{F12}",    ; File > Save As  (also try "^+s" or the File menu)
+    ;--- keystrokes / menus — VERIFY THESE against your build -----------------
+    openKeys:   "^o",       ; File > Open design                (Ctrl+O, standard)
+    saveAsKeys: "^s",       ; Hatch: Ctrl+S saves native .EMB (Save As for a new
+                            ; design). EmbroideryStudio: try "{F12}" or "^+s".
 
-    ; Menu path for recognition, as Alt-accelerator keystrokes. The goal doc's
-    ; path is  Stitch > Recognize Objects/Outlines.  Example if Stitch=Alt+S and
-    ; the item's accelerator is R:  "!s" then "r"  ->  recognizeMenu: ["!s","r"]
-    ; Leave [] to SKIP auto-recognition and just pause for you to do it by hand.
+    ; (EmbroideryStudio only) menu accelerators for Stitch > Recognize
+    ; Objects/Outlines, e.g. ["!s","r"]. Unused in Hatch (recognise-on-open).
     recognizeMenu: [],
 
     ;--- dialog titles (substring) --------------------------------------------
     openDlgTitle:   "Open",
-    saveDlgTitle:   "Save As",
+    saveDlgTitle:   "Save",   ; Hatch may title it "Save As" / "Save design as"
 
     ;--- timeouts (seconds) ---------------------------------------------------
     tWindow:   30,    ; wait for ES main window
@@ -90,21 +92,33 @@ Main() {
     EnsureES()
     FocusES()
 
-    ; --- open the VP3 -------------------------------------------------------
-    Step("Open the VP3 in ES")
+    ; --- open the VP3 (and recognise objects, Hatch-style) ------------------
+    Step("Open the VP3 — converting stitches into editable objects")
     Send CONFIG.openKeys
     if !WinWaitActive(CONFIG.openDlgTitle, , CONFIG.tDialog)
         Die("Open dialog never appeared (openKeys/openDlgTitle wrong?).")
     Sleep CONFIG.settle
-    SendText vp3
-    Send "{Enter}"
-    Sleep CONFIG.settle
-    ; Some ES builds raise a recognition/import prompt here. If yours does,
-    ; safeMode lets you handle it; otherwise it's a no-op.
-    HandlePossiblePrompt("import/recognition prompt after open")
+    if CONFIG.safeMode {
+        ; Hatch's "Convert stitches into object shapes" lives behind the Open
+        ; dialog's Options button and can't be ticked reliably blind — you drive
+        ; this one step. (The path is already on the clipboard for you.)
+        A_Clipboard := vp3
+        MsgBox("In Hatch's Open dialog:`n"
+             . " 1) browse to / paste this VP3:`n      " vp3 "`n"
+             . " 2) click 'Options' and tick 'Convert stitches into object"
+             . " shapes'`n"
+             . " 3) click Open.`n`nClick OK here once the design is open.",
+             "Open + convert to objects", "OK Icon!")
+    } else {
+        ; Unattended: rely on Hatch's default (machine files convert on open).
+        SendText vp3
+        Send "{Enter}"
+        Sleep CONFIG.settle
+        HandlePossiblePrompt("Open Options / import prompt")
+    }
     if !WinWaitActive(CONFIG.esTitle, , CONFIG.tWindow)
-        Die("ES main window not active after open.")
-    Log("Opened VP3.")
+        Die("Main window not active after open.")
+    Log("Opened VP3 (objects).")
 
     ; --- recognise objects/outlines ----------------------------------------
     if CONFIG.recognize {
