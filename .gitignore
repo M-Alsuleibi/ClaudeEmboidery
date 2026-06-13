@@ -11,6 +11,9 @@ __pycache__/
 *.dst
 *.emb
 
+# Vendored Ink-Stitch portable bundle (~185MB, downloaded, not source)
+/vendor/
+
 # Samples can be large / proprietary — track deliberately, not by default
 /samples/*
 !/samples/.gitkeep

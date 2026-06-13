@@ -29,10 +29,20 @@ The sole *real* deliverable is the `NAME.emb` that Wilcom saves in Phase B.
 .venv/bin/pip install -e ".[dev]"
 ```
 
-> **Ink/Stitch** is not a plain pip dependency — it's an Inkscape extension and gets
-> vendored separately. Step 5 (`stitches`) is where it (or an equivalent digitizer)
-> plugs in. Until then the pipeline runs as a skeleton and stops at the first
-> unimplemented step.
+### Ink-Stitch (step 5)
+
+Step 5 digitizes via **Ink-Stitch**, which isn't a pip package — it's a self-contained
+binary we run headless (no Inkscape GUI needed for export). Vendor the Linux portable
+bundle once:
+
+```bash
+mkdir -p vendor && cd vendor
+curl -LO https://github.com/inkstitch/inkstitch/releases/download/v3.2.2/inkstitch-3.2.2-linux-x86_64.tar.xz
+tar -xJf inkstitch-3.2.2-linux-x86_64.tar.xz   # -> vendor/inkstitch/bin/inkstitch
+```
+
+The step looks for `vendor/inkstitch/bin/inkstitch` (override with `INKSTITCH_BIN`).
+The `vendor/` dir is gitignored (~185 MB). Stitch tests skip automatically if it's absent.
 
 ## Run
 
@@ -47,9 +57,9 @@ dimension is derived from the source aspect ratio).
 
 ## Status
 
-Scaffold only. Every step in `src/wilcom_pipeline/steps/` is a documented stub that
-raises `NotImplementedError`; the orchestrator stops cleanly at the first one. Build
-order = step order. Run `.venv/bin/pytest` for the smoke tests.
+Steps 1-5 implemented (analyze, preprocess, thread-match, trace, stitches); steps 6-7
+(emit, verify) are documented stubs. The orchestrator stops cleanly at the first stub.
+Build order = step order. Run `.venv/bin/pytest`.
 
 ## Layout
 
@@ -58,11 +68,15 @@ src/wilcom_pipeline/
   cli.py            argparse entrypoint
   config.py         PipelineConfig (request) + PipelineContext (shared state)
   pipeline.py       orchestrator: runs steps 1-7 against the context
+  color.py          sRGB->CIELAB + dE (quantize + thread match)
+  imaging.py        image loader + foreground-mask rebuild
+  catalog.py        Ink-Stitch .gpl palette parser + nearest-cone match
   steps/            one module per step, each exposing run(ctx)
-data/threads/       Madeira/Isacord catalogs (CSV) for step 3
+data/threads/       Madeira/Isacord catalogs (.gpl) for step 3
+vendor/inkstitch/   vendored Ink-Stitch binary for step 5 (gitignored)
 samples/            input photos (gitignored)
 output/             generated artifacts (gitignored)
-tests/              smoke tests
+tests/              tests per step
 ```
 
 Phase B (Windows / AutoHotkey) is out of scope for this repo; see the project goal doc.
