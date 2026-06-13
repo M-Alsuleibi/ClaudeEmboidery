@@ -48,10 +48,9 @@ def test_artifact_paths_follow_convention(tmp_path):
     assert cfg.threadlist_path.name == "logo_pro_threadlist.txt"
 
 
-def test_pipeline_stops_gracefully_at_first_unimplemented_step(tmp_path, capsys):
-    # analyze..stitches (steps 1-5) are implemented; the run should get through
-    # them and stop at the first stub (step 6, emit). Needs the Ink-Stitch
-    # binary for step 5.
+def test_pipeline_runs_end_to_end(tmp_path, capsys):
+    # All 7 steps are implemented; the run should complete and write artifacts.
+    # Needs the Ink-Stitch binary (step 5).
     import numpy as np
     import pytest
     from PIL import Image
@@ -66,17 +65,20 @@ def test_pipeline_stops_gracefully_at_first_unimplemented_step(tmp_path, capsys)
     arr[20:44, 20:44] = (10, 10, 10)
     Image.fromarray(arr).save(img)
 
-    ctx = pipeline.run(_config(tmp_path, input_path=img))
+    cfg = _config(tmp_path, input_path=img)
+    ctx = pipeline.run(cfg)
     out = capsys.readouterr().out
-    assert (tmp_path / "out").is_dir()
-    assert "NOT YET IMPLEMENTED" in out
-    assert "stopped at step 6 (emit)" in out
-    assert ctx.analysis        # populated by analyze
-    assert ctx.palette         # populated by preprocess
-    assert ctx.preprocessed_image is not None
-    assert ctx.thread_map      # populated by thread-match
-    assert ctx.svg_path and ctx.svg_path.is_file()  # populated by trace
-    assert ctx.stitch_pattern is not None           # populated by stitches
+
+    assert "NOT YET IMPLEMENTED" not in out
+    assert out.rstrip().endswith("done.")
+    # every stage populated its slice of the context
+    assert ctx.analysis and ctx.palette and ctx.preprocessed_image is not None
+    assert ctx.thread_map and ctx.svg_path and ctx.stitch_pattern is not None
+    assert ctx.verification.get("passed") is True
+    # the three artifacts exist
+    assert cfg.vp3_path.is_file()
+    assert cfg.preview_path.is_file()
+    assert cfg.threadlist_path.is_file()
 
 
 def test_cli_parser_requires_image_and_size():

@@ -57,9 +57,15 @@ dimension is derived from the source aspect ratio).
 
 ## Status
 
-Steps 1-5 implemented (analyze, preprocess, thread-match, trace, stitches); steps 6-7
-(emit, verify) are documented stubs. The orchestrator stops cleanly at the first stub.
-Build order = step order. Run `.venv/bin/pytest`.
+**Phase A runs end-to-end** — all 7 steps implemented (analyze → preprocess →
+thread-match → trace → stitches → emit → verify). One command on a photo + size
+produces `NAME_pro.vp3` + `NAME_pro_preview.png` + `NAME_pro_threadlist.txt`, with a
+pass/fail quality gate. Run `.venv/bin/pytest` (44 tests; stitch/emit cases need the
+vendored Ink-Stitch binary and skip without it).
+
+Next: Phase B (Windows AHK → Wilcom `.emb`, out of this repo's scope) and step-5
+quality tuning — inject `inkstitch:*` params for fill underlay, ~0.4 mm density, pull
+compensation, satin for thin columns, and foreground-last sequencing.
 
 ## Layout
 
