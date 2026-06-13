@@ -63,9 +63,14 @@ produces `NAME_pro.vp3` + `NAME_pro_preview.png` + `NAME_pro_threadlist.txt`, wi
 pass/fail quality gate. Run `.venv/bin/pytest` (44 tests; stitch/emit cases need the
 vendored Ink-Stitch binary and skip without it).
 
-Next: Phase B (Windows AHK → Wilcom `.emb`, out of this repo's scope) and step-5
-quality tuning — inject `inkstitch:*` params for fill underlay, ~0.4 mm density, pull
-compensation, satin for thin columns, and foreground-last sequencing.
+Step 5 tuning so far: `inkstitch:*` params for fill underlay, ~0.4 mm density, pull
+compensation, `trim_after` (long hops trimmed → Break-Apart boundaries), and **satin
+columns for linework colours** (calligraphy/text/thin strokes: `fill_to_stroke` →
+`stroke_to_satin`, with a tatami-fill fallback per region).
+
+Next: Phase B (Windows AHK → Wilcom `.emb`, out of this repo's scope); foreground-last
+sequencing; per-stroke variable satin width. Note: stitch tests invoke Ink-Stitch, so the
+suite takes ~1–2 min.
 
 ## Layout
 
