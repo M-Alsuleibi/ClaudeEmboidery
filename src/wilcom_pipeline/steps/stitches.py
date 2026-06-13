@@ -64,6 +64,9 @@ _SATIN_PARAMS = {
 # Satin classification / generation tunables.
 _SATIN_MAX_WIDTH_MM = 3.0   # a colour is "linework" if its median width is below this
 _MIN_SATIN_PTS = 15         # a centerline needs at least this many points to satin
+_MAX_SPURS_FOR_SATIN = 4    # a block is a "single column" only if it yields <= this
+                            # many centerlines total (1 real + a few tiny spurs);
+                            # more than that = a complex shape -> keep as one fill
 _MAX_SATIN_COLUMNS = 80     # guard against pathological slowness
 _SATIN_MIN_W_MM = 1.0       # clamp satin width
 _SATIN_MAX_W_MM = 7.0
@@ -198,24 +201,29 @@ def _satin_prepass(
         elif re.fullmatch(r"c\d+_\d+", pid):
             originals[pid] = p
 
-    # Per original region: satin its substantial centerlines, else keep the fill.
+    # One continuous object per block. A block becomes a satin ONLY if it's a
+    # single clean column (fill_to_stroke yields exactly one substantial
+    # centerline). Anything that would split into multiple pieces (a branching
+    # letter like ر, a complex shape) stays ONE continuous fill — never shattered
+    # into many stitched parts, which is murder on the machine.
     satin_ids: list[str] = []
     for orig, lines in centerlines.items():
         idx = int(re.match(r"c(\d+)_", orig).group(1))
         w = widths.get(idx, 4.0)
         longs = [c for c in lines if _npts(c) >= _MIN_SATIN_PTS]
-        if longs:
+        single_column = len(longs) == 1 and len(lines) <= _MAX_SPURS_FOR_SATIN
+        if single_column:
+            _set_stroke_style(longs[0], w, thread_hex.get(idx, "#000000"))
+            satin_ids.append(longs[0].get("id"))
             for c in lines:
-                if c in longs:
-                    _set_stroke_style(c, w, thread_hex.get(idx, "#000000"))
-                    satin_ids.append(c.get("id"))
-                else:
-                    c.getparent().remove(c)  # drop spur fragments
+                if c is not longs[0]:
+                    c.getparent().remove(c)  # drop tiny spurs around the column
             if orig in originals:
                 originals[orig].getparent().remove(originals[orig])
         else:
+            # keep the block as one continuous fill; drop all its centerlines
             for c in lines:
-                c.getparent().remove(c)  # keep the original fill instead
+                c.getparent().remove(c)
 
     if not satin_ids or len(satin_ids) > _MAX_SATIN_COLUMNS:
         _apply_fill_params(root_a)
