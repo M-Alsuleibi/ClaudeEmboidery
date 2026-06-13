@@ -49,8 +49,8 @@ def test_artifact_paths_follow_convention(tmp_path):
 
 
 def test_pipeline_stops_gracefully_at_first_unimplemented_step(tmp_path, capsys):
-    # analyze + preprocess (steps 1-2) are implemented; the run should get
-    # through them and stop cleanly at the first stub (step 3, thread-match).
+    # analyze + preprocess + thread-match (steps 1-3) are implemented; the run
+    # should get through them and stop at the first stub (step 4, trace).
     import numpy as np
     from PIL import Image
 
@@ -63,10 +63,11 @@ def test_pipeline_stops_gracefully_at_first_unimplemented_step(tmp_path, capsys)
     out = capsys.readouterr().out
     assert (tmp_path / "out").is_dir()
     assert "NOT YET IMPLEMENTED" in out
-    assert "stopped at step 3 (thread-match)" in out
+    assert "stopped at step 4 (trace)" in out
     assert ctx.analysis        # populated by analyze
     assert ctx.palette         # populated by preprocess
     assert ctx.preprocessed_image is not None
+    assert ctx.thread_map      # populated by thread-match
 
 
 def test_cli_parser_requires_image_and_size():

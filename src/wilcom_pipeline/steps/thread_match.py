@@ -1,23 +1,57 @@
 """Step 3 - Thread-match.
 
-Snap each palette color to a real catalog thread (Madeira Polyneon / Isacord)
-so the colors are loadable cones and the preview, worksheet, and design all
-agree. Catalogs live in data/threads/*.csv.
+Snap each palette colour (step 2) to a real catalog cone (Madeira Polyneon /
+Isacord) in CIELAB, so the preview, worksheet, and design all agree and the
+operator loads cones that exist. Catalogs come from Ink-Stitch .gpl palettes
+(see catalog.py).
 
-Match in a perceptual space (e.g. CIELAB dE) rather than raw RGB distance.
-
-Writes ctx.thread_map: one record per palette color, e.g.
+Writes ctx.thread_map: one record per palette colour, aligned with ctx.palette:
     {"rgb": (12,34,56), "catalog": "Madeira Polyneon",
      "code": "1801", "name": "Black", "thread_rgb": (10,10,10), "de": 2.3}
+
+Region merging when two colours hit the same cone is left to step 5 (routing /
+minimal colour changes); here we just assign and flag the collision.
 """
 
 from __future__ import annotations
 
+from ..catalog import load_catalog
 from ..config import PipelineContext
+
+_GOOD_DE = 5.0   # <= this: a faithful match
+_POOR_DE = 12.0  # > this: the cone is visibly off; worth flagging
 
 
 def run(ctx: PipelineContext) -> None:
-    raise NotImplementedError(
-        "thread-match: load the chosen catalog, match each ctx.palette color by "
-        "CIELAB distance to the nearest cone; set ctx.thread_map."
-    )
+    if not ctx.palette:
+        raise RuntimeError("thread-match requires ctx.palette; run preprocess first.")
+
+    cat = load_catalog(ctx.config.thread_chart)
+    thread_map: list[dict] = []
+    for rgb in ctx.palette:
+        thread, de = cat.nearest(rgb)
+        thread_map.append(
+            {
+                "rgb": tuple(int(c) for c in rgb),
+                "catalog": cat.display,
+                "code": thread.code,
+                "name": thread.name,
+                "thread_rgb": thread.rgb,
+                "de": round(de, 2),
+            }
+        )
+    ctx.thread_map = thread_map
+
+    print(f"      matched {len(thread_map)} colour(s) to {cat.display} ({len(cat.colors)} cones):")
+    for m in thread_map:
+        flag = "" if m["de"] <= _GOOD_DE else ("  ~off" if m["de"] <= _POOR_DE else "  !! poor")
+        print(f"        {m['rgb']} -> {m['code']} {m['name']} (dE {m['de']}){flag}")
+
+    poor = [m for m in thread_map if m["de"] > _POOR_DE]
+    if poor:
+        print(f"      ! {len(poor)} colour(s) matched poorly (dE>{_POOR_DE:g}); "
+              "no closer cone in this chart.")
+    codes = [m["code"] for m in thread_map]
+    dups = sorted({c for c in codes if codes.count(c) > 1})
+    if dups:
+        print(f"      note: cone(s) {dups} shared by multiple regions — merge in step 5.")
