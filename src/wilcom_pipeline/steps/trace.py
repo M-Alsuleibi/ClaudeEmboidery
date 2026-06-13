@@ -126,8 +126,11 @@ def _write_layered_svg(
         g = etree.SubElement(svg, f"{{{SVG_NS}}}g")
         g.set("id", f"color{idx}_{m['code']}")
         g.set(f"{{{INK_NS}}}label", f"{m['code']} {m['name']}".strip())
-        for d, transform in groups[idx]:
+        # Stable per-path ids so step 5 can select paths for the Ink-Stitch
+        # satin tools. Encoding the colour index lets it map back to the colour.
+        for j, (d, transform) in enumerate(groups[idx]):
             p = etree.SubElement(g, f"{{{SVG_NS}}}path")
+            p.set("id", f"c{idx}_{j}")
             p.set("d", d)
             p.set("fill", fill)
             if transform:

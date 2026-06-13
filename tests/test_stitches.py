@@ -69,6 +69,22 @@ def test_stitched_extent_is_sane(tmp_path):
     assert 25 < width_mm < 55
 
 
+def test_thin_curved_stroke_becomes_satin(tmp_path):
+    # A thin, curved (multi-point centerline) stroke is "linework" -> satin.
+    arr = np.full((140, 380, 3), 255, np.uint8)
+    xs = np.arange(380)
+    ys = (70 + 36 * np.sin(xs / 34.0)).astype(int)
+    for x in xs:
+        arr[ys[x] - 2 : ys[x] + 3, x] = (20, 30, 90)  # ~5px-tall wavy band
+    ctx = _run_to_trace(tmp_path, arr, width_mm=130.0, num_colors=4)
+    stitches.run(ctx)
+
+    # the stitch-ready SVG should contain at least one satin column
+    ready = (tmp_path / "out" / "t_inkstitch.svg").read_text()
+    assert "satin_column" in ready
+    assert ctx.stitch_pattern is not None and len(ctx.stitch_pattern.stitches) > 100
+
+
 def test_requires_svg_path(tmp_path):
     path = tmp_path / "in.png"
     Image.fromarray(_two_colour_logo()).save(path)
