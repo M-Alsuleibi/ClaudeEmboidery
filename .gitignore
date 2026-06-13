@@ -21,3 +21,6 @@ __pycache__/
 # OS / editor
 .DS_Store
 *.swp
+
+# Root test images (inputs, copied into samples/ when used)
+/*.png

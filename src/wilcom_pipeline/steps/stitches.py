@@ -26,12 +26,28 @@ from collections import Counter
 from pathlib import Path
 
 import pyembroidery as pe
+from lxml import etree
 
 from ..config import PipelineContext
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_BIN = _REPO_ROOT / "vendor" / "inkstitch" / "bin" / "inkstitch"
 _TIMEOUT_S = 300
+
+_SVG_NS = "http://www.w3.org/2000/svg"
+_INKSTITCH_NS = "http://inkstitch.org/namespace"
+
+# Best-practice fill params injected onto every region before digitizing.
+# row_spacing ~0.4mm and fill underlay per the goal doc; pull compensation on
+# fills; trim_after so a colour's disjoint regions don't get joined by long
+# travel running-stitches — each region ends in a trim, which also gives a
+# clean Break-Apart boundary in Wilcom (Phase B).
+_FILL_PARAMS = {
+    "fill_underlay": "True",
+    "row_spacing_mm": "0.4",
+    "pull_compensation_mm": "0.2",
+    "trim_after": "True",
+}
 
 
 def _candidate_binary() -> Path:
@@ -59,8 +75,10 @@ def run(ctx: PipelineContext) -> None:
         raise RuntimeError("stitches requires ctx.svg_path; run trace first.")
 
     binary = _locate_binary()
+    ready_svg = ctx.config.output_dir / f"{ctx.config.name}_inkstitch.svg"
+    _inject_params(ctx.svg_path, ready_svg)
     proc = subprocess.run(
-        [str(binary), "--extension=zip", "--format-vp3=True", str(ctx.svg_path)],
+        [str(binary), "--extension=zip", "--format-vp3=True", str(ready_svg)],
         capture_output=True,
         timeout=_TIMEOUT_S,
     )
@@ -78,6 +96,19 @@ def run(ctx: PipelineContext) -> None:
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
+def _inject_params(src: Path, dst: Path) -> None:
+    """Write a copy of the trace SVG with inkstitch:* fill params on every path.
+
+    Attributes use the inkstitch namespace URI; Ink-Stitch reads by URI, so the
+    auto-assigned prefix doesn't matter.
+    """
+    tree = etree.parse(str(src))
+    for path in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
+        for key, value in _FILL_PARAMS.items():
+            path.set(f"{{{_INKSTITCH_NS}}}{key}", value)
+    tree.write(str(dst), xml_declaration=True, encoding="UTF-8")
+
+
 def _read_vp3_from_zip(stdout: bytes, stderr: bytes) -> "pe.EmbPattern":
     try:
         zf = zipfile.ZipFile(io.BytesIO(stdout))
