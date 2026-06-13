@@ -20,12 +20,17 @@ from pathlib import Path
 import numpy as np
 import vtracer
 from lxml import etree
+from scipy import ndimage
 
 from ..color import delta_e, srgb_to_lab
 from ..config import PipelineContext
 
 SVG_NS = "http://www.w3.org/2000/svg"
 INK_NS = "http://www.inkscape.org/namespaces/inkscape"
+
+# Foreground-last sequencing tunables.
+_RING_PX = 6          # how far out to sample the ring around a colour's regions
+_ENCLOSE_FRAC = 0.5   # ring must be >=this fraction one colour to count as "under" it
 
 
 def run(ctx: PipelineContext) -> None:
@@ -58,9 +63,10 @@ def run(ctx: PipelineContext) -> None:
     )
 
     groups = _group_paths_by_palette(raw_svg, ctx.palette)
+    order = _sew_order(img, ctx.palette)  # background first, foreground last
     svg_path = ctx.config.output_dir / f"{ctx.config.name}_pro.svg"
     n_paths = _write_layered_svg(
-        svg_path, groups, ctx.thread_map, ctx.analysis["size_mm"], (px_w, px_h)
+        svg_path, groups, order, ctx.thread_map, ctx.analysis["size_mm"], (px_w, px_h)
     )
     ctx.svg_path = svg_path
 
@@ -101,9 +107,51 @@ def _group_paths_by_palette(
     return groups
 
 
+def _sew_order(img, palette: list[tuple[int, int, int]]) -> list[int]:
+    """Order palette indices background-first, foreground-last.
+
+    A colour is "foreground" of another if it's enclosed by it: if the ring of
+    pixels just outside a colour's regions is dominated by another colour, this
+    colour sits on top and must sew later. Depth = how many enclosures deep; sew
+    by depth ascending, larger area first as a tiebreak.
+    """
+    arr = np.asarray(img)
+    opaque = arr[..., 3] > 128
+    rgb = arr[..., :3]
+    n = len(palette)
+    masks = [opaque & np.all(rgb == np.asarray(c, np.uint8), axis=-1) for c in palette]
+    areas = [int(m.sum()) for m in masks]
+
+    surround: list[int | None] = [None] * n
+    for i in range(n):
+        if areas[i] == 0:
+            continue
+        ring = ndimage.binary_dilation(masks[i], iterations=_RING_PX) & ~masks[i]
+        ring_total = int(ring.sum())
+        if ring_total == 0:
+            continue
+        best_cnt, best_j = max(
+            ((int((ring & masks[j]).sum()), j) for j in range(n) if j != i),
+            default=(0, -1),
+        )
+        if best_cnt / ring_total >= _ENCLOSE_FRAC:
+            surround[i] = best_j
+
+    def depth(i: int) -> int:
+        seen, d = set(), 0
+        while surround[i] is not None and i not in seen:
+            seen.add(i)
+            i = surround[i]
+            d += 1
+        return d
+
+    return sorted(range(n), key=lambda i: (depth(i), -areas[i]))
+
+
 def _write_layered_svg(
     svg_path: Path,
     groups: dict[int, list[tuple[str, str | None]]],
+    order: list[int],
     thread_map: list[dict],
     size_mm: dict,
     size_px: tuple[int, int],
@@ -117,9 +165,11 @@ def _write_layered_svg(
     svg.set("viewBox", f"0 0 {px_w} {px_h}")
 
     n_paths = 0
-    # Palette order = coverage desc, so larger fills sit under smaller detail.
-    # (True foreground-last stacking is step 5's job.)
-    for idx in sorted(groups):
+    # Document order = sew order: background first, foreground (enclosed) last,
+    # so the top layers' stitches sit on top (see _sew_order).
+    for idx in order:
+        if idx not in groups:
+            continue
         m = thread_map[idx]
         tr, tg, tb = m["thread_rgb"]
         fill = f"#{tr:02X}{tg:02X}{tb:02X}"

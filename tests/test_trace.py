@@ -75,6 +75,20 @@ def test_one_group_per_colour_with_label_and_thread_fill(tmp_path):
         assert fills.pop() in thread_hexes           # recoloured to a thread cone
 
 
+def test_sew_order_enclosed_colour_sews_last():
+    # red square containing a blue square; green square off on its own.
+    arr = np.zeros((120, 200, 4), np.uint8)
+    arr[20:100, 10:90] = (200, 30, 30, 255)    # red (idx 0)
+    arr[45:75, 35:65] = (20, 40, 160, 255)     # blue inside red (idx 1)
+    arr[40:80, 140:180] = (30, 150, 40, 255)   # green, separate (idx 2)
+    img = Image.fromarray(arr, "RGBA")
+    palette = [(200, 30, 30), (20, 40, 160), (30, 150, 40)]
+
+    order = trace._sew_order(img, palette)
+    assert order[-1] == 1                       # enclosed blue sews last
+    assert order.index(0) < order.index(1)      # its encloser (red) sews first
+
+
 def test_requires_thread_map(tmp_path):
     # Run only up to preprocess, then trace must refuse.
     path = tmp_path / "in.png"
