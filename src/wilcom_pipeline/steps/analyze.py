@@ -22,11 +22,11 @@ from scipy import ndimage
 from sklearn.cluster import MiniBatchKMeans
 
 from ..config import PipelineContext
+from ..imaging import BG_COLOR_TOL, load_rgb_alpha
 
 # --- tunables (documented so they're easy to calibrate against references) ---
 _ANALYSIS_MAX_DIM = 400        # downsample longest side to this for stats (speed)
 _BG_BORDER_FRAC = 0.45         # border must be >=45% one color to call bg separable
-_BG_COLOR_TOL = 28.0           # L2 RGB distance treated as "same colour" as bg
 _MAX_CLUSTERS_PROBE = 12       # upper bound on element colours we look for
 _MIN_CLUSTER_COVERAGE = 0.02   # clusters below this fraction of fg are noise
 _LOW_CONTRAST_RATIO = 2.0      # WCAG contrast ratio below this = merge/vanish risk
@@ -40,7 +40,7 @@ def run(ctx: PipelineContext) -> None:
     img.load()
     full_w, full_h = img.size
 
-    rgb_full, alpha_full = _to_rgb_alpha(img)
+    rgb_full, alpha_full = load_rgb_alpha(img)
     rgb, alpha = _downsample(rgb_full, alpha_full, _ANALYSIS_MAX_DIM)
     sh, sw = rgb.shape[:2]
 
@@ -104,14 +104,6 @@ def run(ctx: PipelineContext) -> None:
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
-def _to_rgb_alpha(img: Image.Image) -> tuple[np.ndarray, np.ndarray | None]:
-    """Return (HxWx3 uint8 RGB, HxW uint8 alpha or None)."""
-    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
-        rgba = np.asarray(img.convert("RGBA"))
-        return np.ascontiguousarray(rgba[..., :3]), np.ascontiguousarray(rgba[..., 3])
-    return np.asarray(img.convert("RGB")), None
-
-
 def _downsample(
     rgb: np.ndarray, alpha: np.ndarray | None, max_dim: int
 ) -> tuple[np.ndarray, np.ndarray | None]:
@@ -153,7 +145,7 @@ def _detect_background(
     border_frac = counts.max() / len(border)
 
     dist = np.linalg.norm(rgb.reshape(-1, 3).astype(np.float32) - top, axis=1)
-    bg_pixels = dist < _BG_COLOR_TOL
+    bg_pixels = dist < BG_COLOR_TOL
     cov = float(bg_pixels.mean())
     fg_mask = (~bg_pixels).reshape(h, w)
     separable = bool(border_frac >= _BG_BORDER_FRAC)
