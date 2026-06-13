@@ -49,12 +49,22 @@ def test_artifact_paths_follow_convention(tmp_path):
 
 
 def test_pipeline_stops_gracefully_at_first_unimplemented_step(tmp_path, capsys):
-    # Every step is a stub today; the run should stop at step 1 (analyze)
-    # without raising, and create the output dir along the way.
-    ctx = pipeline.run(_config(tmp_path))
+    # analyze (step 1) is implemented; the run should get through it, populate
+    # ctx.analysis, then stop cleanly at the first stub (step 2, preprocess).
+    import numpy as np
+    from PIL import Image
+
+    img = tmp_path / "in.png"
+    arr = np.full((64, 64, 3), 255, np.uint8)
+    arr[20:44, 20:44] = (10, 10, 10)
+    Image.fromarray(arr).save(img)
+
+    ctx = pipeline.run(_config(tmp_path, input_path=img))
+    out = capsys.readouterr().out
     assert (tmp_path / "out").is_dir()
-    assert "NOT YET IMPLEMENTED" in capsys.readouterr().out
-    assert ctx.analysis == {}  # nothing populated yet
+    assert "NOT YET IMPLEMENTED" in out
+    assert "stopped at step 2 (preprocess)" in out
+    assert ctx.analysis  # populated by analyze
 
 
 def test_cli_parser_requires_image_and_size():

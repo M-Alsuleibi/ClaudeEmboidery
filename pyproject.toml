@@ -8,6 +8,7 @@ dependencies = [
     "pillow>=10.4",      # image read / quantize / preview render
     "numpy>=1.26",       # array math for analyze + preprocess
     "scikit-learn>=1.5", # color clustering (quantize) + thread matching
+    "scipy>=1.11",       # distance transform / local maxima (analyze: smallest feature)
     "vtracer>=0.6.11",   # raster -> SVG vector trace (step 4)
     "pyembroidery>=1.5", # write VP3 + read reference DST (step 6)
     "lxml>=5.0",         # SVG manipulation (recolor, layer-per-color)
