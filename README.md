@@ -64,13 +64,16 @@ pass/fail quality gate. Run `.venv/bin/pytest` (44 tests; stitch/emit cases need
 vendored Ink-Stitch binary and skip without it).
 
 Step 5 tuning so far: `inkstitch:*` params for fill underlay, ~0.4 mm density, pull
-compensation, `trim_after` (long hops trimmed → Break-Apart boundaries), and **satin
+compensation, `trim_after` (long hops trimmed → Break-Apart boundaries), **satin
 columns for linework colours** (calligraphy/text/thin strokes: `fill_to_stroke` →
-`stroke_to_satin`, with a tatami-fill fallback per region).
+`stroke_to_satin`, with a tatami-fill fallback per region), and **foreground-last
+sequencing** (sew order by enclosure depth — backgrounds first, enclosed detail last).
 
-Next: Phase B (Windows AHK → Wilcom `.emb`, out of this repo's scope); foreground-last
-sequencing; per-stroke variable satin width. Note: stitch tests invoke Ink-Stitch, so the
-suite takes ~1–2 min.
+A draft **Phase B** script (`phase_b/emb_save.ahk`) takes the VP3 into Wilcom and saves
+the `.emb`; it's authored but untested against a live ES (needs Windows + a dongle).
+
+Next: validate Phase B on Windows; per-stroke variable satin width. Note: stitch tests
+invoke Ink-Stitch, so the suite takes ~1–2 min.
 
 ## Layout
 
