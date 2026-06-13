@@ -36,6 +36,10 @@ _WORK_MAX_DIM = 1200
 # not stitchable features — drop them after the background is removed.
 _MIN_FEATURE_MM2 = 0.5
 
+# Majority-filter neighbourhood (mm) used to collapse dithered specks into solid
+# blocks. Bigger = fewer/larger blocks (simpler for the machine), coarser detail.
+_CONSOLIDATE_MM = 1.2
+
 
 def run(ctx: PipelineContext) -> None:
     cfg = ctx.config
@@ -65,13 +69,20 @@ def run(ctx: PipelineContext) -> None:
     if not palette:
         raise RuntimeError("preprocess: analyze found no element colours to quantise.")
 
-    out, counts = _quantize(rgb, mask, palette)
+    mm_per_px = analysis["size_mm"]["width_mm"] / rgb.shape[1]
+    idx_map = _assign_indices(rgb, mask, palette)
+    # Consolidate dithered specks into fewer, larger continuous blocks (each
+    # block becomes one stitched object downstream — fewer machine trims).
+    k = round(_CONSOLIDATE_MM / mm_per_px)
+    k = max(3, k + 1 - (k % 2))  # nearest odd >= 3
+    idx_map = _consolidate(idx_map, len(palette), k)
+    out, counts = _render(idx_map, palette)
 
     order = [i for i in np.argsort(counts)[::-1] if counts[i] > 0]
     ctx.palette = [palette[i] for i in order]
     ctx.preprocessed_image = Image.fromarray(out, "RGBA")
 
-    dropped = 1.0 - float(mask.mean())
+    dropped = 1.0 - float((idx_map >= 0).mean())
     print(
         f"      quantised to {len(ctx.palette)} colour(s); "
         f"background dropped {dropped * 100:.1f}% of pixels; "
@@ -141,24 +152,22 @@ def _reduce_palette(colors: list[dict], num_colors: int) -> list[tuple[int, int,
     return [p["rgb"] for p in pal]
 
 
-def _quantize(
+def _assign_indices(
     rgb: np.ndarray, mask: np.ndarray, palette: list[tuple[int, int, int]]
-) -> tuple[np.ndarray, np.ndarray]:
-    """Snap each foreground pixel to the nearest palette colour (in Lab).
+) -> np.ndarray:
+    """Map each foreground pixel to its nearest palette colour (in Lab).
 
-    Returns (HxWx4 RGBA, per-palette pixel counts). Background -> (0,0,0,0).
+    Returns an HxW int map: palette index, or -1 for background.
     """
     h, w = rgb.shape[:2]
-    out = np.zeros((h, w, 4), dtype=np.uint8)
+    idx_map = np.full((h, w), -1, dtype=np.int32)
     fg = rgb[mask].astype(np.float32)
     if len(fg) == 0:
-        return out, np.zeros(len(palette), dtype=int)
+        return idx_map
 
     labs_px = srgb_to_lab(fg)
     labs_pal = srgb_to_lab(np.array(palette, dtype=float))
-
-    # Nearest centroid via k passes (k is small) — keeps memory at O(N), not O(N*k).
-    best_idx = np.zeros(len(labs_px), dtype=int)
+    best_idx = np.zeros(len(labs_px), dtype=np.int32)
     best_d = np.full(len(labs_px), np.inf)
     for ki in range(len(labs_pal)):
         dk = np.linalg.norm(labs_px - labs_pal[ki], axis=1)
@@ -166,8 +175,45 @@ def _quantize(
         best_d[closer] = dk[closer]
         best_idx[closer] = ki
 
-    pal_arr = np.array(palette, dtype=np.uint8)
-    out[mask, :3] = pal_arr[best_idx]
-    out[mask, 3] = 255
-    counts = np.bincount(best_idx, minlength=len(palette))
+    idx_map[mask] = best_idx
+    return idx_map
+
+
+def _consolidate(idx_map: np.ndarray, n_colors: int, k: int) -> np.ndarray:
+    """Collapse dithered specks into solid blocks with a majority (mode) filter.
+
+    A shaded photo posterises into many tiny same-colour specks; left alone each
+    becomes its own stitched object (lots of machine trims/travel). Reassigning
+    each foreground pixel to the colour that dominates its k-px neighbourhood
+    merges the dither into a few larger continuous blocks. Foreground stays
+    foreground (so the background drop is preserved), and a thin stroke sitting
+    on the (transparent) background is safe — only its own colour gets votes
+    there — so clean linework like calligraphy is not eroded.
+    """
+    if k < 3:
+        return idx_map
+    fg = idx_map >= 0
+    if not fg.any():
+        return idx_map
+    votes = np.stack(
+        [ndimage.uniform_filter((idx_map == c).astype(np.float32), size=k)
+         for c in range(n_colors)]
+    )
+    new = votes.argmax(axis=0).astype(np.int32)
+    new[~fg] = -1
+    return new
+
+
+def _render(idx_map: np.ndarray, palette: list[tuple[int, int, int]]) -> tuple[np.ndarray, np.ndarray]:
+    """Build the RGBA image + per-palette pixel counts from an index map."""
+    h, w = idx_map.shape
+    out = np.zeros((h, w, 4), dtype=np.uint8)
+    fg = idx_map >= 0
+    if fg.any():
+        pal = np.array(palette, dtype=np.uint8)
+        out[fg, :3] = pal[idx_map[fg]]
+        out[fg, 3] = 255
+        counts = np.bincount(idx_map[fg], minlength=len(palette))
+    else:
+        counts = np.zeros(len(palette), dtype=int)
     return out, counts

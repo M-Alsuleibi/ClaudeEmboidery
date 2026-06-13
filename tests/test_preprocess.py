@@ -89,6 +89,32 @@ def test_requires_analysis_first(tmp_path):
         preprocess.run(ctx)
 
 
+def test_consolidate_merges_dither():
+    # a block of colour 0 sprinkled with colour-1 specks (like posterised shading)
+    from scipy import ndimage
+
+    rng = np.random.default_rng(0)
+    idx = np.zeros((40, 40), np.int32)
+    idx[rng.random((40, 40)) < 0.25] = 1
+
+    _, b0 = ndimage.label(idx == 0)
+    _, b1 = ndimage.label(idx == 1)
+    out = preprocess._consolidate(idx.copy(), 2, k=5)
+    _, a0 = ndimage.label(out == 0)
+    _, a1 = ndimage.label(out == 1)
+
+    assert (a0 + a1) < (b0 + b1)                  # far fewer components
+    assert (out == 1).sum() < (idx == 1).sum()    # minority specks absorbed
+
+
+def test_consolidate_keeps_background_dropped():
+    # foreground (>=0) stays foreground; background (-1) stays background
+    idx = np.full((20, 20), -1, np.int32)
+    idx[5:15, 5:15] = 0
+    out = preprocess._consolidate(idx.copy(), 1, k=5)
+    assert (out == -1).sum() == (idx == -1).sum()
+
+
 def test_working_resolution_is_capped(tmp_path):
     arr = _solid(2000, 2000, (255, 255, 255))
     arr[400:1600, 400:1600] = (30, 120, 60)
