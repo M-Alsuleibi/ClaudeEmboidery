@@ -22,11 +22,11 @@ from scipy import ndimage
 from sklearn.cluster import MiniBatchKMeans
 
 from ..config import PipelineContext
-from ..imaging import BG_COLOR_TOL, load_rgb_alpha
+from ..imaging import background_like, border_connected_background, load_rgb_alpha
 
 # --- tunables (documented so they're easy to calibrate against references) ---
 _ANALYSIS_MAX_DIM = 400        # downsample longest side to this for stats (speed)
-_BG_BORDER_FRAC = 0.45         # border must be >=45% one color to call bg separable
+_BG_BORDER_FRAC = 0.60         # >=60% of the border ring must be background-like
 _MAX_CLUSTERS_PROBE = 12       # upper bound on element colours we look for
 _MIN_CLUSTER_COVERAGE = 0.02   # clusters below this fraction of fg are noise
 _LOW_CONTRAST_RATIO = 2.0      # WCAG contrast ratio below this = merge/vanish risk
@@ -137,28 +137,25 @@ def _detect_background(
                 ~transparent,
             )
 
-    # 2) Dominant border colour.
+    # 2) Border-seeded background: representative colour = median of the border
+    #    ring; the background is the border-like region connected to the edge.
     border = np.concatenate([rgb[0], rgb[-1], rgb[:, 0], rgb[:, -1]]).reshape(-1, 3)
-    quant = (border // 8 * 8).astype(np.int32)
-    keys, counts = np.unique(quant, axis=0, return_counts=True)
-    top = keys[counts.argmax()]
-    border_frac = counts.max() / len(border)
+    bg_color = tuple(int(c) for c in np.median(border, axis=0))
 
-    dist = np.linalg.norm(rgb.reshape(-1, 3).astype(np.float32) - top, axis=1)
-    bg_pixels = dist < BG_COLOR_TOL
-    cov = float(bg_pixels.mean())
-    fg_mask = (~bg_pixels).reshape(h, w)
-    separable = bool(border_frac >= _BG_BORDER_FRAC)
+    bg = border_connected_background(rgb, bg_color)
+    fg_mask = ~bg
+    cov = float(bg.mean())
 
-    # exact bg colour = mean of the matched border-ish pixels (nicer than quantised key)
-    bg_color = tuple(int(c) for c in rgb.reshape(-1, 3)[bg_pixels].mean(axis=0)) if bg_pixels.any() else tuple(int(c) for c in top)
+    # how much of the border ring is actually background-like (separability cue)
+    border_bg_frac = float(background_like(border, bg_color).mean())
+    separable = bool(border_bg_frac >= _BG_BORDER_FRAC and cov < 0.999)
 
     return (
         {
             "method": "border-dominant",
             "color": bg_color,
             "coverage": round(cov, 4),
-            "border_fraction": round(float(border_frac), 4),
+            "border_fraction": round(border_bg_frac, 4),
             "is_separable": separable,
         },
         fg_mask,

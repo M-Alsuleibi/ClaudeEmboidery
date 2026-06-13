@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 from ..color import srgb_to_lab
 from ..config import PipelineContext
@@ -30,6 +31,10 @@ from ..imaging import foreground_mask, load_rgb_alpha
 # Cap working resolution. Embroidery doesn't need photo-grade detail: at an 80 mm
 # design 1200 px is ~15 px/mm, well past machine resolution (~0.1 mm).
 _WORK_MAX_DIM = 1200
+
+# Foreground components smaller than this (real-world area) are background noise,
+# not stitchable features — drop them after the background is removed.
+_MIN_FEATURE_MM2 = 0.5
 
 
 def run(ctx: PipelineContext) -> None:
@@ -46,6 +51,12 @@ def run(ctx: PipelineContext) -> None:
     bg = analysis["background"]
     if bg.get("is_separable"):
         mask = foreground_mask(rgb, alpha, bg)
+        # Drop foreground specks smaller than a stitchable feature: background
+        # texture/noise leaves isolated dots that aren't border-connected and
+        # would otherwise become hundreds of junk stitches.
+        mm_per_px = analysis["size_mm"]["width_mm"] / rgb.shape[1]
+        min_px = max(4, round(_MIN_FEATURE_MM2 / (mm_per_px**2)))
+        mask = _despeckle(mask, min_px)
     else:
         # No clean background to remove — keep every pixel, just posterise.
         mask = np.ones(rgb.shape[:2], dtype=bool)
@@ -86,6 +97,18 @@ def _downsample(
         else None
     )
     return rgb_s, alpha_s
+
+
+def _despeckle(mask: np.ndarray, min_px: int) -> np.ndarray:
+    """Remove connected foreground components smaller than min_px pixels."""
+    if min_px <= 1:
+        return mask
+    labels, n = ndimage.label(mask)
+    if n == 0:
+        return mask
+    counts = np.bincount(labels.ravel())
+    counts[0] = 0  # the background label
+    return (counts >= min_px)[labels]
 
 
 def _reduce_palette(colors: list[dict], num_colors: int) -> list[tuple[int, int, int]]:

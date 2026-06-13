@@ -37,8 +37,12 @@ def run(ctx: PipelineContext) -> None:
     img = ctx.preprocessed_image
     px_w, px_h = img.size
 
-    # Smooth outlines for photos, crisp corners for graphics/text.
-    mode = "spline" if ctx.analysis.get("kind") == "photo" else "polygon"
+    # Smooth outlines for photos, crisp corners for graphics/text. Photos
+    # posterise into many tiny regions, so drop bigger speckles there to keep
+    # the path count (and stitch count) sane for embroidery.
+    is_photo = ctx.analysis.get("kind") == "photo"
+    mode = "spline" if is_photo else "polygon"
+    filter_speckle = 10 if is_photo else 4
 
     arr = np.asarray(img)  # H x W x 4
     pixels = [tuple(p) for p in arr.reshape(-1, 4).tolist()]
@@ -48,7 +52,7 @@ def run(ctx: PipelineContext) -> None:
         colormode="color",
         hierarchical="stacked",
         mode=mode,
-        filter_speckle=4,
+        filter_speckle=filter_speckle,
         color_precision=8,
         path_precision=8,
     )
