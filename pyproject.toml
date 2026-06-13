@@ -1,0 +1,31 @@
+[project]
+name = "wilcom-pipeline"
+version = "0.1.0"
+description = "Phase A: turn a photo into a production-ready VP3 + worksheet + preview for Wilcom EmbroideryStudio."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pillow>=10.4",      # image read / quantize / preview render
+    "numpy>=1.26",       # array math for analyze + preprocess
+    "scikit-learn>=1.5", # color clustering (quantize) + thread matching
+    "vtracer>=0.6.11",   # raster -> SVG vector trace (step 4)
+    "pyembroidery>=1.5", # write VP3 + read reference DST (step 6)
+    "lxml>=5.0",         # SVG manipulation (recolor, layer-per-color)
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+wilcom-pipeline = "wilcom_pipeline.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

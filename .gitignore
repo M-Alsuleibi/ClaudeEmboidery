@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Pipeline artifacts (generated, not source)
+/output/
+*.vp3
+*.dst
+*.emb
+
+# Samples can be large / proprietary — track deliberately, not by default
+/samples/*
+!/samples/.gitkeep
+
+# OS / editor
+.DS_Store
+*.swp
