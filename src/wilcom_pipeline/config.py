@@ -15,6 +15,12 @@ from typing import Any
 # Catalogs we know how to snap colors to (step 3). Extend in data/threads/.
 SUPPORTED_THREAD_CHARTS = ("madeira-polyneon", "isacord")
 
+# Production categories (the router's classes). Used by step 7's fingerprint drift check
+# to compare a run against the ground-truth profile for its category (data/category_profiles.json).
+SUPPORTED_CATEGORIES = (
+    "letters", "arabic", "3D", "anime", "simple-shapes", "decoration", "numbers",
+)
+
 # Ink-Stitch fill methods for solid regions (step 5). `auto_fill` routes one
 # continuous path (best for compact shapes, but its travel routing is O(complex)
 # and can time out on long thin sprawling regions like calligraphy). `contour_fill`
@@ -84,6 +90,11 @@ class PipelineConfig:
     # most of the skeleton (a dense mesh like a turtle-shell band stays one fill). No-op
     # under --lettering (which already dissects). See stitches._linework_prepass.
     branch_satin: bool = False
+    # Production category (letters/arabic/3D/anime/simple-shapes/decoration/numbers) for
+    # step-7's fingerprint drift check — the run is scored against that category's ground-truth
+    # profile (data/category_profiles.json: satin%, colours, density, satin width). None => verify
+    # infers the nearest category by feature match. Purely informational (never fails the gate).
+    category: str | None = None
     # Black-ink snap (step 2): dedicate one palette slot to pure black and route the
     # near-black, near-neutral pixels (a logo's outline/keyline, eye pupils) to it.
     # Quantisation otherwise averages a thin anti-aliased black outline into a dark
@@ -140,6 +151,11 @@ class PipelineConfig:
             )
         if self.num_colors < 1:
             raise ValueError("num_colors must be >= 1")
+        if self.category is not None and self.category not in SUPPORTED_CATEGORIES:
+            raise ValueError(
+                f"Unknown category {self.category!r}; "
+                f"supported: {', '.join(SUPPORTED_CATEGORIES)}"
+            )
 
     # --- Conventional artifact paths (step 6 deliverables) ---
     @property

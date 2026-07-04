@@ -10,7 +10,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import SUPPORTED_FILL_METHODS, SUPPORTED_THREAD_CHARTS, PipelineConfig
+from .config import (
+    SUPPORTED_CATEGORIES,
+    SUPPORTED_FILL_METHODS,
+    SUPPORTED_THREAD_CHARTS,
+    PipelineConfig,
+)
 from . import pipeline
 
 
@@ -36,6 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
                         "routing can be pathologically slow / time out on long thin "
                         "sprawling regions; 'contour_fill' follows the shape contour "
                         "(fast, natural for calligraphy); 'meander_fill' stipples.")
+    p.add_argument("--category", choices=SUPPORTED_CATEGORIES, default=None,
+                   help="Production category of the design (letters/arabic/3D/anime/"
+                        "simple-shapes/decoration/numbers). Step 7 scores the run against that "
+                        "category's ground-truth fingerprint and flags drift (satin%%, colours, "
+                        "density). Optional — omit and verify infers the nearest category. "
+                        "Never fails the gate; it's production-style guidance.")
     p.add_argument("--output-dir", type=Path, default=Path("output"),
                    help="Where to write the artifacts (default: ./output).")
     p.add_argument("--name", default=None,
@@ -141,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
             auto_route=args.auto_route,
             realistic_preview=args.realistic_preview,
             gradient=args.gradient,
+            category=args.category,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

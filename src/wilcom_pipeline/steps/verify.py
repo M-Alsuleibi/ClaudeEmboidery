@@ -22,6 +22,7 @@ from collections import Counter
 
 import pyembroidery as pe
 
+from .. import fingerprint
 from ..config import PipelineContext
 
 _STITCH = pe.STITCH & 0xFF
@@ -68,6 +69,13 @@ def run(ctx: PipelineContext) -> None:
     checks.append(_chk("not_fragmented", frag <= _MAX_FRAG, "warn",
                        f"{frag*100:.2f}% trims+jumps per stitch (max {_MAX_FRAG*100:.0f}%)"))
 
+    # Production-fit: score the run against the ground-truth fingerprint for its category
+    # (data/category_profiles.json). A `warn` (never fails the gate) — production-style
+    # guidance, e.g. "the truth for arabic is 100% satin but this is 0%; density too sparse".
+    fit = _production_fit(ctx, pattern)
+    if fit is not None:
+        checks.append(_chk("production_fit", fit["passed"], "warn", fit["detail"]))
+
     # Carry forward analyze's quality flags as informational notes.
     notes = list(ctx.analysis.get("warnings", []))
 
@@ -76,6 +84,7 @@ def run(ctx: PipelineContext) -> None:
         "passed": passed,
         "checks": checks,
         "notes": notes,
+        "production_fit": fit,
         "metrics": {
             "stitches": n_stitch,
             "colours": n_color,
@@ -94,6 +103,30 @@ def run(ctx: PipelineContext) -> None:
 # --------------------------------------------------------------------------- #
 def _chk(name: str, passed: bool, severity: str, detail: str) -> dict:
     return {"name": name, "passed": bool(passed), "severity": severity, "detail": detail}
+
+
+def _production_fit(ctx: PipelineContext, pattern) -> dict | None:
+    """Score this run against the ground-truth fingerprint for its category. Returns
+    {passed, category, declared, drift, detail} or None if no profiles are available.
+    The category is `ctx.config.category` if declared, else the nearest by feature match."""
+    profiles = fingerprint.load_profiles()
+    if not profiles:
+        return None
+    feat = fingerprint.features_from_pattern(pattern.stitches, pattern.threadlist)
+    declared = ctx.config.category
+    cat = declared or fingerprint.nearest_category(feat, profiles)
+    prof = profiles.get(cat) if cat else None
+    if not prof or not prof.get("n_files"):
+        return None
+    drift = fingerprint.drift_check(feat, prof)
+    src = "declared" if declared else "nearest"
+    parts = [f"{d['feature']}={d['value']:g} [{d['lo']:g}-{d['hi']:g}] "
+             f"{'ok' if d['ok'] else 'DRIFT'}" for d in drift]
+    detail = f"vs {cat} ({src}, n={prof['n_files']}): " + "; ".join(parts)
+    return {
+        "passed": all(d["ok"] for d in drift),
+        "category": cat, "declared": bool(declared), "drift": drift, "detail": detail,
+    }
 
 
 def _stitches_per_colour_block(stitches) -> list[int]:
