@@ -90,6 +90,15 @@ class PipelineConfig:
     # most of the skeleton (a dense mesh like a turtle-shell band stays one fill). No-op
     # under --lettering (which already dissects). See stitches._linework_prepass.
     branch_satin: bool = False
+    # Satin-lean (step 5): for a satin-dominant category (per the ground-truth fingerprint —
+    # arabic/decoration/letters/…), raise the satin ceiling + force branch dissection so bold
+    # strokes become satin columns instead of tatami fills, matching the truth's ~100% satin.
+    # OFF by default and DELIBERATELY so: the pipeline's fixed-width satins UNDER-COVER a
+    # bold/modulated stroke (measured on the Arabic run: satin% 0->100 matched the truth but
+    # source-coverage fell 99.9%->81.6%). It's the trace-vs-hand-digitize boundary — a faithful
+    # satin needs variable width (Phase-B craft). Opt in only when the production satin *look*
+    # matters more than pixel coverage; a no-op unless the category is satin-dominant.
+    satin_lean: bool = False
     # Production category (letters/arabic/3D/anime/simple-shapes/decoration/numbers) for
     # step-7's fingerprint drift check — the run is scored against that category's ground-truth
     # profile (data/category_profiles.json: satin%, colours, density, satin width). None => verify

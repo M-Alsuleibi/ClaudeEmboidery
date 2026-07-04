@@ -49,6 +49,7 @@ from lxml import etree
 from scipy import ndimage
 
 from ..config import PipelineContext
+from ..fingerprint import category_satin_dominant
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_BIN = _REPO_ROOT / "vendor" / "inkstitch" / "bin" / "inkstitch"
@@ -351,7 +352,13 @@ def _linework_indices(ctx: PipelineContext) -> set[int]:
     opaque = img[..., 3] > 128
     mm_per_px = ctx.analysis["size_mm"]["width_mm"] / img.shape[1]
     lettering = ctx.config.lettering
-    width_ceiling = _LETTERING_SATIN_MAX_WIDTH_MM if lettering else _SATIN_MAX_WIDTH_MM
+    # satin-lean: when the declared category's ground truth is satin-dominant (arabic,
+    # decoration, letters, …), raise the ceiling so bold strokes enter the linework pass and
+    # become satin columns instead of tatami — moving toward the truth's ~100% satin.
+    satin_lean = (ctx.config.satin_lean and category_satin_dominant(ctx.config.category)
+                  and not lettering)
+    width_ceiling = (_LETTERING_SATIN_MAX_WIDTH_MM if (lettering or satin_lean)
+                     else _SATIN_MAX_WIDTH_MM)
 
     line: set[int] = set()
     for i, rgb in enumerate(ctx.palette):
@@ -426,11 +433,17 @@ def _linework_prepass(
     # width (letters knowledge §8a, calibrated against the 10000.VP3 ground truth), and
     # run is disabled. So we satin EVERY substantial centerline of the block.
     lettering = ctx.config.lettering
+    # satin-lean (see _linework_indices): a satin-dominant category raises the ceiling AND
+    # turns on branch dissection, so a bold/branchy stroke becomes per-branch satins rather
+    # than one tatami fill — pushing the output toward the ground truth's ~100% satin.
+    satin_lean = (ctx.config.satin_lean and category_satin_dominant(ctx.config.category)
+                  and not lettering)
     run_enabled = ctx.config.thin_line_run and not lettering
-    branch_satin = ctx.config.branch_satin and not lettering
+    branch_satin = (ctx.config.branch_satin or satin_lean) and not lettering
     min_pts = _LETTERING_MIN_SATIN_PTS if lettering else _MIN_SATIN_PTS
-    width_ceiling = _LETTERING_SATIN_MAX_WIDTH_MM if lettering else _SATIN_MAX_WIDTH_MM
-    satin_max_mm = _LETTERING_SATIN_MAX_W_MM if lettering else _SATIN_MAX_W_MM
+    width_ceiling = (_LETTERING_SATIN_MAX_WIDTH_MM if (lettering or satin_lean)
+                     else _SATIN_MAX_WIDTH_MM)
+    satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
     run_strokes: list[tuple[object, int]] = []          # (centerline, colour idx)
     satin_cands: list[tuple[object, int, float]] = []   # (centerline, colour idx, width mm)
     drop_centerlines: list[object] = []

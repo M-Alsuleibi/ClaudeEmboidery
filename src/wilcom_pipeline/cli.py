@@ -95,6 +95,14 @@ def build_parser() -> argparse.ArgumentParser:
                         "restructures the sew path and can leave small gaps at junctions. "
                         "Guarded to fire only on a few long branches that form most of the "
                         "shape (a dense mesh stays a fill); no-op under --lettering.")
+    p.add_argument("--satin-lean", action=argparse.BooleanOptionalAction, default=False,
+                   help="For a satin-dominant category (--category arabic/decoration/letters/…), "
+                        "lean the tiering to satin: raise the ceiling + dissect branchy strokes "
+                        "so bold strokes become satin columns instead of tatami, matching the "
+                        "ground truth's ~100%% satin. OFF by default — the pipeline's fixed-width "
+                        "satins UNDER-COVER a bold/modulated stroke (Arabic: coverage 99.9%%->81.6%%). "
+                        "Use only when the satin *look* matters more than pixel coverage; no-op "
+                        "unless the category is satin-dominant.")
     p.add_argument("--snap-black", action=argparse.BooleanOptionalAction, default=True,
                    help="Dedicate one thread to pure black and route the near-black, "
                         "near-neutral pixels (a logo's outline/keyline, eye pupils) to it "
@@ -153,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
             realistic_preview=args.realistic_preview,
             gradient=args.gradient,
             category=args.category,
+            satin_lean=args.satin_lean,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

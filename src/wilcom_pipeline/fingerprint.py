@@ -147,6 +147,21 @@ def load_profiles() -> dict:
         return {}
 
 
+_SATIN_DOMINANT_MIN = 60.0  # median satin% above which a category's truth is "satin-dominant"
+
+
+def category_satin_dominant(category: str | None) -> bool:
+    """True when the ground-truth fingerprint for this category is satin-dominant (median
+    satin% >= _SATIN_DOMINANT_MIN) — letters/arabic/simple-shapes/decoration/numbers are,
+    3D is not, anime has no data. Step 5 uses this to lean the tiering toward satin so the
+    output moves toward the truth's ~100% satin instead of defaulting to tatami fills."""
+    if not category:
+        return False
+    prof = load_profiles().get(category) or {}
+    band = prof.get("satin_frac")
+    return bool(band and band.get("med", 0) >= _SATIN_DOMINANT_MIN)
+
+
 def _feat_vec(feat: dict, profiles: dict) -> np.ndarray | None:
     """Normalised feature vector for nearest-category matching (uses features every
     profile has: geometry + object mix, scaled by each feature's cross-category spread)."""
