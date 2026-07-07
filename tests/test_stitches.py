@@ -69,20 +69,68 @@ def test_stitched_extent_is_sane(tmp_path):
     assert 25 < width_mm < 55
 
 
-def test_thin_curved_stroke_becomes_satin(tmp_path):
-    # A thin, curved (multi-point centerline) stroke is "linework" -> satin.
+def test_curved_stroke_in_satin_band_becomes_underlaid_satin(tmp_path):
+    # A curved (multi-point centerline) stroke whose width lands in the satin
+    # band (>= ~1.6 mm) is "linework" -> a satin column, laid over the default
+    # center-walk + contour underlay (satin_underlay on by default).
     arr = np.full((140, 380, 3), 255, np.uint8)
     xs = np.arange(380)
     ys = (70 + 36 * np.sin(xs / 34.0)).astype(int)
     for x in xs:
-        arr[ys[x] - 2 : ys[x] + 3, x] = (20, 30, 90)  # ~5px-tall wavy band
+        arr[ys[x] - 3 : ys[x] + 4, x] = (20, 30, 90)  # ~7px-tall wavy band -> ~2 mm
     ctx = _run_to_trace(tmp_path, arr, width_mm=130.0, num_colors=4)
     stitches.run(ctx)
 
-    # the stitch-ready SVG should contain at least one satin column
-    ready = (tmp_path / "out" / "t_inkstitch.svg").read_text()
+    # the stitch-ready SVG should contain at least one *underlaid* satin column
+    ready = (tmp_path / "out" / "t_working.svg").read_text()
     assert "satin_column" in ready
+    assert "center_walk_underlay" in ready and "contour_underlay" in ready
     assert ctx.stitch_pattern is not None and len(ctx.stitch_pattern.stitches) > 100
+
+
+def test_hairline_stroke_becomes_running_stitch(tmp_path):
+    # A stroke thinner than the min satin width (~1.6 mm) is too thin to satin
+    # without fattening -> a running/bean (triple) stitch along its centerline
+    # (thin_line_run on by default; the playbook's "line < 1.6 mm -> run").
+    arr = np.full((140, 380, 3), 255, np.uint8)
+    xs = np.arange(380)
+    ys = (70 + 36 * np.sin(xs / 34.0)).astype(int)
+    for x in xs:
+        arr[ys[x] - 2 : ys[x] + 3, x] = (20, 30, 90)  # ~5px-tall wavy band -> ~1.5 mm
+    ctx = _run_to_trace(tmp_path, arr, width_mm=130.0, num_colors=4)
+    stitches.run(ctx)
+
+    ready = (tmp_path / "out" / "t_working.svg").read_text()
+    assert 'stroke_method="running_stitch"' in ready
+    assert 'bean_stitch_repeats' in ready          # triple/bean pass -> solid line
+    # Variable run length: nominal = straight-run max, tolerance auto-shortens on curves.
+    assert 'running_stitch_length_mm="4"' in ready
+    assert 'running_stitch_tolerance_mm="0.2"' in ready
+    assert "satin_column" not in ready             # not fattened into a satin
+    assert ctx.stitch_pattern is not None and len(ctx.stitch_pattern.stitches) > 100
+
+
+def test_thin_line_run_can_be_disabled(tmp_path):
+    # --no-thin-line-run forces the same hairline back into a (clamped) satin,
+    # the pre-② behaviour (bold-outline designs want this).
+    arr = np.full((140, 380, 3), 255, np.uint8)
+    xs = np.arange(380)
+    ys = (70 + 36 * np.sin(xs / 34.0)).astype(int)
+    for x in xs:
+        arr[ys[x] - 2 : ys[x] + 3, x] = (20, 30, 90)
+    path = tmp_path / "in.png"
+    Image.fromarray(arr.astype(np.uint8)).save(path)
+    cfg = PipelineConfig(
+        input_path=path, output_dir=tmp_path / "out", name="t",
+        target_width_mm=130.0, num_colors=4, thin_line_run=False,
+    )
+    ctx = PipelineContext(config=cfg)
+    for step in (analyze, preprocess, thread_match, trace, stitches):
+        step.run(ctx)
+
+    ready = (tmp_path / "out" / "t_working.svg").read_text()
+    assert "satin_column" in ready
+    assert 'stroke_method="running_stitch"' not in ready
 
 
 def test_requires_svg_path(tmp_path):

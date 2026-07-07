@@ -93,7 +93,14 @@ def _satin_params(pull_comp_mm: float, satin_underlay: bool) -> dict[str, str]:
 # run/triple-run"). A thin keyline is stitched *along* its centerline, not
 # fattened into a too-narrow satin. bean_stitch_repeats=1 -> a triple (bean) pass
 # so the line reads solid; a single running stitch can look sparse on a curve.
-_RUN_STITCH_LEN_MM = 2.0
+#
+# Variable run length (Wilcom manual p219-220, wilcom-manual-rules.md §2): instead of one
+# fixed length, set the nominal to the manual's straight-run maximum (~4.0 mm, "mimic
+# hand-made embroidery") and let Ink-Stitch's tolerance -- the manual's "chord gap" -- split
+# stitches shorter on tight curves so the line follows the shape closely (toward the manual's
+# ~1.8 mm). Long, few penetrations on straights; tight on curves.
+_RUN_STITCH_LEN_MM = 4.0
+_RUN_TOLERANCE_MM = 0.2     # chord gap: max deviation from the path before a stitch is split
 _RUN_BEAN_REPEATS = "1"
 
 
@@ -101,6 +108,7 @@ def _run_params() -> dict[str, str]:
     return {
         "stroke_method": "running_stitch",
         "running_stitch_length_mm": f"{_RUN_STITCH_LEN_MM:g}",
+        "running_stitch_tolerance_mm": f"{_RUN_TOLERANCE_MM:g}",
         "bean_stitch_repeats": _RUN_BEAN_REPEATS,
         "trim_after": "True",
     }
@@ -161,13 +169,16 @@ def run(ctx: PipelineContext) -> None:
         raise RuntimeError("stitches requires ctx.svg_path; run trace first.")
 
     binary = _locate_binary()
-    ready_svg = ctx.config.output_dir / f"{ctx.config.name}_inkstitch.svg"
+    # The stitch-ready ("working") SVG: every path carries its inkstitch:* object type + params.
+    # It's a kept deliverable (the object structure is lost when flattened to the VP3) and also
+    # feeds step 6's realistic preview. The _A/_B fill_to_stroke/stroke_to_satin passes derive
+    # their names from this stem, so they're the throwaway intermediates.
+    ready_svg = ctx.config.working_svg_path
     n_satin, n_run = _build_stitch_svg(ctx, binary, ready_svg)
 
     if ctx.config.auto_route and (n_satin or n_run):
         _auto_route(ctx, binary, ready_svg)
 
-    # keep the stitch-ready SVG for step 6's realistic preview render
     ctx.stitch_svg_path = ready_svg
 
     proc = subprocess.run(
@@ -256,7 +267,7 @@ def _build_stitch_svg(ctx: PipelineContext, binary: Path, dst: Path) -> tuple[in
     except Exception:  # classification is best-effort
         line_idx = set()
 
-    pc, ul = ctx.config.pull_compensation_mm, ctx.config.fill_underlay
+    pc, ul = ctx.config.resolved_pull_comp_mm, ctx.config.fill_underlay
     su = ctx.config.satin_underlay
     if not line_idx:
         _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su)
@@ -379,7 +390,7 @@ def _linework_prepass(
     ctx: PipelineContext, binary: Path, line_idx: set[int],
     dst: Path, src_svg: Path | None = None,
 ) -> tuple[int, int]:
-    pc, ul = ctx.config.pull_compensation_mm, ctx.config.fill_underlay
+    pc, ul = ctx.config.resolved_pull_comp_mm, ctx.config.fill_underlay
     su = ctx.config.satin_underlay
     src_svg = src_svg or ctx.svg_path
     root = etree.parse(str(src_svg)).getroot()
@@ -440,6 +451,19 @@ def _linework_prepass(
                   and not lettering)
     run_enabled = ctx.config.thin_line_run and not lettering
     branch_satin = (ctx.config.branch_satin or satin_lean) and not lettering
+    # Spine-guided fill: a region that stays a fill keeps its longest centerline as a
+    # guided_fill guide (rows follow the medial axis) instead of dropping all centerlines.
+    spine_fill = ctx.config.spine_fill
+    spine_cands: list[tuple[str, object, int]] = []  # (orig id, guide centerline, colour idx)
+
+    def _keep_as_fill(orig, lines, idx):
+        if spine_fill and lines:
+            guide = max(lines, key=lambda c: _polyline_len_uu(c.get("d") or ""))
+            spine_cands.append((orig, guide, idx))
+            drop_centerlines.extend(c for c in lines if c is not guide)
+        else:
+            drop_centerlines.extend(lines)
+
     min_pts = _LETTERING_MIN_SATIN_PTS if lettering else _MIN_SATIN_PTS
     width_ceiling = (_LETTERING_SATIN_MAX_WIDTH_MM if (lettering or satin_lean)
                      else _SATIN_MAX_WIDTH_MM)
@@ -484,9 +508,9 @@ def _linework_prepass(
                 drop_centerlines += [c for c in lines if c not in keep]
                 drop_originals.add(orig)
             else:
-                drop_centerlines += lines  # not stroke-like / too meshy -> one fill
+                _keep_as_fill(orig, lines, idx)  # not stroke-like / too meshy -> one fill
         else:
-            drop_centerlines += lines  # broad -> one continuous fill
+            _keep_as_fill(orig, lines, idx)  # broad -> one continuous fill
 
     # Satin-overflow guard (pathological stroke_to_satin slowness): demote the
     # satin candidates back to fills but keep the runs.
@@ -503,9 +527,31 @@ def _linework_prepass(
     # Apply the decisions to the tree — each satin at its own region width.
     for c, idx in run_strokes:
         _set_run_style(c, thread_hex.get(idx, "#000000"))
+    # Satin columns: with --vwidth-satin, build each one directly from its centerline + region
+    # boundary (rails offset by the LOCAL half-width) so it's a satin_column already; otherwise
+    # set a uniform stroke width for the stroke_to_satin pass. Per-column fallback on failure.
+    # satin-lean IMPLIES vwidth: leaning a satin-dominant category to satin with FIXED-width
+    # columns under-covers modulated strokes (measured: over-inks ~1.43x, IoU 67%); building the
+    # rails at the local half-width instead holds coverage AND matches the shape (1.22x, IoU 81%
+    # on the Ramadan calligraphy) while reading satin_frac=100 like the ground truth. So whenever
+    # we lean to satin we also build it variable-width — that's the fix the lean was blocked on.
+    vwidth = ctx.config.vwidth_satin or satin_lean
+    satin_ids: list[str] = []
+    n_vwidth = 0
     for c, idx, w_mm in satin_cands:
+        color = thread_hex.get(idx, "#000000")
+        if vwidth:
+            poly = originals.get((c.get("id") or "").rsplit("_", 1)[0])
+            try:
+                if poly is not None and _build_vwidth_satin(
+                        c, poly, color, mm_per_uu, satin_max_mm):
+                    n_vwidth += 1
+                    continue
+            except Exception:
+                pass  # degenerate geometry -> fixed-width fallback below
         w_uu = float(np.clip(w_mm, _SATIN_MIN_W_MM, satin_max_mm)) / mm_per_uu
-        _set_stroke_style(c, w_uu, thread_hex.get(idx, "#000000"))
+        _set_stroke_style(c, w_uu, color)
+        satin_ids.append(c.get("id"))
     for c in drop_centerlines:
         if c.getparent() is not None:
             c.getparent().remove(c)
@@ -513,15 +559,22 @@ def _linework_prepass(
         if orig in originals and originals[orig].getparent() is not None:
             originals[orig].getparent().remove(originals[orig])
 
+    # Spine-guided fills: wire each kept-as-fill region's guide centerline into a guided_fill.
+    # Applied to root_a, so it flows through both the runs-only and the stroke_to_satin paths.
+    if spine_cands:
+        n_spine = _apply_spine_fills(root_a, spine_cands, originals, thread_hex)
+        if n_spine:
+            print(f"      spine-fill -> {n_spine} region(s) guided by medial axis")
+
     n_run = len(run_strokes)
-    satin_ids = [c.get("id") for c, _idx, _w in satin_cands]
 
     if not satin_ids:
-        # runs only (or nothing) -> finalize without a stroke_to_satin pass.
+        # no stroke_to_satin needed (runs only, or every satin was built variable-width) ->
+        # finalize directly; regroup still picks up any vwidth satin_column paths.
         _regroup_linework_by_colour(root_a, thread_hex)
         _apply_fill_params(root_a, ctx.config.fill_method, pc, ul, su)
         tree_a.write(str(dst), xml_declaration=True, encoding="UTF-8")
-        return 0, n_run
+        return n_vwidth, n_run
 
     tree_a.write(str(tmp_a), xml_declaration=True, encoding="UTF-8")
 
@@ -534,7 +587,7 @@ def _linework_prepass(
     _regroup_linework_by_colour(tree_b.getroot(), thread_hex)
     _apply_fill_params(tree_b.getroot(), ctx.config.fill_method, pc, ul, su)
     tree_b.write(str(dst), xml_declaration=True, encoding="UTF-8")
-    return len(satin_ids), n_run
+    return len(satin_ids) + n_vwidth, n_run
 
 
 def _regroup_linework_by_colour(root, thread_hex: dict[int, str]) -> None:
@@ -751,6 +804,195 @@ def _set_run_style(p, color: str) -> None:
         p.set(f"{{{_INKSTITCH_NS}}}{key}", value)
 
 
+# Spine-guided fill (--spine-fill). A region kept as a FILL reuses its longest extracted
+# centerline as an Ink-Stitch guided_fill GUIDE, so the fill rows follow the shape's medial
+# axis (the PEmbroider hatchSpine idea) instead of a fixed angle. A guide line is a fill:none
+# stroke carrying the guide-line marker (which tells Ink-Stitch not to stitch it, only steer
+# the fill); it must live in the same <g> as the fill it steers. The marker def below is the
+# one Ink-Stitch's `selection_to_guide_line` emits (only its id has to match the style url).
+_GUIDE_MARKER_ID = "inkstitch-guide-line-marker"
+_GUIDE_MARKER_XML = (
+    '<marker xmlns="http://www.w3.org/2000/svg" refX="10" refY="5" orient="auto"'
+    f' id="{_GUIDE_MARKER_ID}" markerUnits="userSpaceOnUse" markerWidth="0.1"'
+    ' viewBox="0 0 1 1"><path style="fill:#fafafa;stroke:#ff5500;stroke-width:0.5"'
+    ' d="M 10.13,5.29 A 4.84,4.84 0 0 1 5.29,10.13 4.84,4.84 0 0 1 0.45,5.29'
+    ' 4.84,4.84 0 0 1 5.29,0.45 4.84,4.84 0 0 1 10.13,5.29 Z"'
+    ' id="inkstitch-guide-line-marker-circle"/></marker>'
+)
+
+
+# Variable-width satin (--vwidth-satin). A satin column is one <path inkstitch:satin_column>
+# whose `d` holds two long "rail" subpaths + short "rung" subpaths (Ink-Stitch treats the two
+# longest subpaths as rails, the rest as rungs pairing them). stroke_to_satin builds rails at a
+# CONSTANT offset from the centerline (one width) — under-covering a modulated stroke. Here we
+# offset each rail by the LOCAL half-width instead: the distance from that centerline point to
+# the region boundary (the medial-axis inscribed radius — PEmbroider hatchSpineVF's distance
+# field), so the satin fattens over the belly and tapers at the ends like a hand digitize.
+_VWIDTH_MIN_PTS = 6
+_VWIDTH_N_RUNGS = 14
+
+
+def _parse_transform(s: str) -> np.ndarray:
+    """SVG transform string -> 3x3 affine. Handles the ops vtracer/Ink-Stitch emit here
+    (translate/scale/matrix); unknown ops are skipped (treated as identity)."""
+    M = np.eye(3)
+    for op, args in re.findall(r"(\w+)\s*\(([^)]*)\)", s or ""):
+        v = [float(x) for x in re.split(r"[,\s]+", args.strip()) if x]
+        t = np.eye(3)
+        if op == "translate" and v:
+            t[0, 2], t[1, 2] = v[0], (v[1] if len(v) > 1 else 0.0)
+        elif op == "scale" and v:
+            t[0, 0], t[1, 1] = v[0], (v[1] if len(v) > 1 else v[0])
+        elif op == "matrix" and len(v) == 6:
+            t = np.array([[v[0], v[2], v[4]], [v[1], v[3], v[5]], [0, 0, 1]], float)
+        else:
+            continue
+        M = M @ t
+    return M
+
+
+def _ctm(el) -> np.ndarray:
+    """Cumulative transform (element + ancestors) mapping the element's local coords to the
+    root user-unit frame, so a centerline and its region boundary are comparable."""
+    mats = []
+    cur = el
+    while cur is not None and hasattr(cur, "get"):
+        t = cur.get("transform")
+        if t:
+            mats.append(_parse_transform(t))
+        cur = cur.getparent()
+    M = np.eye(3)
+    for m in reversed(mats):  # outermost (root) first
+        M = M @ m
+    return M
+
+
+def _xf(pts: np.ndarray, M: np.ndarray) -> np.ndarray:
+    """Apply a 3x3 affine to (N,2) points."""
+    if pts.size == 0:
+        return pts
+    h = np.column_stack([pts, np.ones(len(pts))])
+    return (h @ M.T)[:, :2]
+
+
+def _path_segments(d: str) -> tuple[np.ndarray, np.ndarray]:
+    """Boundary segments (A[i]->B[i]) of a polygon path, per subpath and closed. vtracer emits
+    polygons, so no curve flattening. Returns two (M,2) arrays of segment endpoints."""
+    A: list = []
+    B: list = []
+    for sub in re.split(r"[Mm]", d):
+        pts = [(float(x), float(y)) for x, y in _COORD_RE.findall(sub)]
+        if len(pts) < 2:
+            continue
+        arr = np.asarray(pts, float)
+        A.append(arr)
+        B.append(np.roll(arr, -1, axis=0))  # close the ring (last -> first)
+    if not A:
+        return np.empty((0, 2)), np.empty((0, 2))
+    return np.concatenate(A), np.concatenate(B)
+
+
+def _min_dist_to_segments(P: np.ndarray, A: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """Min distance from each point in P (N,2) to any segment A[i]-B[i]. Local half-width."""
+    AB = B - A
+    AB2 = (AB * AB).sum(1)
+    AB2 = np.where(AB2 == 0, 1e-9, AB2)
+    out = np.empty(len(P))
+    for i, p in enumerate(P):
+        t = np.clip(((p - A) * AB).sum(1) / AB2, 0.0, 1.0)
+        proj = A + t[:, None] * AB
+        out[i] = np.hypot(*(p - proj).T).min()
+    return out
+
+
+def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
+                        satin_max_mm: float) -> bool:
+    """Rewrite `center_el` in place from a centerline stroke into a variable-width satin column
+    (two rails offset by the local half-width + rungs). Returns False (leaving it untouched) if
+    the geometry is degenerate, so the caller can fall back to fixed-width stroke_to_satin."""
+    center = np.asarray(
+        [(float(x), float(y)) for x, y in _COORD_RE.findall(center_el.get("d") or "")], float)
+    if len(center) < _VWIDTH_MIN_PTS:
+        return False
+    A, B = _path_segments(poly_el.get("d") or "")
+    if len(A) == 0:
+        return False
+
+    # Resolve both to the root frame — the centerline and its boundary carry DIFFERENT per-path
+    # transforms (vtracer translate vs a fill_to_stroke scale), so raw coords aren't comparable.
+    center = _xf(center, _ctm(center_el))
+    Mp = _ctm(poly_el)
+    A, B = _xf(A, Mp), _xf(B, Mp)
+
+    hw = _min_dist_to_segments(center, A, B)                      # local half-width (root uu)
+    hw = np.convolve(hw, np.ones(5) / 5, mode="same")            # de-jitter
+    lo = (_SATIN_MIN_W_MM / 2) / mm_per_uu
+    hi = (satin_max_mm / 2) / mm_per_uu
+    hw = np.clip(hw, lo, hi)
+
+    tan = np.gradient(center, axis=0)
+    tan /= np.hypot(tan[:, 0], tan[:, 1])[:, None] + 1e-9
+    nrm = np.stack([-tan[:, 1], tan[:, 0]], axis=1)              # unit normal
+    left = center + nrm * hw[:, None]
+    right = center - nrm * hw[:, None]
+
+    def _sub(pts):
+        return "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts)
+
+    # rails first (longest subpaths), then interior rungs pairing them left<->right
+    parts = [_sub(left), _sub(right)]
+    n = len(center)
+    step = max(1, n // _VWIDTH_N_RUNGS)
+    for k in range(step, n - 1, step):
+        parts.append(f"M {left[k,0]:.3f},{left[k,1]:.3f} {right[k,0]:.3f},{right[k,1]:.3f}")
+
+    center_el.set("d", " ".join(parts))
+    center_el.attrib.pop("transform", None)  # rails are already baked into the root frame
+    center_el.set(f"{{{_INKSTITCH_NS}}}satin_column", "true")
+    center_el.set("style", f"fill:none;stroke:{color};stroke-width:1")
+    return True
+
+
+def _ensure_guide_marker(root) -> None:
+    """Add the guide-line marker def once (so `url(#...)` in a guide's style resolves)."""
+    for m in root.iter(f"{{{_SVG_NS}}}marker"):
+        if m.get("id") == _GUIDE_MARKER_ID:
+            return
+    defs = root.find(f"{{{_SVG_NS}}}defs")
+    if defs is None:
+        defs = etree.Element(f"{{{_SVG_NS}}}defs")
+        root.insert(0, defs)
+    defs.append(etree.fromstring(_GUIDE_MARKER_XML))
+
+
+def _apply_spine_fills(root, spine_cands, originals, thread_hex) -> int:
+    """Turn each (orig, guide, idx) into a guided_fill: mark the guide centerline, tag the
+    original fill `guided_fill`, and wrap the pair in their own <g> (a guide steers only the
+    fills in its group). Returns how many regions were converted."""
+    n = 0
+    for orig, guide, idx in spine_cands:
+        op = originals.get(orig)
+        if op is None or op.getparent() is None or guide.getparent() is None:
+            continue
+        _set_stroke_style(guide, 1.0, thread_hex.get(idx, "#000000"))
+        gs = guide.get("style") or ""
+        if _GUIDE_MARKER_ID not in gs:
+            guide.set("style", (gs + f";marker-start:url(#{_GUIDE_MARKER_ID})").lstrip(";"))
+        op.set(f"{{{_INKSTITCH_NS}}}fill_method", "guided_fill")
+        parent = op.getparent()
+        pos = list(parent).index(op)
+        grp = etree.Element(f"{{{_SVG_NS}}}g", id=f"spine_{orig}")
+        parent.insert(pos, grp)
+        for el in (op, guide):
+            if el.getparent() is not None:
+                el.getparent().remove(el)
+            grp.append(el)
+        n += 1
+    if n:
+        _ensure_guide_marker(root)
+    return n
+
+
 def _apply_fill_params(
     root, fill_method: str = "auto_fill",
     pull_comp_mm: float = 0.2, fill_underlay: bool = True,
@@ -782,7 +1024,10 @@ def _apply_fill_params(
         elif p.get("fill") and p.get("fill") != "none" and not _is_centerline(p):
             for key, value in fill_params.items():
                 p.set(f"{{{_INKSTITCH_NS}}}{key}", value)
-            if fill_method != "auto_fill":
+            # Don't override a fill_method already chosen per-region (e.g. spine-fill's
+            # guided_fill); only stamp the global one when the region hasn't picked one.
+            if (fill_method != "auto_fill"
+                    and p.get(f"{{{_INKSTITCH_NS}}}fill_method") is None):
                 p.set(f"{{{_INKSTITCH_NS}}}fill_method", fill_method)
 
 

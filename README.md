@@ -69,6 +69,28 @@ columns for linework colours** (calligraphy/text/thin strokes: `fill_to_stroke` 
 `stroke_to_satin`, with a tatami-fill fallback per region), and **foreground-last
 sequencing** (sew order by enclosure depth — backgrounds first, enclosed detail last).
 
+Step 6 also **stamps the matched cone into the VP3 threads** (`catalog_number` /
+`description` / `brand`), so Wilcom/Hatch opens the file with named cones, not bare
+RGB — matching the production reference files. See `letters/letters-embroidery-knowledge.md`
+for the measured `.vp3` binary format + the letters/name-calligraphy recipe (the
+format & thread-metadata sections there are cross-cutting; the `anime/` and `3D/`
+docs cover those categories).
+
+**Picking the right category & flags for any photo** is documented in
+[`EMBROIDERY-PLAYBOOK.md`](EMBROIDERY-PLAYBOOK.md) — the router across letters / 3D /
+anime (region→object rules, sew order, colour/size, and which flag to use).
+
+**`--lettering` mode** (block / typeset glyphs): calibrated against production
+ground-truth (`letters/10000`–`12000.VP3`), it routes letter strokes to **satin
+columns** (dissecting each glyph into stroke-columns, not filling it), raises the
+satin-width ceiling, and **snaps inks to pure colour**. Use it for block capitals /
+typeset words at a size that keeps strokes ~2–4 mm. It *shatters cursive/script*, so
+for **mixed** designs (display caps + cursive) use **`--purify-colors`** instead: it
+applies only the colour snap — near-pure primaries → pure, **custom/muted brand colours
+kept verbatim** (e.g. teal `42,133,143`, never neon) — on the safe default
+fill/satin classification. A raster trace only *approximates* typeset lettering; for a
+known phrase, typeset directly in Wilcom (Phase B). See knowledge doc §8a–§8b.
+
 A draft **Phase B** script (`phase_b/emb_save.ahk`) takes the VP3 into Wilcom and saves
 the `.emb`; it's authored but untested against a live ES (needs Windows + a dongle).
 

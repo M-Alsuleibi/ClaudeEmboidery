@@ -29,6 +29,32 @@ SUPPORTED_FILL_METHODS = (
     "auto_fill", "contour_fill", "meander_fill", "guided_fill", "circular_fill",
 )
 
+# Fabric -> automatic pull-compensation per side (mm). From the Wilcom Reference Manual
+# guideline table (p429; see wilcom-manual-rules.md): firmer / low-stretch fabrics need
+# less overstitch, stretchy / pile fabrics need more. `--fabric` sets the pull-comp
+# default; an explicit `--pull-comp-mm` still overrides it.
+FABRIC_PULL_COMP = {
+    "cotton": 0.20, "drill": 0.20, "denim": 0.20,    # firm / low stretch  (manual: 0.20)
+    "silk": 0.30,                                     # medium
+    "t-shirt": 0.35, "jersey": 0.35, "knit": 0.35,   # stretchy            (manual: 0.35)
+    "fleece": 0.40, "jumper": 0.40, "terry": 0.40,   # very stretchy / pile (manual: 0.40)
+}
+SUPPORTED_FABRICS = tuple(FABRIC_PULL_COMP)
+_DEFAULT_PULL_COMP_MM = 0.20  # historical default when neither --fabric nor --pull-comp-mm is given
+
+# Per-category default thread-colour count, used when --colors is omitted. Derived from the
+# ground-truth fingerprint medians (data/category_profiles.json) reinforced by the manual's
+# photo colour bands (grayscale 5-6, simple 7-10, complex 14-16; p1091). Real production is
+# far more sparing with thread than the old flat default of 8 — arabic / decoration /
+# simple-shapes are typically MONOCHROME. anime has no ground truth, so it takes the manual's
+# mid photo band. A colourful design in a monochrome-median category should pass an explicit
+# --colors (the "--colors 1 washout" trap cuts both ways). Explicit --colors always wins.
+CATEGORY_COLORS = {
+    "letters": 2, "arabic": 1, "3D": 8, "anime": 12,
+    "simple-shapes": 1, "decoration": 1, "numbers": 4,
+}
+_DEFAULT_NUM_COLORS = 8  # when neither --colors nor --category is given
+
 
 @dataclass(frozen=True)
 class PipelineConfig:
@@ -40,7 +66,9 @@ class PipelineConfig:
     # Exactly one of these is set by the user; the other is derived from aspect ratio.
     target_width_mm: float | None = None
     target_height_mm: float | None = None
-    num_colors: int = 8
+    # Thread-colour count. None => resolve from the category prior (CATEGORY_COLORS) if a
+    # category is given, else the flat default 8. See `resolved_num_colors`.
+    num_colors: int | None = None
     thread_chart: str = "madeira-polyneon"
     # Ink-Stitch fill method for solid fill regions (step 5). Default `auto_fill`;
     # use `contour_fill` for calligraphy / long thin shapes where auto_fill's travel
@@ -66,10 +94,14 @@ class PipelineConfig:
     # pull-compensation (fabric-pull comp) and, for fills, an underlay pass — together
     # ~0.2-0.4 mm per side. That fixed band over-fattens FINE decoration (thin tashkeel
     # on Arabic calligraphy), making them read heavier than the source art. Lower the
-    # pull-comp and/or drop the underlay to keep thin marks crisp. Defaults preserve
-    # the production behaviour; opt in via --pull-comp-mm / --no-fill-underlay.
-    pull_compensation_mm: float = 0.2
+    # pull-comp and/or drop the underlay to keep thin marks crisp. `None` => resolve from
+    # `fabric` (FABRIC_PULL_COMP) if set, else the 0.2 mm default. See `resolved_pull_comp_mm`.
+    pull_compensation_mm: float | None = None
     fill_underlay: bool = True
+    # Target fabric (--fabric): sets the default pull-compensation from the manual's fabric
+    # table (FABRIC_PULL_COMP: cotton/denim 0.20, silk 0.30, tee/knit 0.35, fleece/terry 0.40).
+    # A no-op if --pull-comp-mm is given explicitly. None => use the 0.2 mm default.
+    fabric: str | None = None
     # Satin underlay (step 5): lay a center-walk + contour underlay under every
     # satin column so its edges don't tunnel/pucker ("always underlay your satins").
     # On by default — the production norm; drop it to compare or to keep a very fine
@@ -93,11 +125,11 @@ class PipelineConfig:
     # Satin-lean (step 5): for a satin-dominant category (per the ground-truth fingerprint —
     # arabic/decoration/letters/…), raise the satin ceiling + force branch dissection so bold
     # strokes become satin columns instead of tatami fills, matching the truth's ~100% satin.
-    # OFF by default and DELIBERATELY so: the pipeline's fixed-width satins UNDER-COVER a
-    # bold/modulated stroke (measured on the Arabic run: satin% 0->100 matched the truth but
-    # source-coverage fell 99.9%->81.6%). It's the trace-vs-hand-digitize boundary — a faithful
-    # satin needs variable width (Phase-B craft). Opt in only when the production satin *look*
-    # matters more than pixel coverage; a no-op unless the category is satin-dominant.
+    # Now IMPLIES variable-width satin (see vwidth_satin): the old blocker was that FIXED-width
+    # satins under-cover a modulated stroke, but building the rails at the local half-width fixes
+    # it. Measured on the Ramadan calligraphy: satin_frac 0->100 (matches truth) AND coverage
+    # 97.9%->99.3%, shape-IoU 67%->81%, over-ink 1.43x->1.22x — better than the fill it replaces.
+    # Still opt-in + a no-op unless the category is satin-dominant (it restructures the sew path).
     satin_lean: bool = False
     # Production category (letters/arabic/3D/anime/simple-shapes/decoration/numbers) for
     # step-7's fingerprint drift check — the run is scored against that category's ground-truth
@@ -132,6 +164,44 @@ class PipelineConfig:
     # gradient via Ink-Stitch gradient_blocks, instead of hard flat bands. Off by default
     # (experimental: the hue/lightness/adjacency heuristic can over- or under-merge).
     gradient: bool = False
+    # Spine-guided fill (step 5, experimental): a region that lands in a FILL tier (branchy
+    # stroke in the satin band, or a broad blob) is normally stitched as a flat angle-fixed
+    # tatami and its extracted centerlines are discarded. With --spine-fill, keep the region's
+    # longest centerline as an Ink-Stitch guided_fill GUIDE so the fill rows follow the shape's
+    # medial axis instead of a single fixed angle (the PEmbroider hatchSpine idea, reusing the
+    # centerlines the tier already computes). This is a DIRECTIONAL / visual improvement only:
+    # a guided fill is still low-reversal rows, so it does NOT raise the fingerprint's satin%
+    # (only real satin columns do — see --satin-lean / --branch-satin). Off by default.
+    spine_fill: bool = False
+    # Variable-width satin (step 5): build each satin column DIRECTLY from its centerline + region
+    # boundary, offsetting the two rails by the LOCAL half-width (distance from the centerline to
+    # the boundary — the medial-axis / hatchSpineVF idea) instead of a single average width fed
+    # through stroke_to_satin. Fixes --satin-lean's under-coverage on bold/modulated strokes (its
+    # fixed-width satins can't fill a thick belly + thin ends). Measured win on the Ramadan
+    # calligraphy vs fixed-width: coverage 97.9->99.3%, shape-IoU 67->81%, over-ink 1.43x->1.22x,
+    # and it reads satin_frac=100 like the ground truth. Falls back to fixed-width per column on
+    # any geometry failure. Off by default on its own, but IMPLIED by --satin-lean.
+    vwidth_satin: bool = False
+
+    @property
+    def resolved_num_colors(self) -> int:
+        """The colour count actually used (step 2): explicit --colors wins, else the
+        category prior (CATEGORY_COLORS), else the flat default 8."""
+        if self.num_colors is not None:
+            return self.num_colors
+        if self.category is not None:
+            return CATEGORY_COLORS.get(self.category, _DEFAULT_NUM_COLORS)
+        return _DEFAULT_NUM_COLORS
+
+    @property
+    def resolved_pull_comp_mm(self) -> float:
+        """The pull-compensation actually used (step 5): explicit --pull-comp-mm wins, else
+        the fabric's value (FABRIC_PULL_COMP), else the 0.2 mm default."""
+        if self.pull_compensation_mm is not None:
+            return self.pull_compensation_mm
+        if self.fabric is not None:
+            return FABRIC_PULL_COMP.get(self.fabric, _DEFAULT_PULL_COMP_MM)
+        return _DEFAULT_PULL_COMP_MM
 
     @property
     def purify(self) -> bool:
@@ -158,12 +228,17 @@ class PipelineConfig:
                 f"Unknown fill method {self.fill_method!r}; "
                 f"supported: {', '.join(SUPPORTED_FILL_METHODS)}"
             )
-        if self.num_colors < 1:
+        if self.num_colors is not None and self.num_colors < 1:
             raise ValueError("num_colors must be >= 1")
         if self.category is not None and self.category not in SUPPORTED_CATEGORIES:
             raise ValueError(
                 f"Unknown category {self.category!r}; "
                 f"supported: {', '.join(SUPPORTED_CATEGORIES)}"
+            )
+        if self.fabric is not None and self.fabric not in FABRIC_PULL_COMP:
+            raise ValueError(
+                f"Unknown fabric {self.fabric!r}; "
+                f"supported: {', '.join(SUPPORTED_FABRICS)}"
             )
 
     # --- Conventional artifact paths (step 6 deliverables) ---
@@ -178,6 +253,13 @@ class PipelineConfig:
     @property
     def threadlist_path(self) -> Path:
         return self.output_dir / f"{self.name}_pro_threadlist.txt"
+
+    @property
+    def working_svg_path(self) -> Path:
+        """The stitch-ready SVG (step 5): every path carries its inkstitch:* object type +
+        params — the editable, object-level design, before it's flattened to the VP3. Kept as
+        a deliverable (the VP3 discards the object structure)."""
+        return self.output_dir / f"{self.name}_working.svg"
 
 
 @dataclass

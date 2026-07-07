@@ -102,8 +102,15 @@ These change step 2/3/5 behaviour and are central to output quality:
   there.
 - **`--open-counters`** — drop ink-*enclosed* page-coloured regions (the hole in e/B/g) to
   background so they read through. Auto-on for letter modes (`should_open_counters`).
-- **`--pull-comp-mm` / `--no-fill-underlay`** — lower/drop the fixed widening band so FINE
-  decoration (thin Arabic tashkeel) doesn't read heavier than the source art.
+- **`--pull-comp-mm` / `--fabric` / `--no-fill-underlay`** — control the fixed widening band.
+  `--fabric` (cotton/denim 0.20, silk 0.30, tee/knit 0.35, fleece/terry 0.40 mm — Wilcom manual
+  table, see `wilcom-manual-rules.md`) sets the pull-comp default; `--pull-comp-mm` overrides it
+  (lower it, e.g. 0.05, so FINE decoration like thin Arabic tashkeel doesn't read heavier than the
+  source); `--no-fill-underlay` drops the underlay pass. Resolved via `cfg.resolved_pull_comp_mm`.
+- **`--colors`** — thread-colour count. When omitted it defaults to the **category prior**
+  (`CATEGORY_COLORS`: arabic/decoration/simple-shapes 1, letters 2, numbers 4, 3D 8, anime 12) if
+  `--category` is set, else 8. Pass an explicit value for a colourful design in a monochrome-median
+  category. Resolved via `cfg.resolved_num_colors`.
 - **`--satin-underlay` / `--thin-line-run`** (both default **on**) — satin-quality knobs:
   underlay every satin column (center-walk + contour); route sub-1.6 mm linework to a
   running/bean stitch rather than a too-narrow satin. **`--branch-satin`** (default off)

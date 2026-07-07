@@ -10,6 +10,13 @@ Not machine learning in the deep sense: with ~83 unpaired ground-truth files (so
 <= 4), we fit distributions, not weights. A block is SATIN if >35% of its vertices reverse
 (turn >120 deg), FILL if <15%, else mixed (matches analyze_vp3.py); density = n_stitch / bbox
 area (matches verify.py). See memory: wilcom-stitch-type-taxonomy, per-region-tiering.
+
+Auto-Split caveat (Reference Manual p1197, see wilcom-manual-rules.md): a WIDE satin column
+whose long rail-to-rail stitch is broken into co-linear sub-stitches ("Auto Split") has its
+per-vertex reversal fraction DILUTED below 35%, so the rule above miscounts it as tatami --
+Wilcom's own machine-file reader hits the same trap unless "recognize auto splits" is on. We
+recover it geometrically in `_is_split_satin`: a narrow oscillating ribbon (many reversals,
+each a short rail-to-rail crossing <= the ~7mm satin ceiling) is satin regardless of splits.
 """
 from __future__ import annotations
 
@@ -41,9 +48,35 @@ _CC = pe.COLOR_CHANGE & 0xFF
 _CB = pe.COLOR_BREAK & 0xFF
 
 
+_REV_TURN_DEG = 120.0       # a vertex "reverses" when the path turns more than this
+_SATIN_REV_PCT = 35.0       # >this reversal fraction => satin outright (unsplit column)
+_FILL_REV_PCT = 15.0        # <this => fill; between the two => mixed
+_SPLIT_MIN_REV = 6          # a real (split) satin column oscillates at least this many times
+_SPLIT_CROSS_MAX_MM = 8.0   # rail-to-rail crossing <= ~7mm satin ceiling (+margin) => narrow ribbon
+
+
+def _is_split_satin(seg: np.ndarray, is_rev: np.ndarray) -> bool:
+    """True when a block is an Auto-Split satin column that the reversal-fraction rule would
+    otherwise miscount as tatami (Reference Manual p1197). Split-invariant: the co-linear
+    split points are NOT reversals, so the reversals still mark the two rails. A satin column
+    then shows many reversals whose along-path spacing (rail-to-rail crossing distance) is
+    small and bounded by the satin ceiling; a genuine tatami fill has reversals a full row
+    apart, so its crossing distance is large."""
+    rev_vertices = np.nonzero(is_rev)[0] + 1              # vertex indices carrying a reversal
+    if rev_vertices.size < _SPLIT_MIN_REV:
+        return False
+    pos = np.concatenate(([0.0], np.cumsum(seg)))         # path length (mm) at each vertex
+    cross = np.diff(pos[rev_vertices])                    # rail-to-rail crossing distances
+    cross = cross[cross > 0.05]
+    if cross.size < _SPLIT_MIN_REV - 1:
+        return False
+    return float(np.median(cross)) <= _SPLIT_CROSS_MAX_MM
+
+
 def _block_kind(pts: list[tuple[float, float]]):
     """(kind, median_segment_mm, n_points) for one colour block, or None if too short.
-    kind: 'satin' (>35% vertices reverse), 'fill' (<15%), else 'mixed'."""
+    kind: 'satin' (>35% vertices reverse, OR an Auto-Split narrow ribbon), 'fill' (<15%),
+    else 'mixed'."""
     p = np.asarray(pts, float)
     if len(p) < 3:
         return None
@@ -51,10 +84,16 @@ def _block_kind(pts: list[tuple[float, float]]):
     seg = np.hypot(d[:, 0], d[:, 1]) * _UNIT_MM
     a = np.arctan2(d[:, 1], d[:, 0])
     da = (np.diff(a) + np.pi) % (2 * np.pi) - np.pi
-    rev = float(np.mean(np.abs(np.degrees(da)) > 120) * 100)
+    is_rev = np.abs(np.degrees(da)) > _REV_TURN_DEG
+    rev = float(np.mean(is_rev) * 100)
     valid = seg[seg > 0.05]
     med = float(np.median(valid)) if valid.size else 0.0
-    kind = "satin" if rev > 35 else ("fill" if rev < 15 else "mixed")
+    if rev > _SATIN_REV_PCT or _is_split_satin(seg, is_rev):
+        kind = "satin"
+    elif rev < _FILL_REV_PCT:
+        kind = "fill"
+    else:
+        kind = "mixed"
     return kind, med, len(p)
 
 

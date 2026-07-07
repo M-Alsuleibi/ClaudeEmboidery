@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .config import (
     SUPPORTED_CATEGORIES,
+    SUPPORTED_FABRICS,
     SUPPORTED_FILL_METHODS,
     SUPPORTED_THREAD_CHARTS,
     PipelineConfig,
@@ -30,8 +31,11 @@ def build_parser() -> argparse.ArgumentParser:
     size.add_argument("--width-mm", type=float, help="Target physical width in mm.")
     size.add_argument("--height-mm", type=float, help="Target physical height in mm.")
 
-    p.add_argument("--colors", type=int, default=8,
-                   help="Number of thread colors to quantize to (default: 8).")
+    p.add_argument("--colors", type=int, default=None,
+                   help="Number of thread colors to quantize to. Default: the --category "
+                        "prior (arabic/decoration/simple-shapes 1, letters 2, numbers 4, "
+                        "3D 8, anime 12) when a category is given, else 8. Pass an explicit "
+                        "value for a colourful design in a monochrome-median category.")
     p.add_argument("--thread-chart", choices=SUPPORTED_THREAD_CHARTS,
                    default="madeira-polyneon",
                    help="Catalog to snap colors to (default: madeira-polyneon).")
@@ -67,11 +71,16 @@ def build_parser() -> argparse.ArgumentParser:
                         "through instead of filling solid. Default: auto (on for letter "
                         "modes). Use --no-open-counters to keep enclosed same-as-page "
                         "regions as a stitched fill (e.g. a white shape inside a logo).")
-    p.add_argument("--pull-comp-mm", type=float, default=0.2,
-                   help="Pull-compensation per side (mm) added to fills/satins "
-                        "(default: 0.2). Lower it (e.g. 0.05) so FINE decoration — thin "
-                        "tashkeel on Arabic calligraphy — reads as crisp as the source "
-                        "art instead of fattened.")
+    p.add_argument("--fabric", choices=SUPPORTED_FABRICS, default=None,
+                   help="Target fabric — sets the default pull-compensation from the Wilcom "
+                        "manual's table (cotton/denim/drill 0.20, silk 0.30, t-shirt/knit/"
+                        "jersey 0.35, fleece/jumper/terry 0.40 mm). A no-op if --pull-comp-mm "
+                        "is given. Omit for the 0.2 mm default.")
+    p.add_argument("--pull-comp-mm", type=float, default=None,
+                   help="Pull-compensation per side (mm) added to fills/satins. Overrides "
+                        "--fabric. Default (no --fabric): 0.2. Lower it (e.g. 0.05) so FINE "
+                        "decoration — thin tashkeel on Arabic calligraphy — reads as crisp as "
+                        "the source art instead of fattened.")
     p.add_argument("--fill-underlay", action=argparse.BooleanOptionalAction, default=True,
                    help="Lay a fill underlay under solid regions (default: on). "
                         "Use --no-fill-underlay to drop the extra widening pass when "
@@ -128,6 +137,21 @@ def build_parser() -> argparse.ArgumentParser:
                         "orange) into one region stitched as a smooth density-modulated "
                         "gradient (Ink-Stitch gradient_blocks), instead of hard flat bands. "
                         "Off by default (experimental; the merge heuristic can misfire).")
+    p.add_argument("--spine-fill", action=argparse.BooleanOptionalAction, default=False,
+                   help="Spine-guided fill (experimental): for a region kept as a FILL "
+                        "(branchy stroke / broad blob), reuse its longest extracted "
+                        "centerline as an Ink-Stitch guided_fill guide so the fill rows "
+                        "follow the shape's medial axis instead of a fixed angle (the "
+                        "PEmbroider hatchSpine idea). Directional/visual only — it does NOT "
+                        "raise the fingerprint's satin%% (only real satin does; see "
+                        "--satin-lean). Off by default.")
+    p.add_argument("--vwidth-satin", action=argparse.BooleanOptionalAction, default=False,
+                   help="Variable-width satin (experimental): build each satin column directly "
+                        "from its centerline, offsetting the rails by the LOCAL half-width "
+                        "(centerline-to-boundary distance, the medial-axis idea) instead of one "
+                        "average width via stroke_to_satin. Fixes --satin-lean's under-coverage "
+                        "on bold/modulated strokes. Falls back to fixed-width per column on "
+                        "geometry failure. Off by default.")
     return p
 
 
@@ -152,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
             purify_colors=args.purify_colors,
             open_counters=args.open_counters,
             pull_compensation_mm=args.pull_comp_mm,
+            fabric=args.fabric,
             fill_underlay=args.fill_underlay,
             satin_underlay=args.satin_underlay,
             thin_line_run=args.thin_line_run,
@@ -162,6 +187,8 @@ def main(argv: list[str] | None = None) -> int:
             gradient=args.gradient,
             category=args.category,
             satin_lean=args.satin_lean,
+            spine_fill=args.spine_fill,
+            vwidth_satin=args.vwidth_satin,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

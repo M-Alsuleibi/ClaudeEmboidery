@@ -7,12 +7,23 @@ __pycache__/
 
 # Pipeline artifacts (generated, not source)
 /output/
+/orchestrator/output/
 *.vp3
+*.VP3
 *.dst
 *.emb
 
+# Orchestrator drop zone: keep the folder, ignore whatever photo is dropped in it
+/input/*
+!/input/.gitkeep
+
 # Vendored Ink-Stitch portable bundle (~185MB, downloaded, not source)
 /vendor/
+
+# Wilcom official manuals (~300MB of PDFs; distilled rules live in
+# wilcom-manual-rules.md, which IS tracked). Keep the source PDFs local.
+/wilcom-manual/
+*.rar
 
 # Samples can be large / proprietary — track deliberately, not by default
 /samples/*

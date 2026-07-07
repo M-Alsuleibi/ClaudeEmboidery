@@ -30,13 +30,19 @@ def run(ctx: PipelineContext) -> None:
     thread_map: list[dict] = []
     for rgb in ctx.palette:
         thread, de = cat.nearest(rgb)
+        # In lettering mode the inks are already purified to the intended colour
+        # (pure black/red, like the 10000.VP3 ground truth, which stored pure RGB
+        # *and* a cone code). So render/store the pure ink and keep the nearest
+        # cone only as the operator's reference (code/name). Otherwise the design
+        # would render the off cone (e.g. pure red -> a pinkish "Fluo" cone).
+        thread_rgb = tuple(int(c) for c in rgb) if ctx.config.purify else thread.rgb
         thread_map.append(
             {
                 "rgb": tuple(int(c) for c in rgb),
                 "catalog": cat.display,
                 "code": thread.code,
                 "name": thread.name,
-                "thread_rgb": thread.rgb,
+                "thread_rgb": thread_rgb,
                 "de": round(de, 2),
             }
         )
