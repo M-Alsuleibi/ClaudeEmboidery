@@ -215,11 +215,11 @@ Two manual facts reframe our measured "ground truth is ~100 % satin but we emit 
    washout trap cuts both ways). The **≥ 5 % area** inclusion is approximated by step-2 speck
    consolidation (majority filter) rather than a hard gate — left as-is.
 3. **Density stays 0.4 mm** — now *validated* against the manual's 0.3–0.6 mm band; keep it.
-4. **Underlay by width** (§3): Center Run for 2–3 mm satin, Zigzag for wide satin, Edge Run for
-   letters, Tatami underlay for large fills. *Deferred*: our satins are all narrow (center-walk =
-   Center Run is already correct); the Zigzag-for-wide-satin branch only bites once we emit wide
-   satin, and the satins are produced by an external `stroke_to_satin` call so per-satin width
-   isn't available at param time — do it together with (6).
+4. ✅ **DONE — Underlay by width** (`stitches._build_vwidth_satin`): every satin still gets the
+   center-walk + contour (Center Run + Edge Run); a **wide** vwidth column (median > 3 mm) now
+   *additionally* stamps `zigzag_underlay` (manual p412 — Zigzag supports wide satin). Solved the
+   "per-satin width not available" problem by deciding it inside the vwidth builder, which knows
+   each column's local half-widths. Narrow columns rely on the center-walk as before.
 5. ✅ **DONE — Variable run length** (`stitches._run_params`): nominal `running_stitch_length_mm`
    raised 2.0 → **4.0 mm** (manual's straight-run max) with `running_stitch_tolerance_mm = 0.2`
    (the manual's chord gap) so Ink-Stitch auto-shortens stitches toward ~1.8 mm on tight curves.
@@ -231,8 +231,17 @@ Two manual facts reframe our measured "ground truth is ~100 % satin but we emit 
    on the Ramadan calligraphy, satin_frac 0→100 (matches truth) **with** coverage 97.9→99.3 %,
    shape-IoU 67→81 %, over-ink 1.43×→1.22× — strictly better than the fixed-width satin AND the
    fill it replaces. `--satin-lean` now IMPLIES `--vwidth-satin`, so leaning a satin-dominant
-   category to satin no longer regresses coverage. **Still open:** the effective ~7 mm ceiling
-   raise for genuinely wide columns + the underlay-by-width branch (4) — bring those in next.
+   category to satin no longer regresses coverage.
+   ✅ **Ceiling raised to the manual's ~7 mm, but CATEGORY-GATED** (`_satin_ceiling`): 7 mm for a
+   **satin-dominant** category (arabic/letters/decoration/simple-shapes/numbers per the
+   fingerprint), a conservative **3 mm** otherwise. Columns wider than `_SATIN_FIXED_MAX_MM` (3 mm)
+   build variable-width even without a flag, so the gap closes BY DEFAULT where the truth is
+   satin-heavy — Design6, no flags: satin_frac 0→100, coverage 99.3 %. **Why gated:** a blanket
+   raise over-satins non-satin-dominant art — the metallic gold "2026" (3D, shaded solids that
+   should be tatami) is category-mismatched; making 3D keep 3 mm stops the raise touching it (it
+   reads ~92 % satin at *either* ceiling anyway because its strokes are ~1.2 mm — that's
+   pre-existing per-region behaviour, not the raise). lufi (simple-shapes, 40 mm masses) stays
+   fill: masses > 7 mm, single-column guard keeps blobs as fills.
 
 **Fingerprint fix (§6):**
 7. ✅ **DONE — Auto-Split satin detection** (`fingerprint._is_split_satin`): a narrow oscillating

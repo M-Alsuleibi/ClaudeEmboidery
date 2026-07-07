@@ -1,0 +1,62 @@
+"""Tests for variable-width satin construction + underlay-by-width (stitches._build_vwidth_satin).
+
+Pure geometry — no Ink-Stitch binary needed. Verifies the manual's underlay-by-width rule
+(wilcom-manual-rules.md §3): a WIDE satin column (>~3 mm) gets a zigzag underlay; a narrow one
+does not (it relies on the center-walk / Center Run).
+"""
+
+from __future__ import annotations
+
+from lxml import etree
+
+from wilcom_pipeline.steps import stitches
+
+_SVG = "http://www.w3.org/2000/svg"
+_INK = "http://inkstitch.org/namespace"
+
+
+def _path(d: str):
+    e = etree.Element(f"{{{_SVG}}}path")
+    e.set("d", d)
+    return e
+
+
+def _straight_center(length=40, step=5, y=10):
+    return "M " + " ".join(f"{x},{y}" for x in range(0, length + step, step))
+
+
+def _rect_boundary(halfw, length=40, y=10):
+    # closed rectangle +/- halfw around the centerline y
+    lo, hi = y - halfw, y + halfw
+    return f"M 0,{lo} {length},{lo} {length},{hi} 0,{hi} 0,{lo}"
+
+
+def _build(center_d, boundary_d, mm_per_uu=1.0, satin_max_mm=7.0):
+    c = _path(center_d)
+    ok = stitches._build_vwidth_satin(c, _path(boundary_d), "#000000", mm_per_uu, satin_max_mm)
+    return c, ok
+
+
+def test_builds_a_satin_column():
+    c, ok = _build(_straight_center(), _rect_boundary(1.5))
+    assert ok is True
+    assert c.get(f"{{{_INK}}}satin_column") == "true"
+    assert c.get("transform") is None            # rails baked into the root frame
+    assert c.get("d").count("M") >= 3            # 2 rails + >=1 rung
+
+
+def test_wide_column_gets_zigzag_underlay():
+    # full width ~5 mm (> 3 mm fixed band) -> zigzag underlay
+    c, ok = _build(_straight_center(), _rect_boundary(2.5))
+    assert ok and c.get(f"{{{_INK}}}zigzag_underlay") == "true"
+
+
+def test_narrow_column_has_no_zigzag_underlay():
+    # full width ~2 mm (< 3 mm) -> rely on center-walk, no zigzag
+    c, ok = _build(_straight_center(), _rect_boundary(1.0))
+    assert ok and c.get(f"{{{_INK}}}zigzag_underlay") is None
+
+
+def test_degenerate_geometry_returns_false():
+    c, ok = _build("M 0,0 1,0", _rect_boundary(2.0))  # too few centerline points
+    assert ok is False

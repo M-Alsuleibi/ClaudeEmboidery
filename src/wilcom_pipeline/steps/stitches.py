@@ -114,7 +114,19 @@ def _run_params() -> dict[str, str]:
     }
 
 # Satin classification / generation tunables.
-_SATIN_MAX_WIDTH_MM = 3.0   # a colour is "linework" if its typical width is below this
+_SATIN_MAX_WIDTH_MM = 3.0   # DEFAULT satin/fill boundary (conservative): a column up to this wide
+                            # satins, wider fills. Kept low for non-satin-dominant categories (3D /
+                            # anime) whose shaded solids are tatami fills — raising it over-satins
+                            # them (measured: gold 2026 went 92% satin vs 3D truth ~7%).
+_SATIN_DOMINANT_CEILING_MM = 7.0  # satin/fill boundary for a SATIN-DOMINANT category (arabic /
+                            # letters / decoration / simple-shapes / numbers, per the ground-truth
+                            # fingerprint): the Wilcom-manual ceiling — satin covers to ~7mm via
+                            # variable width (see wilcom-manual-rules.md §1). Closes the satin gap
+                            # by default ONLY where the truth is satin-heavy.
+_SATIN_FIXED_MAX_MM = 3.0   # within the satin band, columns up to this stay FIXED-width (narrow,
+                            # proven); WIDER ones (3-7mm) build VARIABLE-width — a uniform width
+                            # under-covers a modulated wide stroke — and get a zigzag underlay
+                            # instead of relying on the center-walk (manual underlay-by-width p412).
 _RUN_MAX_WIDTH_MM = 1.6     # below this a linework colour is too thin to satin ->
                             # running/bean stitch (the min-satin-width law, §0b.2)
 _MIN_REGION_PX = 20         # ignore speckle components when measuring a colour's width
@@ -142,6 +154,17 @@ _LETTERING_SATIN_MAX_WIDTH_MM = 9.0   # treat strokes up to this wide as satin-a
 _LETTERING_SATIN_MAX_W_MM = 6.0       # cap satin width near the production ~3.4 mm band
 _LETTERING_MIN_SATIN_PTS = 10         # keep shorter strokes (letter arms) as satins
 _LETTERING_MAX_SATIN_COLUMNS = 240    # a long word dissects into many columns
+
+
+def _satin_ceiling(lettering: bool, satin_lean: bool, satin_dominant: bool) -> float:
+    """The region-width satin/fill boundary (mm), by regime. Lettering / --satin-lean push the
+    ceiling highest (dissect wide block strokes); a satin-DOMINANT category raises it to the
+    manual's ~7mm by default (its truth is satin-heavy, and vwidth covers the wider band); every
+    other case (3D/anime/unknown, whose shaded solids are tatami fills) keeps the conservative
+    3mm so the raised ceiling can't over-satin them."""
+    if lettering or satin_lean:
+        return _LETTERING_SATIN_MAX_WIDTH_MM
+    return _SATIN_DOMINANT_CEILING_MM if satin_dominant else _SATIN_MAX_WIDTH_MM
 
 
 def _candidate_binary() -> Path:
@@ -366,10 +389,9 @@ def _linework_indices(ctx: PipelineContext) -> set[int]:
     # satin-lean: when the declared category's ground truth is satin-dominant (arabic,
     # decoration, letters, …), raise the ceiling so bold strokes enter the linework pass and
     # become satin columns instead of tatami — moving toward the truth's ~100% satin.
-    satin_lean = (ctx.config.satin_lean and category_satin_dominant(ctx.config.category)
-                  and not lettering)
-    width_ceiling = (_LETTERING_SATIN_MAX_WIDTH_MM if (lettering or satin_lean)
-                     else _SATIN_MAX_WIDTH_MM)
+    satin_dominant = category_satin_dominant(ctx.config.category)
+    satin_lean = ctx.config.satin_lean and satin_dominant and not lettering
+    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant)
 
     line: set[int] = set()
     for i, rgb in enumerate(ctx.palette):
@@ -447,8 +469,8 @@ def _linework_prepass(
     # satin-lean (see _linework_indices): a satin-dominant category raises the ceiling AND
     # turns on branch dissection, so a bold/branchy stroke becomes per-branch satins rather
     # than one tatami fill — pushing the output toward the ground truth's ~100% satin.
-    satin_lean = (ctx.config.satin_lean and category_satin_dominant(ctx.config.category)
-                  and not lettering)
+    satin_dominant = category_satin_dominant(ctx.config.category)
+    satin_lean = ctx.config.satin_lean and satin_dominant and not lettering
     run_enabled = ctx.config.thin_line_run and not lettering
     branch_satin = (ctx.config.branch_satin or satin_lean) and not lettering
     # Spine-guided fill: a region that stays a fill keeps its longest centerline as a
@@ -465,8 +487,7 @@ def _linework_prepass(
             drop_centerlines.extend(lines)
 
     min_pts = _LETTERING_MIN_SATIN_PTS if lettering else _MIN_SATIN_PTS
-    width_ceiling = (_LETTERING_SATIN_MAX_WIDTH_MM if (lettering or satin_lean)
-                     else _SATIN_MAX_WIDTH_MM)
+    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant)
     satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
     run_strokes: list[tuple[object, int]] = []          # (centerline, colour idx)
     satin_cands: list[tuple[object, int, float]] = []   # (centerline, colour idx, width mm)
@@ -535,12 +556,15 @@ def _linework_prepass(
     # rails at the local half-width instead holds coverage AND matches the shape (1.22x, IoU 81%
     # on the Ramadan calligraphy) while reading satin_frac=100 like the ground truth. So whenever
     # we lean to satin we also build it variable-width — that's the fix the lean was blocked on.
-    vwidth = ctx.config.vwidth_satin or satin_lean
+    # Any column WIDER than the fixed-width-safe band (~3mm) is built variable-width even without
+    # --vwidth-satin/--satin-lean: a uniform width under-covers a wide modulated stroke, so the
+    # raised ~7mm ceiling only pays off with vwidth. Narrow columns (<=3mm) stay fixed-width.
+    vwidth_all = ctx.config.vwidth_satin or satin_lean
     satin_ids: list[str] = []
     n_vwidth = 0
     for c, idx, w_mm in satin_cands:
         color = thread_hex.get(idx, "#000000")
-        if vwidth:
+        if vwidth_all or w_mm > _SATIN_FIXED_MAX_MM:
             poly = originals.get((c.get("id") or "").rsplit("_", 1)[0])
             try:
                 if poly is not None and _build_vwidth_satin(
@@ -949,6 +973,12 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
     center_el.set("d", " ".join(parts))
     center_el.attrib.pop("transform", None)  # rails are already baked into the root frame
     center_el.set(f"{{{_INKSTITCH_NS}}}satin_column", "true")
+    # Underlay by width (manual p412, wilcom-manual-rules.md §3): a WIDE satin column needs a
+    # zigzag underlay to support the long throws, on top of the center-walk + contour every satin
+    # gets in _satin_params; a narrow column relies on the center-walk (Center Run) alone.
+    median_w_mm = float(np.median(hw)) * 2 * mm_per_uu
+    if median_w_mm > _SATIN_FIXED_MAX_MM:
+        center_el.set(f"{{{_INKSTITCH_NS}}}zigzag_underlay", "true")
     center_el.set("style", f"fill:none;stroke:{color};stroke-width:1")
     return True
 

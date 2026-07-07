@@ -78,9 +78,15 @@ by enclosure depth**, and stamps each group's `inkscape:label` with `"<code> <na
 Ink-Stitch binary carries that into the VP3 as the thread catalog number + description).
 Step 5 then tiers **each region (connected component) by its own width** (region area ÷ full
 skeleton length, in mm): **run** (< 1.6 mm — running/bean stitch along the centerline),
-**satin** (1.6–3 mm single clean column, `fill_to_stroke` → `stroke_to_satin`; a *forked*
-stroke dissects into one satin per branch only under `--branch-satin`), or **tatami fill**
-(broad, or branchy/mesh). One colour can therefore mix all three tiers. A colour enters this
+**satin** (single clean column up to the ceiling; ≤ 3 mm builds a fixed-width `fill_to_stroke` →
+`stroke_to_satin`, **3–7 mm builds variable-width** rails at the local half-width so a wide
+modulated stroke covers + gets a zigzag underlay; a *forked* stroke dissects into one satin per
+branch only under `--branch-satin`), or **tatami fill** (above the ceiling, or branchy/mesh). The
+**ceiling is category-aware** (`_satin_ceiling`): 7 mm (the Wilcom-manual value) for a
+**satin-dominant** category — arabic/letters/decoration/simple-shapes/numbers per the fingerprint —
+so the satin gap closes by default there; a conservative **3 mm** for 3D/anime/unknown, whose
+shaded solids are meant to be fills (raising it over-satins them); 9 mm under `--lettering`/
+`--satin-lean`. One colour can therefore mix all three tiers. A colour enters this
 pre-pass if its **area-weighted** width is below the satin ceiling, or if it's otherwise
 broad but carries a substantial keyline worth splitting out. Fills get underlay, ~0.4 mm
 density, pull-comp, and `trim_after` (so a colour's disjoint regions aren't joined by junk
