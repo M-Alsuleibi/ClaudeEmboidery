@@ -1,0 +1,53 @@
+{
+  "skill_name": "orchestrator",
+  "note": "End-to-end tests for the orchestrator: the user drops a photo in input/, the skill normalizes ANY format -> routes to category -> applies the measured recipe -> runs the Phase-A pipeline -> verifies + iterates against the source, collecting results in orchestrator/output/<name>/ and leaving input/ empty. The pipeline is real (Ink-Stitch vendored); a run is ~30s-2min and the iterate loop may run it several times. Fixtures live in evals/inputs/; a runner should copy the fixture into input/ before invoking. Baseline = no skill (agent still has the repo, CLAUDE.md and EMBROIDERY-PLAYBOOK.md).",
+  "evals": [
+    {
+      "id": 0,
+      "name": "anyformat-heic-block-letters",
+      "prompt": "I dropped a phone photo in input/ (it's a HEIC): input/lets_celebrate.heic — it's the words 'LET'S CELEBRATE' in bold block capitals, black with a red accent. Turn it into an embroidery file I can stitch out, about 60mm tall.",
+      "expected_output": "Normalizes the HEIC (pillow-heif) to a PNG. Routes to LETTERS / block caps. Picks a size so strokes land ~2-4mm (~58-60mm here), small palette (2), snaps ink toward pure black + red. Runs the pipeline to orchestrator/output (or the eval output dir), gate PASS, then compares to the source and reports coverage. Artifacts: NAME_pro.vp3 + preview + threadlist. Honest note that typeset text is best built in Wilcom.",
+      "files": [".claude/skills/orchestrator/evals/inputs/lets_celebrate.heic"],
+      "assertions": [
+        {"text": "The HEIC was normalized to a raster PNG before tracing (no 'cannot open HEIC' failure)"},
+        {"text": "Routed to the LETTERS category (not treated as a generic logo/photo)"},
+        {"text": "Produced a NAME_pro.vp3 plus preview and threadlist in the output dir"},
+        {"text": "Step-7 gate PASS"},
+        {"text": "Thread match is exact/near-exact for black and red (switched to isacord when Madeira matched poorly)"},
+        {"text": "Recognized and corrected the --lettering shatter (dropped it / used --purify-colors) so the letters read legibly; final source-coverage >= 85%"},
+        {"text": "Stated the honest boundary that typeset text is best built in Wilcom lettering"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "arabic-mixed-name",
+      "prompt": "I put a photo in input/ (input/ritaj-name.png) — please digitize it for a 140mm hoop. It's an Arabic name 'ريتاج' in big black calligraphy with a little illustration and a small subtitle line under it.",
+      "expected_output": "Routes the dominant subject to ARABIC/mixed. --purify-colors (NOT --lettering), --fill-method contour_fill for the sprawling script, small colour count, black snapped pure. Handles the mixed illustration by keeping palette small and sequencing back-to-front. Gate PASS or an explained near-miss; compares to source; notes the thin subtitle line may not survive at 140mm (min-width limit) and that connected cursive can't be all-satin from a trace.",
+      "files": ["samples/ritaj-name.png"],
+      "assertions": [
+        {"text": "Used --purify-colors and NOT --lettering (never shatters the cursive script)"},
+        {"text": "Used --fill-method contour_fill for the sprawling calligraphy"},
+        {"text": "Width set to ~140mm as requested"},
+        {"text": "Step-7 gate PASS with areal density in the Arabic band (~0.4-0.8 st/mm^2)"},
+        {"text": "The main name 'ريتاج' is present and legible in the preview"},
+        {"text": "Compared to the source with the background-aware drift meter (did not report a bogus near-zero coverage from the tan background)"},
+        {"text": "Stated the honest limits: sub-1.2mm subtitle may drop; connected cursive can't be all-satin from a trace"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "anyformat-svg-icon-set",
+      "prompt": "I dropped a vector sheet of bright icons (a yellow star, a red heart, a blue star) in input/ as an SVG (input/icons.svg). Digitize it into a stitch file for a 150mm patch.",
+      "expected_output": "Rasterizes the SVG (cairosvg) big, routes to SIMPLE SHAPES. --thread-chart isacord (Madeira has no pure blue), --colors 3-4, --width-mm 150, no --purify-colors unless truly pure. Each shape one object by width, back-to-front. Gate PASS, source coverage ~99% (no shape dropped, star points not clipped), blue/red/yellow matched within reasonable dE. Overlay confirms all three icons present.",
+      "files": [".claude/skills/orchestrator/evals/inputs/icons.svg"],
+      "assertions": [
+        {"text": "Rasterized the SVG to a large PNG before tracing (no 'cannot open SVG' failure)"},
+        {"text": "Routed to SIMPLE SHAPES and used --thread-chart isacord"},
+        {"text": "Width set to ~150mm; each of the three icons present (none dropped)"},
+        {"text": "Step-7 gate PASS"},
+        {"text": "Source coverage >= 95% (star points / heart tip not clipped)"},
+        {"text": "Blue matched to a real blue cone (demonstrating why isacord beats Madeira here)"}
+      ]
+    }
+  ]
+}

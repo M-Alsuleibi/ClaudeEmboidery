@@ -1,0 +1,7 @@
+# 2_lotus — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  1220      (255, 190, 102)    Apricot
+#
+# total stitches: 7821 | colours: 1 | trims: 3 | jumps: 0

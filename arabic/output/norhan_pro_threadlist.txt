@@ -1,0 +1,7 @@
+# norhan — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1800      (0, 0, 0)          Black
+#
+# total stitches: 3213 | colours: 1 | trims: 13 | jumps: 0

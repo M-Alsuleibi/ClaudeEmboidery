@@ -1,0 +1,8 @@
+# lets_celebrate_v2 — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1837      (255, 62, 38)      Fluo Pink
+     2  1800      (47, 48, 50)       Black
+#
+# total stitches: 6397 | colours: 2 | trims: 30 | jumps: 1

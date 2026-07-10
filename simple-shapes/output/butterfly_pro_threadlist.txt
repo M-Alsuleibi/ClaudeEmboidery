@@ -1,0 +1,7 @@
+# butterfly — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  2155      (255, 204, 204)    Pink Tulip
+#
+# total stitches: 8510 | colours: 1 | trims: 2 | jumps: 0

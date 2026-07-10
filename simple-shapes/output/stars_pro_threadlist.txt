@@ -1,0 +1,10 @@
+# stars_pro — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  4220      (0, 204, 204)      Island Green
+     2  1840      (255, 175, 175)    Corsage
+     3  0453      (188, 173, 117)    Army Drab
+     4  1306      (249, 89, 81)      Devil Red
+#
+# total stitches: 4106 | colours: 4 | trims: 8 | jumps: 3

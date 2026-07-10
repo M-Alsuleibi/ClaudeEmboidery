@@ -1,0 +1,8 @@
+# paw_heart — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  0020      (0, 0, 0)          Black
+     2  1703      (255, 8, 0)        Poppy
+#
+# total stitches: 11493 | colours: 2 | trims: 9 | jumps: 1

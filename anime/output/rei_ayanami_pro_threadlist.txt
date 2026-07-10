@@ -1,0 +1,14 @@
+# rei_ayanami — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1812      (169, 170, 164)    Vapor Blue
+     2  1961      (79, 109, 131)     Tempest
+     3  1739      (78, 74, 74)       Dark Grey
+     4  1682      (205, 191, 172)    Taupe
+     5  1741      (116, 117, 115)    Gull
+     6  1658      (121, 70, 57)      Brown
+     7  1960      (115, 140, 158)    Country Blue
+     8  1804      (236, 236, 230)    Blanc de Blanc
+#
+# total stitches: 31543 | colours: 8 | trims: 230 | jumps: 7

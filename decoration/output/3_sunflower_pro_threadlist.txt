@@ -1,0 +1,13 @@
+# 3_sunflower — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  1321      (210, 94, 30)      Dark Orange
+     2  5415      (0, 122, 61)       Irish Green
+     3  0576      (60, 48, 46)       Very Dark Brown
+     4  0442      (204, 204, 51)     Tarnished Gold
+     5  5500      (28, 206, 40)      Limedrop
+     6  4073      (155, 153, 147)    Metal
+     7  1346      (135, 90, 45)      Cinnamon
+#
+# total stitches: 14434 | colours: 7 | trims: 77 | jumps: 6

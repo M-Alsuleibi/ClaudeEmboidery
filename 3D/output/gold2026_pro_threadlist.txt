@@ -1,0 +1,10 @@
+# gold2026 — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  1061      (200, 175, 140)    Taupe
+     2  0003      (233, 232, 222)    Ghost White
+     3  0741      (222, 190, 105)    Wheat
+     4  0721      (179, 133, 51)     Antique
+#
+# total stitches: 19353 | colours: 4 | trims: 104 | jumps: 3

@@ -1,0 +1,7 @@
+# decoration_test — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  5643      (33, 91, 51)       Green Dust
+#
+# total stitches: 7153 | colours: 1 | trims: 62 | jumps: 0

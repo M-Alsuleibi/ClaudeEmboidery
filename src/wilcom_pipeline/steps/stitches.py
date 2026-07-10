@@ -479,6 +479,17 @@ def _linework_prepass(
     spine_cands: list[tuple[str, object, int]] = []  # (orig id, guide centerline, colour idx)
 
     def _keep_as_fill(orig, lines, idx):
+        # Under --satin-lean (satin-dominant category), TILE a broad region with parallel satin
+        # strips instead of one tatami fill — a broad shaded mass then sews as satin like
+        # production ("sombras con satin"), closing the fill->satin gap. Falls back to fill if the
+        # region is too small/degenerate to tile (< 2 strips).
+        if satin_lean:
+            strips = _satin_strip_lines(originals.get(orig), mm_per_uu)
+            if len(strips) >= 2:
+                strip_lines.extend((p0, p1, idx) for p0, p1 in strips)
+                drop_centerlines.extend(lines)
+                drop_originals.add(orig)
+                return
         if spine_fill and lines:
             guide = max(lines, key=lambda c: _polyline_len_uu(c.get("d") or ""))
             spine_cands.append((orig, guide, idx))
@@ -491,13 +502,14 @@ def _linework_prepass(
     satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
     run_strokes: list[tuple[object, int]] = []          # (centerline, colour idx)
     satin_cands: list[tuple[object, int, float]] = []   # (centerline, colour idx, width mm)
+    strip_lines: list[tuple] = []                       # broad-region satin strips: (p0, p1, idx)
     drop_centerlines: list[object] = []
     drop_originals: set[str] = set()
     for orig, lines in centerlines.items():
         idx = int(re.match(r"c(\d+)_", orig).group(1))
         longs = [c for c in lines if _npts(c) >= min_pts]
         if not longs:
-            drop_centerlines += lines  # no real centerline (blob/scrap) -> keep as fill
+            _keep_as_fill(orig, lines, idx)  # no real centerline (blob/scrap) -> fill or strip-tile
             continue
         # width = region area / FULL skeleton length (all centerlines, incl. spurs);
         # dividing by only the long ones over-estimates a branchy thin region's width.
@@ -531,7 +543,7 @@ def _linework_prepass(
             else:
                 _keep_as_fill(orig, lines, idx)  # not stroke-like / too meshy -> one fill
         else:
-            _keep_as_fill(orig, lines, idx)  # broad -> one continuous fill
+            _keep_as_fill(orig, lines, idx)  # broad -> tatami fill, or satin strips under --satin-lean
 
     # Satin-overflow guard (pathological stroke_to_satin slowness): demote the
     # satin candidates back to fills but keep the runs.
@@ -576,6 +588,14 @@ def _linework_prepass(
         w_uu = float(np.clip(w_mm, _SATIN_MIN_W_MM, satin_max_mm)) / mm_per_uu
         _set_stroke_style(c, w_uu, color)
         satin_ids.append(c.get("id"))
+    # Broad-region satin strips -> fixed-width satin centerlines (root frame, no transform).
+    strip_w_uu = _STRIP_MM / mm_per_uu
+    for i, (p0, p1, idx) in enumerate(strip_lines):
+        el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
+        el.set("id", f"strip{i}")
+        el.set("d", f"M {p0[0]:.3f},{p0[1]:.3f} {p1[0]:.3f},{p1[1]:.3f}")
+        _set_stroke_style(el, strip_w_uu, thread_hex.get(idx, "#000000"))
+        satin_ids.append(f"strip{i}")
     for c in drop_centerlines:
         if c.getparent() is not None:
             c.getparent().remove(c)
@@ -981,6 +1001,73 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
         center_el.set(f"{{{_INKSTITCH_NS}}}zigzag_underlay", "true")
     center_el.set("style", f"fill:none;stroke:{color};stroke-width:1")
     return True
+
+
+_STRIP_MM = 3.0             # width of each satin strip when tiling a broad region (fixed-width band)
+_STRIP_MIN_RUN_MM = 2.0     # skip strip runs shorter than this (slivers)
+_MAX_STRIPS_PER_REGION = 80
+
+
+def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -> list:
+    """Tile a BROAD region with parallel satin strips ("sombras con satin"): rasterise the region,
+    orient the strips along its PRINCIPAL axis (PCA) so columns follow the shape, band across the
+    minor axis every `strip_mm`, and return each band's inside run as a straight centerline (2
+    root-frame points). Each becomes a fixed-width satin column — so a broad shaded mass sews as
+    satin (like production) instead of one tatami fill. Empty on degenerate geometry. NOTE: straight
+    parallel columns still leave STEPPED edges on irregular boundaries — production 'turning satin'
+    (contour-following) is the quality path; this closes the fill->satin metric gap (behind
+    --satin-lean) but edge quality on blobby regions is a known limitation."""
+    from PIL import Image, ImageDraw
+    subs = []
+    for sub in re.split(r"[Mm]", poly_el.get("d") or ""):
+        pts = [(float(x), float(y)) for x, y in _COORD_RE.findall(sub)]
+        if len(pts) >= 3:
+            subs.append(_xf(np.asarray(pts, float), _ctm(poly_el)))
+    if not subs:
+        return []
+    allp = np.concatenate(subs)
+    x0, y0 = allp.min(0)
+    x1, y1 = allp.max(0)
+    res = max((0.3 / mm_per_uu), 1e-9)                 # uu per px (~0.3 mm/px)
+    W, H = int((x1 - x0) / res) + 1, int((y1 - y0) / res) + 1
+    if W < 3 or H < 3 or W * H > 6_000_000:
+        return []
+    im = Image.new("L", (W, H), 0)
+    dr = ImageDraw.Draw(im)
+    for s in subs:                                     # union of subpaths (holes approximated away)
+        dr.polygon([((px - x0) / res, (py - y0) / res) for px, py in s], fill=255)
+    mask = np.asarray(im) > 128
+    ys, xs = np.where(mask)
+    if xs.size < 9:
+        return []
+    # Orient strips along the region's PRINCIPAL axis (PCA) so columns FOLLOW the shape (clean
+    # ends, not stair-stepped horizontal bands); band across the minor axis every strip_mm.
+    P = np.column_stack([xs, ys]).astype(float)
+    c = P.mean(0)
+    evals, evecs = np.linalg.eigh(np.cov((P - c).T))
+    u = evecs[:, int(np.argmax(evals))]                # principal (long) axis -> columns run along u
+    v = np.array([-u[1], u[0]])                         # minor axis -> band across v
+    pu, pv = (P - c) @ u, (P - c) @ v
+    strip_px = max(strip_mm / (res * mm_per_uu), 3.0)
+    min_run_px = max(_STRIP_MIN_RUN_MM / (res * mm_per_uu), 3.0)
+    ts = np.arange(pu.min(), pu.max(), 1.0)             # sample along u
+    lines, p = [], pv.min() + strip_px / 2
+    while p <= pv.max() and len(lines) < _MAX_STRIPS_PER_REGION:
+        pts = c + p * v[None, :] + ts[:, None] * u[None, :]
+        ix = np.round(pts[:, 0]).astype(int)
+        iy = np.round(pts[:, 1]).astype(int)
+        inside = np.zeros(len(ts), bool)
+        ok = (ix >= 0) & (ix < W) & (iy >= 0) & (iy < H)
+        inside[ok] = mask[iy[ok], ix[ok]]
+        run_ids = np.where(inside)[0]
+        if run_ids.size:
+            for run in np.split(run_ids, np.where(np.diff(run_ids) > 1)[0] + 1):
+                if run.size >= min_run_px:
+                    a, b = pts[run[0]], pts[run[-1]]
+                    lines.append(((x0 + a[0] * res, y0 + a[1] * res),
+                                  (x0 + b[0] * res, y0 + b[1] * res)))
+        p += strip_px
+    return lines
 
 
 def _ensure_guide_marker(root) -> None:

@@ -1,0 +1,7 @@
+# num3_varsity — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  1703      (255, 0, 0)        Poppy
+#
+# total stitches: 2608 | colours: 1 | trims: 8 | jumps: 0

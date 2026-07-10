@@ -1,0 +1,10 @@
+# ritaj — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1663      (110, 99, 85)      Cinder
+     2  1800      (47, 48, 50)       Black
+     3  1724      (222, 173, 57)     Pollen Gold
+     4  1822      (226, 220, 197)    Seashell
+#
+# total stitches: 9218 | colours: 4 | trims: 49 | jumps: 3

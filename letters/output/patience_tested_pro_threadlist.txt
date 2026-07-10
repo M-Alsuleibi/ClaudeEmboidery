@@ -1,0 +1,8 @@
+# patience_tested — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1749      (55, 163, 70)      Medium Green
+     2  1800      (47, 48, 50)       Black
+#
+# total stitches: 9477 | colours: 2 | trims: 13 | jumps: 1

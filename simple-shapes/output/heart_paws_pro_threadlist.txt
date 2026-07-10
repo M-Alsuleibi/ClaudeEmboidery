@@ -1,0 +1,7 @@
+# heart_paws — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  0134      (61, 62, 62)       Smoky
+#
+# total stitches: 3403 | colours: 1 | trims: 8 | jumps: 0

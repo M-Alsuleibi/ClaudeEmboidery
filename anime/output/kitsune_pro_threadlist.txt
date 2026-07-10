@@ -1,0 +1,10 @@
+# kitsune — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1800      (47, 48, 50)       Black
+     2  1869      (221, 136, 58)     Golden Earth
+     3  1803      (237, 236, 223)    Lily White
+     4  1915      (253, 175, 183)    Emily Pink
+#
+# total stitches: 6924 | colours: 4 | trims: 13 | jumps: 3

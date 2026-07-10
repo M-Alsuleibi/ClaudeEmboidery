@@ -1,0 +1,12 @@
+# 4_crescent — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  0853      (170, 140, 102)    Pecan
+     2  1776      (49, 46, 47)       Blackberry
+     3  2300      (255, 51, 153)     Bright Ruby
+     4  1755      (240, 220, 220)    Hyacinth
+     5  1133      (209, 162, 97)     Peru
+     6  1134      (140, 89, 51)      Light Cocoa
+#
+# total stitches: 17342 | colours: 6 | trims: 71 | jumps: 5

@@ -1,0 +1,9 @@
+# totoro — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1800      (47, 48, 50)       Black
+     2  1918      (138, 139, 142)    Limestone
+     3  1803      (237, 236, 223)    Lily White
+#
+# total stitches: 9592 | colours: 3 | trims: 18 | jumps: 2

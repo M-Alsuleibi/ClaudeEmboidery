@@ -1,0 +1,7 @@
+# num2_bubble — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  3815      (0, 142, 214)      Reef Blue
+#
+# total stitches: 2526 | colours: 1 | trims: 5 | jumps: 0

@@ -1,0 +1,7 @@
+# bismillah_c — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1800      (0, 0, 0)          Black
+#
+# total stitches: 6276 | colours: 1 | trims: 22 | jumps: 0

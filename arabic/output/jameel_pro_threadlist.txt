@@ -1,0 +1,7 @@
+# jameel — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1800      (0, 0, 0)          Black
+#
+# total stitches: 7057 | colours: 1 | trims: 54 | jumps: 0

@@ -1,0 +1,34 @@
+{
+  "skill_name": "photo-to-vp3",
+  "note": "Realistic end-to-end test prompts. Each expects the skill to route the image to the right category, pick the recipe from EMBROIDERY-PLAYBOOK.md §2, run the pipeline, and verify against the source. Assertions are added in the eval phase; run via the skill-creator loop (subagent with-skill vs baseline) when you want a quantitative benchmark — the pipeline is real (Ink-Stitch is vendored) and a run takes ~30s-2min.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "letters-brush-script",
+      "prompt": "I've got a brushed black hand-lettered '2027' logo at 1.jpg (white background, cursive numbers). Turn it into an embroidery file I can stitch out, about 120mm wide.",
+      "expected_output": "Routes to LETTERS / cursive. Default path + --purify-colors (NOT --lettering, which shatters script); brush script is thin so --fill-method contour_fill. --colors 1, pure black. Produces NAME_pro.vp3 + preview + threadlist, gate PASS, output legible vs 1.jpg.",
+      "files": ["1.jpg"]
+    },
+    {
+      "id": 1,
+      "name": "letters-block-caps-3d-edge",
+      "prompt": "Make 3_clean.png embroiderable — it's a red block '2027' with a white inline and a darker-red 3D drop shadow. Around 12 cm wide.",
+      "expected_output": "Routes to LETTERS / display caps with a keyline/3-D edge. The 3-D edge is a separate colour sewn first (back facet). --lettering for the block glyphs (or --purify-colors if dissection fragments the cropped digits) at a size that keeps strokes ~2-4 mm; snap red toward pure. Gate PASS; layout + colours match 3_clean.png.",
+      "files": ["3_clean.png"]
+    },
+    {
+      "id": 2,
+      "name": "arabic-calligraphy-monochrome",
+      "prompt": "Here's a piece of Arabic calligraphy in black on white (السلام عليكم) with the little tashkeel marks above. Digitize it for a 140mm hoop.",
+      "expected_output": "Routes to ARABIC. --colors 1 pure black, --purify-colors, --fill-method contour_fill, --width-mm 140; fine tashkeel may want --pull-comp-mm 0.05. Single black cone (e.g. 1800 Black), density 0.4-0.8 st/mm2, frame-first-if-any sew order, gate PASS.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "simple-shapes-icon-set",
+      "prompt": "Can you digitize a small sticker-style sheet of bright stars and a heart (flat solid colours: red, blue, yellow) into a stitch file for a 150mm patch?",
+      "expected_output": "Routes to SIMPLE SHAPES. --thread-chart isacord (Madeira lacks pure blue), --colors 3-4, --width-mm 150, NO --purify-colors unless truly pure primaries; bodies fill, any thin ribbon satins. Each shape one object, back-to-front, gate PASS; source coverage ~99% (no shape dropped).",
+      "files": []
+    }
+  ]
+}

@@ -114,7 +114,7 @@ These change step 2/3/5 behaviour and are central to output quality:
   (lower it, e.g. 0.05, so FINE decoration like thin Arabic tashkeel doesn't read heavier than the
   source); `--no-fill-underlay` drops the underlay pass. Resolved via `cfg.resolved_pull_comp_mm`.
 - **`--colors`** — thread-colour count. When omitted it defaults to the **category prior**
-  (`CATEGORY_COLORS`: arabic/decoration/simple-shapes 1, letters 2, numbers 4, 3D 8, anime 12) if
+  (`CATEGORY_COLORS`: arabic/decoration/simple-shapes 1, letters 2, numbers 4, 3D/anime 8) if
   `--category` is set, else 8. Pass an explicit value for a colourful design in a monochrome-median
   category. Resolved via `cfg.resolved_num_colors`.
 - **`--satin-underlay` / `--thin-line-run`** (both default **on**) — satin-quality knobs:

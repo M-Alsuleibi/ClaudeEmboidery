@@ -50,9 +50,12 @@ _DEFAULT_PULL_COMP_MM = 0.20  # historical default when neither --fabric nor --p
 # mid photo band. A colourful design in a monochrome-median category should pass an explicit
 # --colors (the "--colors 1 washout" trap cuts both ways). Explicit --colors always wins.
 CATEGORY_COLORS = {
-    "letters": 2, "arabic": 1, "3D": 8, "anime": 12,
+    "letters": 2, "arabic": 1, "3D": 8, "anime": 8,
     "simple-shapes": 1, "decoration": 1, "numbers": 4,
 }
+# NB anime = 8 (was 12) and anime is now satin-dominant, from the first real anime ground-truth
+# pair (pink-goku: 7 colours, 82.9% satin). See svg-and-geometry-approach/FINDINGS.md. n=1 —
+# firm up with more anime pairs.
 _DEFAULT_NUM_COLORS = 8  # when neither --colors nor --category is given
 
 

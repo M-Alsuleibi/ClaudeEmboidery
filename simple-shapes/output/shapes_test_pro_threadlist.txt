@@ -1,0 +1,9 @@
+# shapes_test_pro — thread list (sew order)
+# catalog: Isacord Polyester
+#
+#  Stop  Code      RGB                Thread name
+     1  1704      (232, 17, 45)      Candy Apple
+     2  0608      (255, 220, 0)      Sunshine
+     3  3900      (0, 127, 204)      Cerulean
+#
+# total stitches: 5850 | colours: 3 | trims: 4 | jumps: 2

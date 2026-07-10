@@ -60,3 +60,20 @@ def test_narrow_column_has_no_zigzag_underlay():
 def test_degenerate_geometry_returns_false():
     c, ok = _build("M 0,0 1,0", _rect_boundary(2.0))  # too few centerline points
     assert ok is False
+
+
+# --- broad-region satin strip tiling (stitches._satin_strip_lines) ---
+def _rect(w, h):
+    return _path(f"M 0,0 {w},0 {w},{h} 0,{h} 0,0")
+
+
+def test_broad_region_tiles_into_satin_strips():
+    # a 40x20 mm region banded every 3 mm -> several straight satin-column centerlines
+    lines = stitches._satin_strip_lines(_rect(40, 20), mm_per_uu=1.0, strip_mm=3.0)
+    assert len(lines) >= 4
+    (p0, p1) = lines[0]
+    assert len(p0) == 2 and len(p1) == 2          # each strip is a 2-point centerline
+
+
+def test_tiny_region_yields_no_strips():
+    assert stitches._satin_strip_lines(_rect(1, 1), mm_per_uu=1.0, strip_mm=3.0) == []

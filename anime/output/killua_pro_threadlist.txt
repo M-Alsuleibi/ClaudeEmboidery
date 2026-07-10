@@ -1,0 +1,13 @@
+# killua — thread list (sew order)
+# catalog: Madeira Polyneon
+#
+#  Stop  Code      RGB                Thread name
+     1  1804      (236, 236, 230)    Blanc de Blanc
+     2  1629      (194, 199, 218)    Paris Blue
+     3  1804      (236, 236, 230)    Blanc de Blanc
+     4  1886      (191, 185, 186)    Stainless Steel
+     5  1800      (47, 48, 50)       Black
+     6  1686      (210, 211, 210)    Gray Lilac
+     7  1629      (194, 199, 218)    Paris Blue
+#
+# total stitches: 21851 | colours: 7 | trims: 54 | jumps: 6

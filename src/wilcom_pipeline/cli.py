@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--colors", type=int, default=None,
                    help="Number of thread colors to quantize to. Default: the --category "
                         "prior (arabic/decoration/simple-shapes 1, letters 2, numbers 4, "
-                        "3D 8, anime 12) when a category is given, else 8. Pass an explicit "
+                        "3D 8, anime 8) when a category is given, else 8. Pass an explicit "
                         "value for a colourful design in a monochrome-median category.")
     p.add_argument("--thread-chart", choices=SUPPORTED_THREAD_CHARTS,
                    default="madeira-polyneon",
