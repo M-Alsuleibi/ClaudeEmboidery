@@ -1,0 +1,16 @@
+{
+ "anime": {
+  "n_pairs": 1,
+  "n_objects": 305,
+  "satin_w_mm": {
+   "p10": 1.09,
+   "med": 2.18,
+   "p90": 3.96,
+   "n": 72
+  },
+  "crossover_mm": 2.86,
+  "fill_density_st_mm2": 1.425,
+  "row_spacing_mm": 1.005,
+  "outline_to_fill": 1.99
+ }
+}

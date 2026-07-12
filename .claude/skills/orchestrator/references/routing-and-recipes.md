@@ -41,7 +41,7 @@ scatter, lace) is *normal*; small palette; **size set once** via `--width-mm`/`-
 | a **year / score / numeral** (2026, a jersey #) | **Numbers** (letters family) | satin, open counters | [`numbers/numbers-embroidery-knowledge.md`](../../../../numbers/numbers-embroidery-knowledge.md) |
 | **Arabic script** (cursive, usually black, + decoration) | **Arabic** | satin script, 1 colour | [`arabic/arabic-embroidery-knowledge.md`](../../../../arabic/arabic-embroidery-knowledge.md) |
 | a **geometric solid** with flat shaded facets (cube, prism, cylinder) | **3D** | tatami facets, distinct angle each | [`3D/3d-embroidery-knowledge.md`](../../../../3D/3d-embroidery-knowledge.md) |
-| a **character / portrait / detailed illustration** with shading | **Anime/portrait** | fills + shadow satins | [`anime/best-practices.md`](../../../../anime/best-practices.md) |
+| a **character / portrait / detailed illustration** with shading | **Anime/portrait** | satin-dominant (outline + shadow satins), `--satin-lean` | [`anime/best-practices.md`](../../../../anime/best-practices.md) |
 | a **bold flat icon / vector shape** (star, heart, arrow, swirl, frame) | **Simple shapes** | one object per shape by width | [`simple-shapes/simple-shapes-embroidery-knowledge.md`](../../../../simple-shapes/simple-shapes-embroidery-knowledge.md) |
 | **ornamental embellishment** (floral, vine, mandala, wreath, frame, lace, border) | **Decoration** | thin satin ornament | [`decoration/decoration-embroidery-knowledge.md`](../../../../decoration/decoration-embroidery-knowledge.md) |
 | a **flat logo / mixed** artwork | **Hybrid** | decompose & route each part | playbook §3 |
@@ -108,12 +108,21 @@ Shared defaults unless a row overrides: `--pull-comp-mm 0.2`, `--fill-underlay` 
 - **Sew:** ground → back/shadow facets → front/lit facets → surface details → outlines last.
 
 ### Anime / portrait / illustration
-- **DNA:** flat **tatami fills** for base colour + **directional shadow satins** to model form +
-  **outline satins**; hair = many thin directional satins with highlight satins on top, sewn last.
-- **Colours ~8–12.** Size ≥ ~120 mm. **Default path**, high `--colors`. Feed flat colour with a
-  clean separable background and **crisp dark outlines** (they survive as satin and hold shape).
-- **Honest limit:** the pipeline makes *simplified* flat fills + outline satins; manual
-  form-shading and hair relief are Phase-B Wilcom craft.
+- **DNA:** **satin-DOMINANT** — measured from the first real anime ground-truth pair (pink-goku:
+  **82.9 % satin**, ~2.25 mm columns, 217 outline : 118 fill objects). The character linework is
+  **outline satins**, form is **directional shadow satins**, and even broad shaded masses are sewn
+  as satin columns ("sombras con satin"), NOT flat tatami. Hair = many thin directional satins with
+  highlight satins on top, sewn last. (See `PAIRS-FINDINGS.md`.)
+- **Colours ~7–8** — omit `--colors` and the category prior (8) applies. Size ≥ ~120 mm. Feed flat
+  colour with a clean separable background and **crisp dark outlines** (they satin and hold shape).
+- **Flags: add `--satin-lean`.** anime is satin-dominant, so lean broad regions to satin (7 mm
+  ceiling + variable-width + broad-region satin **strip-tiling**) instead of tatami. Measured on the
+  goku render: `satin_frac 21 % → 90 %`, matching the 82.9 % truth. **Caveat:** strip-tiling uses
+  straight parallel columns, so broad/blobby regions get **stepped edges** — production *turning
+  satin* (contour-following) is the clean path, not yet built. **Drop `--satin-lean`** for a design
+  where the stepped edges read worse than a clean tatami fill; keep it when the satin look wins.
+- **Honest limit:** the pipeline makes *simplified* satin/fill; manual form-shading, hair relief,
+  and clean turning-satin edges are Phase-B Wilcom craft.
 
 ### Simple shapes / flat icons
 - **DNA:** a few **bold flat closed silhouettes**, each one flat colour. Each shape = one object

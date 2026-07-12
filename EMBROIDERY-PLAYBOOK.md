@@ -411,8 +411,8 @@ into the VP3 threads**) → ⑦ verify (the gate).
 output and measure it against the source (and any ground-truth `.VP3`); iterate until the
 drift is explained or gone** (the standing convention — enlarge/inspect, don't assume).
 
-The category `tools/` dirs (`arabic/tools/`, `simple-shapes/tools/`) hold reusable
-measurement scripts — copy the pattern for any new job:
+`orchestrator/scripts/` holds the reusable measurement scripts (one shared copy — the old
+per-category `tools/` dirs were consolidated there) — use them for any new job:
 
 - `analyze_vp3.py <file.vp3>` — threads, bounds, satin-vs-fill (turn-angle reversal %),
   trims, per-block geometry. Confirm object type, palette, density.
@@ -466,8 +466,8 @@ category was captured, so the knowledge stays *measured, not guessed*:
 1. **Create `>category</>/` with `<category>-embroidery-knowledge.md`** and drop the
    reference `.VP3` files there (the category dirs hold knowledge + reference VP3s, not
    pipeline code).
-2. **Measure the references** with the `tools/` scripts (copy from `arabic/tools/` or
-   `simple-shapes/tools/`): threads & palette, size, **satin-vs-fill via consecutive-segment
+2. **Measure the references** with the `orchestrator/scripts/` toolbox (`analyze_vp3.py`,
+   `compare_vp3.py`, `render_vp3.py`, …): threads & palette, size, **satin-vs-fill via consecutive-segment
    turn-angle (>120° = a satin reversal)**, trims, per-piece geometry split on
    `TRIM`/`COLOR_CHANGE`, and **areal density** (pure stitches ÷ bounding area). Every
    number in the doc must be measured.

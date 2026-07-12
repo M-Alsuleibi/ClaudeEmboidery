@@ -4,12 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**Phase A** of a photo→embroidery toolchain: a headless Python pipeline (Linux, Python
-3.12) that turns a photo into a production-ready `.vp3` + worksheet + preview for Wilcom
-EmbroideryStudio. **Phase B** (`phase_b/emb_save.ahk`, Windows + AutoHotkey + a licensed
-Wilcom dongle) takes that VP3 and saves the encrypted `.emb` — the only *real* deliverable.
-The `.emb` `DesignDocument` stream is proprietary-encrypted and cannot be written by any
-script, which is why the split exists. Phase B is out of scope for code changes here.
+A headless Python pipeline (Linux, Python 3.12) that turns a photo into a **production-ready
+`.vp3`** + worksheet + preview for Wilcom EmbroideryStudio. The **`.vp3` is the deliverable** — a
+complete, machine-stitchable embroidery file with named cones in sew order.
+
+If a caller needs Wilcom's *editable native* `.emb`, that's a one-off **manual** step in a licensed
+EmbroideryStudio (open the VP3 → File ▸ Save As): the `.emb` `DesignDocument` stream is
+proprietary-encrypted and can't be written by any script, so it's a Wilcom-only save — **not**
+something this pipeline does or depends on. (An earlier untested AHK "Phase B" automation for that
+manual save was dropped; recover from git history if ever needed.)
 
 ## Commands
 
@@ -63,7 +66,15 @@ context in place. `pipeline.py` runs them in sequence; an unimplemented step rai
 - **`steps/`** — one module per step, each exposing `run(ctx)`. The interesting one is
   **`stitches.py`** (step 5): it writes a stitch-ready SVG (injecting `inkstitch:*` params
   per path), shells out to the Ink-Stitch binary (`--extension=zip --format-vp3=True`),
-  and reads the VP3 back out of the returned zip into `ctx.stitch_pattern`.
+  and reads the VP3 back out of the returned zip into `ctx.stitch_pattern`. If the whole-
+  design pass exceeds 120 s (Ink-Stitch's auto_fill router can infinite-loop on a combined
+  design whose every colour digitizes fine alone), it falls back to **digitizing each colour
+  group separately and merging**: each mini-SVG carries a shared *frame anchor* (Ink-Stitch
+  centres every VP3 on its own stitch bbox, so without it the merged groups misalign), and a
+  group that hangs even alone degrades stepwise — pull-comp 0 (the measured hang trigger) →
+  + underlay off → fills/satins split — before the contour_fill last resort, so large
+  regions stay TATAMI. The kept `*_grpN.svg` files also feed step 6's realistic-preview
+  composite (`ctx.per_group_svgs`).
 - **`color.py`** — sRGB→CIELAB + ΔE, shared by quantize (step 2) and thread match (step 3).
 - **`catalog.py`** — parses Ink-Stitch `.gpl` palettes (`data/threads/*.gpl`) and finds the
   nearest cone. Supported charts are enumerated in `config.SUPPORTED_THREAD_CHARTS`.
@@ -108,6 +119,31 @@ These change step 2/3/5 behaviour and are central to output quality:
   there.
 - **`--open-counters`** — drop ink-*enclosed* page-coloured regions (the hole in e/B/g) to
   background so they read through. Auto-on for letter modes (`should_open_counters`).
+- **`--auto-repair`** (default on) — act on the analyzer's warnings the way a digitizer edits
+  artwork before digitizing: sub-sewable specks (<1.5 mm²) merge into their surrounding colour
+  (never into background; ≥3 same-colour specks = a dotted pattern, kept), isolated sub-0.8 mm
+  hairlines thicken to ~1 mm into background only (a >30 %-hairline design gets the "enlarge"
+  advice instead), and palette colours within ΔE<5 that matched the SAME thread cone merge
+  before tracing. Every action logs as `auto-repaired: …`. Step 7 gained the matching
+  **sewability gate**: local density *stacking* (thread-length map, calibrated on the production
+  VP3s — they peak ≤5.2 satin-layers; warn >5 layers over >10 mm²), *penetration spacing*
+  (<0.3 mm needle-cut risk, warn >5 %), and a *stitch budget* vs the category profile (warn
+  >1.8× expected).
+- **`--travel-plan`** (default on) — production near-continuous sewing: chains each colour's
+  pieces nearest-neighbour (a fill's border satins stay bonded to it), pins fill entry/exit to
+  the junction points via Ink-Stitch's `starting_point`/`ending_point` object commands (probed:
+  they snap the commanded position to the target's **nearest boundary point**), and drops
+  `trim_after` only where the straight travel is ≤ 12 mm **and** ≥ 90 % covered by later-sewn
+  stitching or the colour's own regions — never where the thread would show (uncovered
+  background crossings keep their Break-Apart trims). Measured: letters 123→59 trims (exactly
+  cancelling underlap's fragmentation), joker 192→132 (121 of 217 junctions are genuinely
+  exposed on this scattered design — the cover law keeps them).
+- **`--underlap-mm`** (default 0.5, 0 disables) — production object-overlap at step 4: an
+  earlier-sewn colour's traced region extends this far UNDER its later-sewn neighbours (re-traced
+  from its dilated mask, expansion clipped to later-sewn pixels — never background or opened
+  counters), so fabric pull can't open a white gap at the seam. Distinct from pull-comp: pull-comp
+  widens *stitches* uniformly at digitize time; underlap moves *traced geometry*, only along seams
+  (measured: cross-seam stitch overlap 1.1 → 1.6 mm on abutting rects).
 - **`--pull-comp-mm` / `--fabric` / `--no-fill-underlay`** — control the fixed widening band.
   `--fabric` (cotton/denim 0.20, silk 0.30, tee/knit 0.35, fleece/terry 0.40 mm — Wilcom manual
   table, see `wilcom-manual-rules.md`) sets the pull-comp default; `--pull-comp-mm` overrides it
@@ -125,6 +161,13 @@ These change step 2/3/5 behaviour and are central to output quality:
 - **`--snap-black`** (default on) — dedicate one thread to pure black for a logo keyline /
   pupils on MUTED art, without `--purify-colors`' neon side effect; no-op if there's no real
   black.
+- **`--outline-objects`** (default **auto**: on for satin-dominant categories incl. anime, off
+  otherwise) — layer a **closed satin border** over each substantial (≥40 mm²) fill region:
+  centerline = EDT iso-contour at half the border width, so the satin's outer edge kisses the
+  region boundary and its inner half overlaps the fill (the production "outline family" — the
+  pink-goku pair is 217 outline vs 118 fill objects, where its 82.9 % satin lives). Border width
+  = the category profile's median satin width (clamped 1.5–3 mm). Holes/counters are bordered
+  too. Borders sew right after their fill, same colour.
 - **`--auto-route`** (default off) — per-colour Ink-Stitch `auto_satin`/`auto_run` threading a
   colour's pieces into one ordered path (cuts trims/travel on satin-heavy designs; can *add*
   travel on spatially-scattered pieces like Arabic dots).
@@ -149,6 +192,21 @@ documented — **consult these rather than re-deriving**:
 - Category detail: `letters/`, `arabic/`, `3D/`, `anime/`, `simple-shapes/`
   (`*-embroidery-knowledge.md`). `letters/letters-embroidery-knowledge.md` also documents the
   measured `.vp3` binary format + thread-metadata, which is cross-cutting.
+- **Production pairs** — the user drops (CorelDRAW-SVG, production-VP3) pairs (matching stems)
+  into **`pairs-inbox/`**; run `orchestrator/scripts/ingest_pairs.py` (see `pairs-inbox/README.md`).
+  It auto-categorizes each pair, files it under **`<category>/pairs/<design>/`**, labels it
+  (`extract_pair.py` structure + `register_pair.py` SVG↔VP3 registration → per-object mm widths,
+  density, satin-vs-tatami), force-adds the VP3 (VP3s are gitignored; ground truth is tracked
+  deliberately), and rebuilds `data/category_profiles.json` (step 7's drift gate) **and
+  `data/pair_priors.json`** (`build_pair_priors.py`). The priors **steer step 5's numbers
+  automatically** (`src/wilcom_pipeline/priors.py`): a category with ≥1 ingested pair uses its
+  *measured* satin/fill width crossover as the satin ceiling (clamped 3–9 mm, logged as
+  `pair prior: satin ceiling …`; anime's pair measures 2.86 → 3.0), its measured satin-width
+  band as the vwidth clamps, and its satin-width median as the border width — categories
+  without pairs keep the hand-calibrated constants byte-identically, and priors tune numbers
+  only (structure rules like "large regions = tatami" stand). Method + findings:
+  **`PAIRS-FINDINGS.md`**. Shared VP3 measurement scripts live in
+  `orchestrator/scripts/` (one copy; the old per-category `tools/` were consolidated).
 
 ## Standing conventions
 

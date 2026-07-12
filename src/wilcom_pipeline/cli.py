@@ -152,6 +152,34 @@ def build_parser() -> argparse.ArgumentParser:
                         "average width via stroke_to_satin. Fixes --satin-lean's under-coverage "
                         "on bold/modulated strokes. Falls back to fixed-width per column on "
                         "geometry failure. Off by default.")
+    p.add_argument("--auto-repair", action=argparse.BooleanOptionalAction, default=True,
+                   help="Repair the artwork the way a digitizer would before digitizing: "
+                        "merge sub-sewable specks (<1.5mm2) into their surrounding colour "
+                        "(dotted patterns kept), thicken isolated sub-0.8mm hairlines to "
+                        "~1mm (a >30%% hairline design gets the 'enlarge' advice instead), "
+                        "and merge palette colours that matched the same thread cone. "
+                        "Actions are logged. On by default.")
+    p.add_argument("--travel-plan", action=argparse.BooleanOptionalAction, default=True,
+                   help="Chain each colour's pieces nearest-neighbour, steer fill "
+                        "entry/exit points to the junctions (Ink-Stitch start/end "
+                        "commands), and drop trims where the travel is short (<=12mm) "
+                        "and covered by later stitching — never where the thread would "
+                        "show. Production files sew near-continuously (pink-goku: 0 "
+                        "trims). On by default.")
+    p.add_argument("--underlap-mm", type=float, default=0.5,
+                   help="How far an earlier-sewn colour's traced region extends UNDER its "
+                        "later-sewn neighbours (mm), so fabric pull can't open a white gap "
+                        "at the seam — the production object-overlap. Only seam-adjacent "
+                        "geometry moves, only into later colours (never background or open "
+                        "counters). Distinct from --pull-comp-mm (uniform stitch widening). "
+                        "0 disables. Default 0.5.")
+    p.add_argument("--outline-objects", action=argparse.BooleanOptionalAction, default=None,
+                   help="Layer a closed satin border on top of each substantial fill region "
+                        "(outer edge kissing the region boundary, inner half overlapping the "
+                        "fill) — the production 'outline family' the ground-truth pairs show "
+                        "(pink-goku: 217 outline vs 118 fill objects). Default: AUTO — on for "
+                        "a satin-dominant category (anime/letters/arabic/...), off otherwise; "
+                        "pass --outline-objects/--no-outline-objects to force.")
     return p
 
 
@@ -189,6 +217,10 @@ def main(argv: list[str] | None = None) -> int:
             satin_lean=args.satin_lean,
             spine_fill=args.spine_fill,
             vwidth_satin=args.vwidth_satin,
+            outline_objects=args.outline_objects,
+            underlap_mm=args.underlap_mm,
+            travel_plan=args.travel_plan,
+            auto_repair=args.auto_repair,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

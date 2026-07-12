@@ -38,7 +38,7 @@ photo ─▶ ① analyze ─▶ ② preprocess ─▶ ③ thread-match ─▶ �
 | ⑥ emit | writes `.vp3` + threadlist + **upright** preview | hand-off |
 | ⑦ verify | gate: stitches>0, all colours sewed, density in band, **trims+jumps < 5 %** | no-fragment (7) |
 
-Phase B (`phase_b/emb_save.ahk`, Windows + dongle) takes the `.vp3` into Wilcom
+Phase B (manual File ▸ Save As in licensed Wilcom, Windows + dongle) takes the `.vp3` into Wilcom
 and writes the encrypted `.emb` — where final **tie-offs / connectors** are
 confirmed (rules 9, 10), since the `.emb` `DesignDocument` stream can't be
 written by any script.

@@ -119,6 +119,19 @@ def run(ctx: PipelineContext) -> None:
     k = round(_CONSOLIDATE_MM / mm_per_px)
     k = max(3, k + 1 - (k % 2))  # nearest odd >= 3
     idx_map = _consolidate(idx_map, len(palette), k)
+
+    # Auto-repair (--auto-repair): act on what the analyzer only warned about, the way a
+    # digitizer edits the artwork — merge sub-sewable specks into their surroundings and
+    # thicken isolated hairlines to a sewable width. Every action is logged; when the
+    # hairline repair fires, analyze's min-feature warning is replaced by the repair note.
+    if cfg.auto_repair:
+        idx_map, repair_log, hairline_fixed = _auto_repair(idx_map, len(palette), mm_per_px)
+        for line in repair_log:
+            print(f"      auto-repaired: {line}")
+        if hairline_fixed:
+            warns = analysis.get("warnings", [])
+            analysis["warnings"] = [w for w in warns if "satin minimum" not in w]
+
     out, counts = _render(idx_map, palette)
 
     order = [i for i in np.argsort(counts)[::-1] if counts[i] > 0]
@@ -131,6 +144,95 @@ def run(ctx: PipelineContext) -> None:
         f"background dropped {dropped * 100:.1f}% of pixels; "
         f"work size {out.shape[1]}x{out.shape[0]}px"
     )
+
+
+# Auto-repair tunables (--auto-repair). A digitizer's pre-digitize artwork edits:
+_SPECK_MAX_MM2 = 1.5        # colour components below this are sub-sewable specks
+_SPECK_RING_FRAC = 0.6      # a speck merges only when one NEIGHBOUR colour owns >= this
+                            # much of its surrounding ring (never merges into background)
+_SPECK_DOTS_KEEP = 3        # >= this many same-colour specks = a dotted pattern -> keep
+_HAIRLINE_MM = 0.8          # linework thinner than this starves/vanishes in step 5
+_HAIRLINE_TARGET_MM = 1.0   # ...thicken it to about this
+_HAIRLINE_DESIGN_FRAC = 0.3  # >this fraction of the ink is hairline -> the design is
+                             # calligraphy at the wrong size; advise enlarging instead
+
+
+def _auto_repair(idx_map: np.ndarray, n_colors: int,
+                 mm_per_px: float) -> tuple[np.ndarray, list[str], bool]:
+    """Speck + hairline repair on the palette-index map. Returns (new idx_map,
+    log lines, hairline-warning-resolved?). Pure numpy/scipy; every action logged."""
+    log: list[str] = []
+    idx_map = idx_map.copy()
+    structure = ndimage.generate_binary_structure(2, 2)
+    max_speck_px = max(1, round(_SPECK_MAX_MM2 / (mm_per_px ** 2)))
+
+    # ① sub-sewable specks -> merge into the dominant SURROUNDING colour
+    n_merged = 0
+    for c in range(n_colors):
+        mask = idx_map == c
+        if not mask.any():
+            continue
+        lbl, n = ndimage.label(mask, structure=structure)
+        if n == 0:
+            continue
+        areas = np.bincount(lbl.ravel(), minlength=n + 1)
+        speck_ids = [k for k in range(1, n + 1) if areas[k] <= max_speck_px]
+        if not speck_ids:
+            continue
+        if len(speck_ids) >= _SPECK_DOTS_KEEP:
+            log.append(f"kept {len(speck_ids)} small colour-{c} speck(s) — dotted pattern")
+            continue
+        for k in speck_ids:
+            comp = lbl == k
+            ring = ndimage.binary_dilation(comp, structure=structure, iterations=2) & ~comp
+            votes = idx_map[ring]
+            votes = votes[(votes >= 0) & (votes != c)]
+            if len(votes) == 0:
+                continue                       # surrounded by background -> leave it
+            counts_r = np.bincount(votes)
+            if counts_r.max() < _SPECK_RING_FRAC * int(ring.sum()):
+                continue  # no single neighbour colour dominates (e.g. mostly background)
+            idx_map[comp] = int(counts_r.argmax())
+            n_merged += 1
+    if n_merged:
+        log.append(f"merged {n_merged} sub-sewable speck(s) (<{_SPECK_MAX_MM2:g}mm2) "
+                   f"into their surrounding colour")
+
+    # ② isolated hairlines -> thicken to a sewable width (into background only)
+    hairline_fixed = False
+    fg = idx_map >= 0
+    total_fg = int(fg.sum())
+    if total_fg:
+        hair_px = _HAIRLINE_MM / mm_per_px
+        grow = max(1, round((_HAIRLINE_TARGET_MM - _HAIRLINE_MM) / (2 * mm_per_px)))
+        hairline_area = 0
+        to_grow: list[tuple[np.ndarray, int]] = []
+        for c in range(n_colors):
+            mask = idx_map == c
+            if not mask.any():
+                continue
+            dist = ndimage.distance_transform_edt(mask)
+            lbl, n = ndimage.label(mask, structure=structure)
+            for k in range(1, n + 1):
+                comp = lbl == k
+                if int(comp.sum()) <= max_speck_px:
+                    continue                   # specks handled above
+                # component width in px ~ 2*EDT_max - 1 (EDT of a 1px line is 1.0)
+                if (2 * float(dist[comp].max()) - 1) < hair_px:  # entirely hairline
+                    hairline_area += int(comp.sum())
+                    to_grow.append((comp, c))
+        if hairline_area > _HAIRLINE_DESIGN_FRAC * total_fg:
+            log.append(f"{100 * hairline_area / total_fg:.0f}% of the ink is hairline — "
+                       f"left as-is; enlarge the design instead of fattening it wholesale")
+        elif to_grow:
+            for comp, c in to_grow:
+                ext = ndimage.binary_dilation(comp, structure=structure, iterations=grow)
+                idx_map[ext & (idx_map < 0)] = c   # thicken into BACKGROUND only
+            log.append(f"thickened {len(to_grow)} hairline component(s) "
+                       f"(<{_HAIRLINE_MM:g}mm) toward {_HAIRLINE_TARGET_MM:g}mm")
+            hairline_fixed = True
+
+    return idx_map, log, hairline_fixed
 
 
 # --------------------------------------------------------------------------- #

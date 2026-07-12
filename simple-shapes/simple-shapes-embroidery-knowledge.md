@@ -19,7 +19,7 @@ own source. A **second batch of 11** (the `*_inch_*` and `Design13/14/Design4 (1
 §1b) adds a whole new archetype — **single-colour line-art / outline drawings sewn 100 %
 as satin** (dove, deer, wolf, cats, seaweed, butterfly-moon) — plus a measured
 **inch-based sizing convention** (§5). Every number below is **measured**, not guessed.
-Reproduce any of it with the scripts in [`tools/`](tools/).
+Reproduce any of it with the scripts in [`orchestrator/scripts/`](../orchestrator/scripts/).
 
 ---
 
@@ -288,7 +288,7 @@ compare-overlay. Both gate **PASS**.
 ## 6. Compare-to-original & iterate — the mandatory last step ⭐⭐
 
 **Before delivering, always render the output and measure it against the source/ground
-truth; iterate until the drift is explained or gone.** The tools in [`tools/`](tools/):
+truth; iterate until the drift is explained or gone.** The tools in [`orchestrator/scripts/`](../orchestrator/scripts/):
 
 - `analyze_vp3.py <file.vp3>` — threads, bounds, satin-vs-fill (reversal %), trims,
   per-block geometry. Confirm: **1–4 clean cones, object per shape sane, density in
@@ -365,7 +365,7 @@ finish.
 - The end-to-end calibration: `vp3_to_photo.py` (colour-accurate) → `python -m
   wilcom_pipeline` (recipe §5) → `compare_vp3.py` against the ground truth; plus a
   from-scratch `assets/make_shapes_test.py` sheet measured with `compare_to_photo.py`.
-  All scripts in [`tools/`](tools/); the worked outputs in [`output/`](output/).
+  All scripts in [`orchestrator/scripts/`](../orchestrator/scripts/); the worked outputs in [`output/`](output/).
 - Consistent with [`../EMBROIDERY-PLAYBOOK.md`](../EMBROIDERY-PLAYBOOK.md) (simple shapes
   = the flat-logo/icon branch) and the cross-cutting `.vp3`/thread reference
   (letters §7–§8). The shape-specific additions are **isacord for bright clean

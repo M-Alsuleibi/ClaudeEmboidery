@@ -1,7 +1,7 @@
 # Production-ready digitizing — best practices (full course)
 
 > **⚑ Measured ground truth (first real anime pair, `pink-goku`, 2026-07 — see
-> [`../svg-and-geometry-approach/FINDINGS.md`](../svg-and-geometry-approach/FINDINGS.md)):**
+> [`../PAIRS-FINDINGS.md`](../PAIRS-FINDINGS.md)):**
 > anime is **SATIN-DOMINANT, not fill/photo-heavy** — `satin 82.9% / fill 4.7%`, **narrow satin
 > columns ~2.25 mm**, **outline-heavy** (217 outline objects : 118 fill = 1.84 : 1), **7 colours**,
 > 120 mm. This confirms the tutorials below (REI = *"sombras con SATIN, refuerzo TATAMI"*). It
@@ -452,7 +452,7 @@ form-shading or hair relief — that stays a human/Phase-B refinement.
 | Quality gate before hand-off | step 7 verify |
 
 Everything marked *Manual Wilcom / Phase B* above is craft the **human** or the
-`phase_b/emb_save.ahk` step applies in licensed Wilcom — it's reference knowledge,
+manual Wilcom save (Phase B) applies in licensed Wilcom — it's reference knowledge,
 not automated here.
 
 ---

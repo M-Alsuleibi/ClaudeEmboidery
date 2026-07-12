@@ -195,7 +195,7 @@ PYTHONPATH=src .venv/bin/python -m wilcom_pipeline 3D/image.png \
 **Result (gate PASS):** 4 isacord gold cones (Wheat · Antique · Taupe · Ghost-White),
 19 353 stitches, 104 trims, 71 × 160 mm; **IoU 85.7 % / source-covered 88.0 %** vs the
 photo (the ~12 % gap is the thin bevel/specular edge highlights). Tools mirrored in
-[`tools/`](tools/); overlay `output/gold2026_compare.png`.
+[`orchestrator/scripts/`](../orchestrator/scripts/); overlay `output/gold2026_compare.png`.
 
 > **Compare-to-original & iterate** (the standing directive [[compare-output-to-original-iterate]]):
 > the all-purple overlay confirmed the glyph shapes/counters match; the drift is only the

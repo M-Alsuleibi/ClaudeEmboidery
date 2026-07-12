@@ -15,6 +15,9 @@ minimal colour changes); here we just assign and flag the collision.
 
 from __future__ import annotations
 
+import numpy as np
+from PIL import Image
+
 from ..catalog import load_catalog
 from ..config import PipelineContext
 
@@ -60,4 +63,42 @@ def run(ctx: PipelineContext) -> None:
     codes = [m["code"] for m in thread_map]
     dups = sorted({c for c in codes if codes.count(c) > 1})
     if dups:
+        if ctx.config.auto_repair and _merge_shared_cones(ctx):
+            return  # palette/image/thread_map rewritten (and re-reported) by the merge
         print(f"      note: cone(s) {dups} shared by multiple regions — merge in step 5.")
+
+
+def _merge_shared_cones(ctx: PipelineContext) -> bool:
+    """Auto-repair ③: two palette colours that matched the SAME cone and sit within
+    ΔE<5 of each other are one thread in production — merge them BEFORE tracing so
+    the regions fuse into one colour group (fewer objects/trims, no duplicate cone).
+    Rewrites ctx.palette / ctx.thread_map / ctx.preprocessed_image. Returns True if
+    anything merged (the caller's shared-cone note is then obsolete)."""
+    from ..color import delta_e, srgb_to_lab
+
+    palette = ctx.palette
+    tm = ctx.thread_map
+    labs = srgb_to_lab(np.array(palette, dtype=float))
+    keep_of: dict[int, int] = {}
+    for i in range(len(palette)):
+        for j in range(i + 1, len(palette)):
+            if j in keep_of or i in keep_of:
+                continue
+            if tm[i]["code"] == tm[j]["code"] and \
+                    float(delta_e(labs[i], labs[j])) < 5.0:
+                keep_of[j] = i
+    if not keep_of:
+        return False
+
+    img = np.asarray(ctx.preprocessed_image).copy()
+    opaque = img[..., 3] > 128
+    for j, i in keep_of.items():
+        sel = opaque & np.all(img[..., :3] == np.array(palette[j], np.uint8), axis=-1)
+        img[sel, :3] = np.array(palette[i], np.uint8)
+        print(f"      auto-repaired: merged colour {palette[j]} into {palette[i]} "
+              f"(same cone {tm[i]['code']}, dE<5)")
+    keep = [k for k in range(len(palette)) if k not in keep_of]
+    ctx.palette = [palette[k] for k in keep]
+    ctx.thread_map = [tm[k] for k in keep]
+    ctx.preprocessed_image = Image.fromarray(img, "RGBA")
+    return True

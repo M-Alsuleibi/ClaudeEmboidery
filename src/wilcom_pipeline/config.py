@@ -176,6 +176,40 @@ class PipelineConfig:
     # a guided fill is still low-reversal rows, so it does NOT raise the fingerprint's satin%
     # (only real satin columns do — see --satin-lean / --branch-satin). Off by default.
     spine_fill: bool = False
+    # Underlap (step 4): production objects OVERLAP — an earlier-sewn fill extends UNDER its
+    # later-sewn neighbour by this many mm so fabric pull can't open a white gap at the seam
+    # (measured on abutting rects: 7.7 uncovered px per mm of seam in the ±0.4 mm band without
+    # it). Distinct from pull-comp: pull-comp widens STITCHES uniformly at digitize time;
+    # underlap moves the traced GEOMETRY, only along seams, only into later-sewn colours
+    # (background and dropped counter holes are never claimed). 0 disables (exact old trace).
+    underlap_mm: float = 0.5
+    # Auto-repair (steps 2/3): act on the artwork problems the analyzer only WARNED about,
+    # the way a production digitizer edits the art before digitizing: ① sub-sewable specks
+    # (< ~1.5 mm²) merge into their surrounding colour (never into background; dotted
+    # patterns — >=3 same-colour specks — are kept); ② isolated hairlines thinner than the
+    # 0.8 mm run minimum are thickened to ~1 mm (into background only; a >30 % hairline
+    # design gets the "enlarge" advice instead — don't fatten calligraphy wholesale);
+    # ③ palette colours within ΔE<5 that matched the SAME thread cone merge before tracing.
+    # Every action is logged as "auto-repaired: ...". --no-auto-repair = old behaviour.
+    auto_repair: bool = True
+    # Travel planning (step 5 post-pass): production sews near-continuously (pink-goku:
+    # 0 trims; we used to trim after every region). Chains each colour's pieces nearest-
+    # neighbour, pins fill entries/exits to the junction points (Ink-Stitch's
+    # starting_point/ending_point object commands — probed: they snap to the target's
+    # nearest boundary point), and drops trim_after ONLY where the straight travel is
+    # <= ~12mm AND >=90% covered by later-sewn stitching or the colour's own regions —
+    # never where the thread would show. On by default; --no-travel-plan restores
+    # trim-after-every-region.
+    travel_plan: bool = True
+    # Outline objects (step 5 post-pass): production designs are LAYERED — the pink-goku
+    # ground-truth pair decomposes into 118 fill + 217 OUTLINE objects (satin borders/detail
+    # sewn ON TOP of the fills), which is where most of its 82.9% satin comes from. This pass
+    # adds a closed satin border riding each substantial fill region's boundary (outer edge
+    # kissing the boundary, inner half overlapping the fill — deliberate, like production).
+    # Tri-state: None = AUTO (on for a satin-dominant category per the ground-truth
+    # fingerprint, off otherwise); True/False force it. Resolved in stitches (needs the
+    # fingerprint's satin-dominance, which config can't import).
+    outline_objects: bool | None = None
     # Variable-width satin (step 5): build each satin column DIRECTLY from its centerline + region
     # boundary, offsetting the two rails by the LOCAL half-width (distance from the centerline to
     # the boundary — the medial-axis / hatchSpineVF idea) instead of a single average width fed
@@ -243,6 +277,8 @@ class PipelineConfig:
                 f"Unknown fabric {self.fabric!r}; "
                 f"supported: {', '.join(SUPPORTED_FABRICS)}"
             )
+        if not (0.0 <= self.underlap_mm <= 2.0):
+            raise ValueError("underlap_mm must be between 0 (off) and 2.0")
 
     # --- Conventional artifact paths (step 6 deliverables) ---
     @property
@@ -290,6 +326,11 @@ class PipelineContext:
 
     # Step 5 — stitches: in-memory stitch model (pyembroidery pattern or similar).
     stitch_pattern: Any | None = None
+
+    # Step 5 — stitches: set only when the whole-design digitize hung and the per-colour-
+    # group fallback ran — the working per-group SVGs in sew order (1-2 files per group).
+    # Step 6 composites the realistic preview from these instead of re-hitting the hang.
+    per_group_svgs: list[Path] | None = None
 
     # Step 7 — verify: pass/fail + metrics, gates the handoff to Phase B.
     verification: dict[str, Any] = field(default_factory=dict)

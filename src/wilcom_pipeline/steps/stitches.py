@@ -30,6 +30,15 @@ True variable-width satin on freeform script is the human-refinement step; here
 a single approximate width per colour is used. Anything that errors in the
 linework pre-pass falls back to plain fills, so the step always produces a valid
 design.
+
+Two DIFFERENT gap-fighting mechanisms exist — don't confuse them:
+  - **pull compensation** (here, step 5): widens the STITCHES of every object uniformly
+    at digitize time (`pull_compensation_mm`), compensating fabric pull on the object
+    itself. It fattens everything, including edges facing background.
+  - **underlap** (step 4, `--underlap-mm`): moves the traced GEOMETRY — an earlier-sewn
+    colour's region extends 0.5 mm UNDER its later-sewn neighbour, only along shared
+    seams, so pull can't open a white gap between abutting colours (the production
+    object-overlap). Background and opened counters are never claimed.
 """
 
 from __future__ import annotations
@@ -49,7 +58,8 @@ from lxml import etree
 from scipy import ndimage
 
 from ..config import PipelineContext
-from ..fingerprint import category_satin_dominant
+from ..fingerprint import category_satin_dominant, load_profiles
+from .. import priors
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_BIN = _REPO_ROOT / "vendor" / "inkstitch" / "bin" / "inkstitch"
@@ -156,14 +166,23 @@ _LETTERING_MIN_SATIN_PTS = 10         # keep shorter strokes (letter arms) as sa
 _LETTERING_MAX_SATIN_COLUMNS = 240    # a long word dissects into many columns
 
 
-def _satin_ceiling(lettering: bool, satin_lean: bool, satin_dominant: bool) -> float:
+def _satin_ceiling(lettering: bool, satin_lean: bool, satin_dominant: bool,
+                   category: str | None = None, log: bool = False) -> float:
     """The region-width satin/fill boundary (mm), by regime. Lettering / --satin-lean push the
-    ceiling highest (dissect wide block strokes); a satin-DOMINANT category raises it to the
-    manual's ~7mm by default (its truth is satin-heavy, and vwidth covers the wider band); every
-    other case (3D/anime/unknown, whose shaded solids are tatami fills) keeps the conservative
-    3mm so the raised ceiling can't over-satin them."""
+    ceiling highest (dissect wide block strokes; explicit user regimes always win). Otherwise a
+    category with ingested PAIRS uses its MEASURED satin/fill width crossover (pair prior,
+    clamped 3-9mm — the loop the pairs exist to close); else a satin-DOMINANT category takes the
+    manual's ~7mm and everything else (3D/unknown, whose shaded solids are tatami fills) keeps
+    the conservative 3mm so a raised ceiling can't over-satin them."""
     if lettering or satin_lean:
         return _LETTERING_SATIN_MAX_WIDTH_MM
+    pri = priors.satin_ceiling_mm(category)
+    if pri is not None:
+        ceiling, n_pairs = pri
+        if log:
+            print(f"      pair prior: satin ceiling {ceiling:.1f}mm "
+                  f"(n={n_pairs} pair{'s' if n_pairs != 1 else ''})", flush=True)
+        return ceiling
     return _SATIN_DOMINANT_CEILING_MM if satin_dominant else _SATIN_MAX_WIDTH_MM
 
 
@@ -199,24 +218,28 @@ def run(ctx: PipelineContext) -> None:
     ready_svg = ctx.config.working_svg_path
     n_satin, n_run = _build_stitch_svg(ctx, binary, ready_svg)
 
+    # Outline objects (the production "outline family"): closed satin borders layered over
+    # the substantial fills. Tri-state flag: explicit --outline-objects wins; AUTO = on for
+    # a satin-dominant category (whose ground truth is outline/satin-heavy), off otherwise.
+    outline_on = (ctx.config.outline_objects if ctx.config.outline_objects is not None
+                  else category_satin_dominant(ctx.config.category))
+    if outline_on:
+        n_satin += _add_outline_objects(ctx, binary, ready_svg)
+
+    # Travel planning: chain each colour's pieces, steer fill entries/exits (probed:
+    # Ink-Stitch's starting_point/ending_point object commands snap to the target's
+    # nearest boundary point), and drop trim_after where the travel is short + covered.
+    if ctx.config.travel_plan:
+        _plan_travel(ctx, ready_svg)
+
     if ctx.config.auto_route and (n_satin or n_run):
         _auto_route(ctx, binary, ready_svg)
 
     ctx.stitch_svg_path = ready_svg
 
-    proc = subprocess.run(
-        [str(binary), "--extension=zip", "--format-vp3=True", str(ready_svg)],
-        capture_output=True,
-        timeout=_TIMEOUT_S,
-    )
-    if proc.returncode != 0:
-        raise RuntimeError(
-            f"Ink-Stitch failed (exit {proc.returncode}): "
-            f"{proc.stderr.decode('utf-8', 'replace')[:1000]}"
-        )
-
-    pattern = _read_vp3_from_zip(proc.stdout, proc.stderr)
+    pattern, group_svgs = _digitize(binary, ready_svg)
     ctx.stitch_pattern = pattern
+    ctx.per_group_svgs = group_svgs
     _print_summary(pattern, n_satin, n_run)
 
 
@@ -227,14 +250,26 @@ def render_realistic_preview(ctx: PipelineContext, svg: Path, dst: Path) -> bool
     stitches as shaded *vector* threads into the SVG (design layer hidden); cairosvg
     then rasterizes that to PNG — no Inkscape needed (the `png_realistic` output
     extension shells out to the `inkscape` binary, which we deliberately don't have).
-    Best-effort: returns False on any failure so step 6 falls back to the fast
-    polyline preview.
+    A design that went through the per-group digitize fallback would re-hit the same
+    combined-routing hang here, so it is previewed per group instead: each working
+    per-group SVG keeps the full document canvas, so the rasters align pixel-for-pixel
+    and alpha-composite in sew order. Best-effort: returns False on any failure so
+    step 6 falls back to the fast polyline preview.
     """
     try:
         binary = _locate_binary()
         import cairosvg  # optional dependency; lazy import
     except Exception:
         return False
+
+    sz = ctx.analysis.get("size_mm", {}) if ctx.analysis else {}
+    w_mm = float(sz.get("width_mm", 1) or 1)
+    h_mm = float(sz.get("height_mm", 1) or 1)
+    size_kw = ({"output_width": _REALISTIC_PREVIEW_PX} if w_mm >= h_mm
+               else {"output_height": _REALISTIC_PREVIEW_PX})
+
+    if ctx.per_group_svgs:
+        return _realistic_preview_composite(binary, ctx.per_group_svgs, dst, size_kw)
 
     tmp = dst.with_name(dst.stem + "_splan.svg")
     try:
@@ -243,21 +278,69 @@ def render_realistic_preview(ctx: PipelineContext, svg: Path, dst: Path) -> bool
              "--render-mode=realistic-vector", "--layer-visibility=hidden",
              "--move-to-side=false", "--overwrite=true", "--render-jumps=false",
              str(svg)],
-            capture_output=True, timeout=_TIMEOUT_S,
+            capture_output=True, timeout=_PREVIEW_TIMEOUT_S,
         )
         if proc.returncode != 0 or not proc.stdout.strip():
             return False
-        tmp.write_bytes(proc.stdout)
+        tmp.write_bytes(_strip_command_markers(proc.stdout))
+        cairosvg.svg2png(url=str(tmp), write_to=str(dst),
+                         background_color="white", **size_kw)
+        return True
+    except Exception:
+        return False
+    finally:
+        try:
+            tmp.unlink(missing_ok=True)
+        except Exception:
+            pass
 
-        sz = ctx.analysis.get("size_mm", {}) if ctx.analysis else {}
-        w_mm = float(sz.get("width_mm", 1) or 1)
-        h_mm = float(sz.get("height_mm", 1) or 1)
-        if w_mm >= h_mm:
-            cairosvg.svg2png(url=str(tmp), write_to=str(dst),
-                             output_width=_REALISTIC_PREVIEW_PX, background_color="white")
-        else:
-            cairosvg.svg2png(url=str(tmp), write_to=str(dst),
-                             output_height=_REALISTIC_PREVIEW_PX, background_color="white")
+
+def _strip_command_markers(svg_bytes: bytes) -> bytes:
+    """Remove entry/exit command marker groups from a stitch-plan SVG before rasterizing
+    the preview (their connectors are display:none but the symbol <use>s would render as
+    faint blue dashes around the design). Best-effort: returns the input on any failure."""
+    try:
+        root = etree.fromstring(svg_bytes)
+        for g in list(root.iter(f"{{{_SVG_NS}}}g")):
+            if (g.get("id") or "").startswith("command_group"):
+                g.getparent().remove(g)
+        return etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+    except Exception:
+        return svg_bytes
+
+
+def _realistic_preview_composite(binary: Path, group_svgs: list[Path], dst: Path,
+                                 size_kw: dict) -> bool:
+    """Realistic preview for a per-group-digitized design: stitch_plan_preview each working
+    per-group SVG (they completed the digitize, so they complete here too), rasterize on the
+    shared canvas with a transparent background, and alpha-composite in sew order. The frame
+    anchors sit outside the viewBox, so rasterization clips them away."""
+    try:
+        import cairosvg
+        from PIL import Image
+    except Exception:
+        return False
+    out = None
+    tmp = dst.with_name(dst.stem + "_splan.svg")
+    try:
+        for gs in group_svgs:
+            proc = subprocess.run(
+                [str(binary), "--extension=stitch_plan_preview",
+                 "--render-mode=realistic-vector", "--layer-visibility=hidden",
+                 "--move-to-side=false", "--overwrite=true", "--render-jumps=false",
+                 str(gs)],
+                capture_output=True, timeout=_PREVIEW_TIMEOUT_S,
+            )
+            if proc.returncode != 0 or not proc.stdout.strip():
+                return False
+            tmp.write_bytes(_strip_command_markers(proc.stdout))
+            png = cairosvg.svg2png(url=str(tmp), **size_kw)  # transparent background
+            layer = Image.open(io.BytesIO(png)).convert("RGBA")
+            out = layer if out is None else Image.alpha_composite(out, layer)
+        if out is None:
+            return False
+        white = Image.new("RGBA", out.size, "white")
+        Image.alpha_composite(white, out).convert("RGB").save(dst)
         return True
     except Exception:
         return False
@@ -391,7 +474,8 @@ def _linework_indices(ctx: PipelineContext) -> set[int]:
     # become satin columns instead of tatami — moving toward the truth's ~100% satin.
     satin_dominant = category_satin_dominant(ctx.config.category)
     satin_lean = ctx.config.satin_lean and satin_dominant and not lettering
-    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant)
+    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant,
+                                   ctx.config.category, log=True)
 
     line: set[int] = set()
     for i, rgb in enumerate(ctx.palette):
@@ -479,14 +563,20 @@ def _linework_prepass(
     spine_cands: list[tuple[str, object, int]] = []  # (orig id, guide centerline, colour idx)
 
     def _keep_as_fill(orig, lines, idx):
-        # Under --satin-lean (satin-dominant category), TILE a broad region with parallel satin
-        # strips instead of one tatami fill — a broad shaded mass then sews as satin like
-        # production ("sombras con satin"), closing the fill->satin gap. Falls back to fill if the
-        # region is too small/degenerate to tile (< 2 strips).
+        # Under --satin-lean (satin-dominant category), cover a broad region with satin
+        # instead of one tatami fill ("sombras con satin"), closing the fill->satin gap.
+        # CONTOUR-FOLLOWING "turning satin" rings first (rails follow the region boundary,
+        # so edges stay clean on irregular/blobby shapes); straight parallel strips only as
+        # fallback (stepped edges); one plain fill if both are degenerate.
         if satin_lean:
-            strips = _satin_strip_lines(originals.get(orig), mm_per_uu)
-            if len(strips) >= 2:
-                strip_lines.extend((p0, p1, idx) for p0, p1 in strips)
+            poly = originals.get(orig)
+            strips = _turning_satin_lines(poly, mm_per_uu)
+            if not strips:
+                straight = _satin_strip_lines(poly, mm_per_uu)
+                if len(straight) >= 2:
+                    strips = [np.asarray(seg, float) for seg in straight]
+            if strips:
+                strip_lines.extend((pts, idx) for pts in strips)
                 drop_centerlines.extend(lines)
                 drop_originals.add(orig)
                 return
@@ -498,11 +588,19 @@ def _linework_prepass(
             drop_centerlines.extend(lines)
 
     min_pts = _LETTERING_MIN_SATIN_PTS if lettering else _MIN_SATIN_PTS
-    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant)
+    width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant,
+                                   ctx.config.category)
     satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
+    satin_min_mm = _SATIN_MIN_W_MM
+    band = priors.satin_width_band_mm(ctx.config.category)
+    if band is not None and not (lettering or satin_lean):
+        # vwidth clamps from the category's MEASURED satin width band (pair prior)
+        satin_min_mm = max(band[0], 0.5)
+        satin_max_mm = min(max(band[1], satin_min_mm + 0.5), _SATIN_MAX_W_MM)
     run_strokes: list[tuple[object, int]] = []          # (centerline, colour idx)
     satin_cands: list[tuple[object, int, float]] = []   # (centerline, colour idx, width mm)
-    strip_lines: list[tuple] = []                       # broad-region satin strips: (p0, p1, idx)
+    strip_lines: list[tuple] = []                       # broad-region satin centerlines:
+                                                        # ((N,2) root-frame points, colour idx)
     drop_centerlines: list[object] = []
     drop_originals: set[str] = set()
     for orig, lines in centerlines.items():
@@ -537,6 +635,13 @@ def _linework_prepass(
             else:
                 keep = []
             if keep:
+                if len(keep) > 1:
+                    # branch dissection: mitre the junctions so per-branch columns
+                    # overlap instead of gapping where they meet
+                    try:
+                        _mitre_branch_junctions(keep, originals.get(orig), mm_per_uu)
+                    except Exception:
+                        pass  # geometry hiccup -> unmitred branches (the old behaviour)
                 satin_cands += [(c, idx, w_mm) for c in keep]
                 drop_centerlines += [c for c in lines if c not in keep]
                 drop_originals.add(orig)
@@ -580,20 +685,28 @@ def _linework_prepass(
             poly = originals.get((c.get("id") or "").rsplit("_", 1)[0])
             try:
                 if poly is not None and _build_vwidth_satin(
-                        c, poly, color, mm_per_uu, satin_max_mm):
+                        c, poly, color, mm_per_uu, satin_max_mm, satin_min_mm):
                     n_vwidth += 1
                     continue
             except Exception:
                 pass  # degenerate geometry -> fixed-width fallback below
-        w_uu = float(np.clip(w_mm, _SATIN_MIN_W_MM, satin_max_mm)) / mm_per_uu
+        w_uu = float(np.clip(w_mm, satin_min_mm, satin_max_mm)) / mm_per_uu
         _set_stroke_style(c, w_uu, color)
         satin_ids.append(c.get("id"))
-    # Broad-region satin strips -> fixed-width satin centerlines (root frame, no transform).
+    # Broad-region satin centerlines (turning rings or straight strips) -> fixed-width
+    # satin columns (root frame, no transform).
+    # Every strip centerline (staggered turning ring or straight strip) goes through
+    # stroke_to_satin PER RING — per-ring columns keep Ink-Stitch's rail pairing local
+    # and close ring seams cleanly. (Two single-column alternatives were DISPROVEN by
+    # measurement: one spiral column skews the fraction-based rail pairing into
+    # multi-turn throws — median stitch 13.7mm vs the 3.3mm width — and a direct
+    # rails+rungs build leaves pinholes where tight inner curvature folds the inner
+    # rail between 4mm rungs.)
     strip_w_uu = _STRIP_MM / mm_per_uu
-    for i, (p0, p1, idx) in enumerate(strip_lines):
+    for i, (pts, idx) in enumerate(strip_lines):
         el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
         el.set("id", f"strip{i}")
-        el.set("d", f"M {p0[0]:.3f},{p0[1]:.3f} {p1[0]:.3f},{p1[1]:.3f}")
+        el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts))
         _set_stroke_style(el, strip_w_uu, thread_hex.get(idx, "#000000"))
         satin_ids.append(f"strip{i}")
     for c in drop_centerlines:
@@ -950,7 +1063,8 @@ def _min_dist_to_segments(P: np.ndarray, A: np.ndarray, B: np.ndarray) -> np.nda
 
 
 def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
-                        satin_max_mm: float) -> bool:
+                        satin_max_mm: float,
+                        satin_min_mm: float = _SATIN_MIN_W_MM) -> bool:
     """Rewrite `center_el` in place from a centerline stroke into a variable-width satin column
     (two rails offset by the local half-width + rungs). Returns False (leaving it untouched) if
     the geometry is degenerate, so the caller can fall back to fixed-width stroke_to_satin."""
@@ -970,7 +1084,7 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
 
     hw = _min_dist_to_segments(center, A, B)                      # local half-width (root uu)
     hw = np.convolve(hw, np.ones(5) / 5, mode="same")            # de-jitter
-    lo = (_SATIN_MIN_W_MM / 2) / mm_per_uu
+    lo = (satin_min_mm / 2) / mm_per_uu
     hi = (satin_max_mm / 2) / mm_per_uu
     hw = np.clip(hw, lo, hi)
 
@@ -1006,6 +1120,43 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
 _STRIP_MM = 3.0             # width of each satin strip when tiling a broad region (fixed-width band)
 _STRIP_MIN_RUN_MM = 2.0     # skip strip runs shorter than this (slivers)
 _MAX_STRIPS_PER_REGION = 80
+_RDP_EPS_PX = 0.4           # iso-contour simplification tolerance (marching squares emits ~1
+                            # point per pixel; a satin centerline doesn't need that resolution)
+
+
+def _region_raster(poly_el, mm_per_uu: float, evenodd: bool = False):
+    """Rasterise a region path into a bool mask on a ~0.3 mm/px grid (root frame), padded by
+    2 background px so the EDT sees the true boundary even where the shape touches its own
+    bbox. With `evenodd`, subpaths XOR (holes stay holes — needed when the pass must see the
+    counter boundaries, e.g. outline objects); default draws the union (holes filled away,
+    the historical turning-satin behaviour). Returns (mask, origin_xy, res_uu_per_px);
+    (None, None, 0.0) on degenerate input."""
+    from PIL import Image, ImageDraw
+    subs = []
+    for sub in re.split(r"[Mm]", (poly_el.get("d") if poly_el is not None else "") or ""):
+        pts = [(float(x), float(y)) for x, y in _COORD_RE.findall(sub)]
+        if len(pts) >= 3:
+            subs.append(_xf(np.asarray(pts, float), _ctm(poly_el)))
+    if not subs:
+        return None, None, 0.0
+    allp = np.concatenate(subs)
+    x0, y0 = allp.min(0)
+    x1, y1 = allp.max(0)
+    res = max((0.3 / mm_per_uu), 1e-9)                 # uu per px (~0.3 mm/px)
+    W, H = int((x1 - x0) / res) + 1, int((y1 - y0) / res) + 1
+    if W < 3 or H < 3 or W * H > 6_000_000:
+        return None, None, 0.0
+    pad = 2
+    mask = np.zeros((H + 2 * pad, W + 2 * pad), bool)
+    for s in subs:
+        im = Image.new("L", (W + 2 * pad, H + 2 * pad), 0)
+        ImageDraw.Draw(im).polygon(
+            [((px - x0) / res + pad, (py - y0) / res + pad) for px, py in s], fill=255)
+        sub_mask = np.asarray(im) > 128
+        mask = (mask ^ sub_mask) if evenodd else (mask | sub_mask)
+    if int(mask.sum()) < 9:
+        return None, None, 0.0
+    return mask, np.array([x0 - pad * res, y0 - pad * res]), res
 
 
 def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -> list:
@@ -1014,32 +1165,14 @@ def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -
     minor axis every `strip_mm`, and return each band's inside run as a straight centerline (2
     root-frame points). Each becomes a fixed-width satin column — so a broad shaded mass sews as
     satin (like production) instead of one tatami fill. Empty on degenerate geometry. NOTE: straight
-    parallel columns still leave STEPPED edges on irregular boundaries — production 'turning satin'
-    (contour-following) is the quality path; this closes the fill->satin metric gap (behind
-    --satin-lean) but edge quality on blobby regions is a known limitation."""
-    from PIL import Image, ImageDraw
-    subs = []
-    for sub in re.split(r"[Mm]", poly_el.get("d") or ""):
-        pts = [(float(x), float(y)) for x, y in _COORD_RE.findall(sub)]
-        if len(pts) >= 3:
-            subs.append(_xf(np.asarray(pts, float), _ctm(poly_el)))
-    if not subs:
+    parallel columns leave STEPPED edges on irregular boundaries — _turning_satin_lines
+    (contour-following) is the quality path and is tried FIRST; this is its fallback."""
+    mask, origin, res = _region_raster(poly_el, mm_per_uu)
+    if mask is None:
         return []
-    allp = np.concatenate(subs)
-    x0, y0 = allp.min(0)
-    x1, y1 = allp.max(0)
-    res = max((0.3 / mm_per_uu), 1e-9)                 # uu per px (~0.3 mm/px)
-    W, H = int((x1 - x0) / res) + 1, int((y1 - y0) / res) + 1
-    if W < 3 or H < 3 or W * H > 6_000_000:
-        return []
-    im = Image.new("L", (W, H), 0)
-    dr = ImageDraw.Draw(im)
-    for s in subs:                                     # union of subpaths (holes approximated away)
-        dr.polygon([((px - x0) / res, (py - y0) / res) for px, py in s], fill=255)
-    mask = np.asarray(im) > 128
+    x0, y0 = origin
+    H, W = mask.shape
     ys, xs = np.where(mask)
-    if xs.size < 9:
-        return []
     # Orient strips along the region's PRINCIPAL axis (PCA) so columns FOLLOW the shape (clean
     # ends, not stair-stepped horizontal bands); band across the minor axis every strip_mm.
     P = np.column_stack([xs, ys]).astype(float)
@@ -1068,6 +1201,827 @@ def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -
                                   (x0 + b[0] * res, y0 + b[1] * res)))
         p += strip_px
     return lines
+
+
+# marching-squares case -> the pairs of crossed cell edges each contour segment joins
+# (corner bits: tl=1, tr=2, br=4, bl=8; edges: t=top, r=right, b=bottom, l=left)
+_MS_SEGS = {
+    1: [("t", "l")], 2: [("t", "r")], 3: [("l", "r")], 4: [("r", "b")],
+    5: [("t", "r"), ("b", "l")], 6: [("t", "b")], 7: [("l", "b")],
+    8: [("l", "b")], 9: [("t", "b")], 10: [("t", "l"), ("r", "b")],
+    11: [("r", "b")], 12: [("l", "r")], 13: [("t", "r")], 14: [("t", "l")],
+}
+
+
+def _iso_contours(D: np.ndarray, level: float) -> list[np.ndarray]:
+    """Marching-squares iso-contours of the scalar field D (indexed [y, x]) at `level`,
+    chained into ordered polylines. Returns (N,2) arrays of (x, y) pixel coordinates;
+    closed loops get their first point repeated at the end. Hand-rolled — only
+    numpy/scipy are available (no skimage/cv2/contourpy)."""
+    inside = D >= level
+    case = (inside[:-1, :-1].astype(np.uint8)
+            + (inside[:-1, 1:].astype(np.uint8) << 1)
+            + (inside[1:, 1:].astype(np.uint8) << 2)
+            + (inside[1:, :-1].astype(np.uint8) << 3))
+    cys, cxs = np.nonzero((case > 0) & (case < 15))
+    if cys.size == 0:
+        return []
+
+    def edge_key(cy: int, cx: int, e: str):
+        if e == "t":
+            return ("h", cy, cx)
+        if e == "b":
+            return ("h", cy + 1, cx)
+        if e == "l":
+            return ("v", cy, cx)
+        return ("v", cy, cx + 1)
+
+    adj: dict = {}
+    for cy, cx in zip(cys.tolist(), cxs.tolist()):
+        for ea, eb in _MS_SEGS[int(case[cy, cx])]:
+            a, b = edge_key(cy, cx, ea), edge_key(cy, cx, eb)
+            adj.setdefault(a, []).append(b)
+            adj.setdefault(b, []).append(a)
+
+    def point(key) -> tuple[float, float]:
+        kind, y, x = key
+        v0 = float(D[y, x])
+        v1 = float(D[y, x + 1] if kind == "h" else D[y + 1, x])
+        f = 0.5 if v1 == v0 else float(np.clip((level - v0) / (v1 - v0), 0.0, 1.0))
+        return (x + f, float(y)) if kind == "h" else (float(x), y + f)
+
+    def walk(start, seen) -> list:
+        chain = [start]
+        seen.add(start)
+        cur = start
+        while True:
+            nxt = [n for n in adj[cur] if n not in seen]
+            if not nxt:
+                return chain
+            cur = nxt[0]
+            chain.append(cur)
+            seen.add(cur)
+
+    lines: list[np.ndarray] = []
+    seen: set = set()
+    for node in list(adj):                        # open chains first (degree-1 endpoints)
+        if node not in seen and len(adj[node]) == 1:
+            lines.append(np.asarray([point(k) for k in walk(node, seen)]))
+    for node in list(adj):                        # what remains are closed loops
+        if node not in seen:
+            chain = walk(node, seen)
+            lines.append(np.asarray([point(k) for k in chain] + [point(node)]))
+    return [ln for ln in lines if len(ln) >= 2]
+
+
+def _rdp(pts: np.ndarray, eps: float) -> np.ndarray:
+    """Iterative Ramer-Douglas-Peucker simplification: drop points within `eps` of the
+    local chord (marching squares emits ~1 point per pixel — far denser than a satin
+    centerline needs)."""
+    if len(pts) < 3:
+        return pts
+    keep = np.zeros(len(pts), bool)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    while stack:
+        i, j = stack.pop()
+        if j <= i + 1:
+            continue
+        seg = pts[j] - pts[i]
+        length = float(np.hypot(seg[0], seg[1]))
+        mid = pts[i + 1:j]
+        if length < 1e-9:
+            d = np.hypot(mid[:, 0] - pts[i, 0], mid[:, 1] - pts[i, 1])
+        else:
+            d = np.abs(seg[0] * (mid[:, 1] - pts[i, 1])
+                       - seg[1] * (mid[:, 0] - pts[i, 0])) / length
+        k = int(np.argmax(d))
+        if d[k] > eps:
+            k += i + 1
+            keep[k] = True
+            stack += [(i, k), (k, j)]
+    return pts[keep]
+
+
+# Branch-junction mitre (--branch-satin / satin-lean): per-branch satin columns end
+# exactly AT the skeleton junction, leaving a small uncovered wedge where they meet.
+# Extend each branch's centerline PAST the junction by the local half-width so the
+# columns overlap in a mitre, like a hand digitize.
+_MITRE_MIN_MM = 0.5
+_MITRE_MAX_MM = 2.0
+_MITRE_TOL_MM = 1.2       # centerline ends within this of each other = one junction
+_MITRE_MAX_ENDS = 4       # more branch-ends than this in one cluster = a dense hub; skip
+
+
+def _mitre_branch_junctions(centerlines: list, poly_el, mm_per_uu: float) -> int:
+    """Where the kept branch centerlines MEET, extend each one past the junction by the
+    local half-width (distance from the junction to the region boundary, clamped
+    0.5-2mm). Clusters of more than _MITRE_MAX_ENDS ends are left alone (a dense hub —
+    extending everything there would pile thread). Returns how many ends were extended."""
+    if poly_el is None or len(centerlines) < 2:
+        return 0
+    A, B = _path_segments(poly_el.get("d") or "")
+    if not len(A):
+        return 0
+    Mp = _ctm(poly_el)
+    A, B = _xf(A, Mp), _xf(B, Mp)
+    tol_uu = _MITRE_TOL_MM / mm_per_uu
+
+    info = []
+    for el in centerlines:
+        pts = np.asarray([(float(x), float(y))
+                          for x, y in _COORD_RE.findall(el.get("d") or "")], float)
+        if len(pts) < 2:
+            info.append(None)
+            continue
+        M = _ctm(el)
+        scale = float(np.sqrt(abs(M[0, 0] * M[1, 1] - M[0, 1] * M[1, 0]))) or 1.0
+        info.append({"el": el, "pts": pts, "root": _xf(pts, M),
+                     "scale": scale, "touched": False})
+
+    ends = []                                     # (centerline idx, end 0|-1, root point)
+    for i, inf in enumerate(info):
+        if inf is not None:
+            ends.append((i, 0, inf["root"][0]))
+            ends.append((i, -1, inf["root"][-1]))
+
+    used: set[int] = set()
+    n_ext = 0
+    for a in range(len(ends)):
+        if a in used:
+            continue
+        cluster = [a] + [b for b in range(a + 1, len(ends)) if b not in used
+                         and float(np.hypot(*(ends[a][2] - ends[b][2]))) <= tol_uu]
+        if len(cluster) < 2:
+            continue
+        used.update(cluster)
+        if len(cluster) > _MITRE_MAX_ENDS:
+            continue
+        centre = np.mean([ends[x][2] for x in cluster], axis=0)
+        hw_mm = float(_min_dist_to_segments(centre[None, :], A, B)[0]) * mm_per_uu
+        ext_mm = float(np.clip(hw_mm, _MITRE_MIN_MM, _MITRE_MAX_MM))
+        for x in cluster:
+            ci, which, _pt = ends[x]
+            inf = info[ci]
+            pts = inf["pts"]
+            tang = (pts[0] - pts[1]) if which == 0 else (pts[-1] - pts[-2])
+            norm = float(np.hypot(*tang))
+            if norm < 1e-9:
+                continue
+            step = tang / norm * (ext_mm / mm_per_uu / inf["scale"])
+            newpt = (pts[0] if which == 0 else pts[-1]) + step
+            inf["pts"] = (np.vstack([newpt[None], pts]) if which == 0
+                          else np.vstack([pts, newpt[None]]))
+            inf["touched"] = True
+            n_ext += 1
+
+    for inf in info:
+        if inf is not None and inf["touched"]:
+            inf["el"].set("d", "M " + " ".join(f"{x:.4f},{y:.4f}" for x, y in inf["pts"]))
+    return n_ext
+
+
+def _ring_length(pts: np.ndarray) -> float:
+    seg = np.diff(pts, axis=0)
+    return float(np.hypot(seg[:, 0], seg[:, 1]).sum())
+
+
+def _normalize_ring(ring: np.ndarray) -> np.ndarray:
+    """Open the closed ring (drop the repeated last point) and orient it CCW, so every
+    ring in a spiral flows the same way."""
+    pts = ring[:-1] if np.allclose(ring[0], ring[-1]) else ring
+    x, y = pts[:, 0], pts[:, 1]
+    area = float(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
+    return pts if area >= 0 else pts[::-1]
+
+
+def _straightest_vertex(pts: np.ndarray) -> int:
+    """Index of the vertex starting the LONGEST edge — after RDP that is the middle of
+    the straightest boundary stretch (the seam belongs there, not on a corner)."""
+    seg = np.diff(np.vstack([pts, pts[:1]]), axis=0)
+    return int(np.argmax(np.hypot(seg[:, 0], seg[:, 1])))
+
+
+def _segments_cross(p, q, A, B) -> bool:
+    """Does the open segment p->q properly cross any segment A[i]->B[i]? (Endpoints of
+    p->q are pulled in 2% so touching a ring at the connector's own ends doesn't count.)"""
+    d0 = q - p
+    p = p + 0.02 * d0
+    q = q - 0.02 * d0
+    d = q - p
+    e = B - A
+    f = A - p
+    denom = d[0] * e[:, 1] - d[1] * e[:, 0]
+    ok = np.abs(denom) > 1e-12
+    t = np.where(ok, (f[:, 0] * e[:, 1] - f[:, 1] * e[:, 0]) / np.where(ok, denom, 1), -1)
+    u = np.where(ok, (f[:, 0] * d[1] - f[:, 1] * d[0]) / np.where(ok, denom, 1), -1)
+    return bool(np.any(ok & (t > 0) & (t < 1) & (u > 0) & (u < 1)))
+
+
+def _spiral_rings(levels: list[list[np.ndarray]], step_px: float):
+    """Chain the concentric ring centerlines into OPEN SPIRALS: each ring is cut at a seam
+    (outermost: on its straightest stretch; deeper: at the vertex nearest the previous
+    ring's seam), traversed fully, then connected to the next ring by a short radial step —
+    ONE satin column per nesting chain instead of one per ring, so there are no per-ring
+    trims/locks and no aligned radial seam. A connector that would cross ring geometry, or
+    a ring with no unambiguous parent, breaks the chain (those rings stay standalone).
+    Returns (spirals, standalone_rings)."""
+    max_conn = 1.75 * step_px
+    chains: list[dict] = []
+    standalone: list[np.ndarray] = []
+    for lv, rings in enumerate(levels):
+        claimed: set[int] = set()
+        if lv > 0:
+            for ch in chains:
+                if ch["done"]:
+                    continue
+                # candidate deeper rings reachable from this chain's seam
+                cand = [(j, float(np.min(np.hypot(*(rings[j] - ch["seam"]).T))))
+                        for j in range(len(rings)) if j not in claimed]
+                near = [(j, dmin) for j, dmin in cand if dmin <= max_conn]
+                if len(near) != 1:
+                    ch["done"] = True              # split / dead end -> close the chain
+                    continue
+                j, _ = near[0]
+                ring = _normalize_ring(rings[j])
+                cut = int(np.argmin(np.hypot(*(ring - ch["seam"]).T)))
+                rolled = np.roll(ring, -cut, axis=0)
+                loop = np.vstack([rolled, rolled[:1]])
+                conn_p, conn_q = ch["seam"], loop[0]
+                segs = np.vstack([ch["pts"], loop])
+                if _segments_cross(conn_p, conn_q, segs[:-1], segs[1:]):
+                    ch["done"] = True              # radial step would cross the satin path
+                    continue
+                claimed.add(j)
+                ch["pts"] = np.vstack([ch["pts"], loop])
+                ch["seam"] = loop[0]
+                ch["levels"] += 1
+        for j in range(len(rings)):
+            if j in claimed:
+                continue
+            if lv == len(levels) - 1 and _ring_length(rings[j]) < 6.0 * step_px:
+                continue    # tight innermost core: the neighbouring ring's satin covers it
+            ring = _normalize_ring(rings[j])
+            cut = _straightest_vertex(ring)
+            rolled = np.roll(ring, -cut, axis=0)
+            chains.append({"pts": np.vstack([rolled, rolled[:1]]),
+                           "seam": rolled[0], "levels": 1, "done": False})
+    spirals = [ch["pts"] for ch in chains if ch["levels"] > 1]
+    standalone += [ch["pts"] for ch in chains if ch["levels"] == 1]
+    return spirals, standalone
+
+
+def _stagger_ring_seams(levels: list[list[np.ndarray]], step_px: float) -> list[np.ndarray]:
+    """Re-cut each ring's seam ~1.5 steps FURTHER along the boundary than the previous
+    ring's: consecutive seams stay within the travel-drop budget (the chain sews near-
+    continuously once the travel planner removes the junction trims) but never line up
+    into a visible radial corridor. The outermost seam sits on the straightest boundary
+    stretch. (Chaining the rings into ONE spiral column was DISPROVEN empirically: turns
+    touch by construction — step == width — so the column's rails graze the neighbouring
+    turns and Ink-Stitch's rail pairing degenerates into multi-turn diagonal throws,
+    measured median stitch 13.7mm fraction-paired / 14.6mm with explicit rungs, vs the
+    3.3mm width. _spiral_rings is kept as tested geometry, unused for emission.)"""
+    out: list[np.ndarray] = []
+    prev_seam = None
+    for rings_k in levels:
+        for ring in rings_k:
+            r = _normalize_ring(ring)
+            if prev_seam is None:
+                rolled = np.roll(r, -_straightest_vertex(r), axis=0)
+                out.append(_ring_polyline(rolled, step_px))
+                prev_seam = rolled[0]
+                continue
+            # nearest vertex to the previous seam, then advance the seam ~1.5 steps
+            # ALONG the ring (interpolated — RDP vertices are sparse on straights, so
+            # a vertex-snapped advance can overshoot to the far side of the shape)
+            near = int(np.argmin(np.hypot(*(r - prev_seam).T)))
+            rolled = np.roll(r, -near, axis=0)
+            closed = np.vstack([rolled, rolled[:1]])
+            seg = np.diff(closed, axis=0)
+            seglen = np.hypot(seg[:, 0], seg[:, 1])
+            arc = np.concatenate([[0.0], np.cumsum(seglen)])
+            target = min(1.5 * step_px, 0.4 * arc[-1])   # tiny ring: cap the drift
+            j = max(0, min(int(np.searchsorted(arc, target, side="right")) - 1,
+                           len(seglen) - 1))
+            t = (target - arc[j]) / max(float(seglen[j]), 1e-9)
+            cut_pt = closed[j] + t * seg[j]
+            rest = np.vstack([rolled[j + 1:], rolled[:j + 1]])
+            out.append(_ring_polyline(np.vstack([cut_pt[None], rest]), step_px))
+            prev_seam = cut_pt
+    return out
+
+
+def _ring_polyline(rolled: np.ndarray, overlap_px: float) -> np.ndarray:
+    """Close a ring centerline AND overshoot ~one step past the seam, so the satin column
+    double-covers the closure. Without the overshoot the stretch between the column's
+    final rung and the seam thins out, leaving a small uncovered wedge at every ring seam
+    (visible as a drifting trail of gaps once the seams are staggered)."""
+    closed = np.vstack([rolled, rolled[:1]])
+    acc = 0.0
+    for i in range(1, len(closed)):
+        v = closed[i] - closed[i - 1]
+        L = float(np.hypot(*v))
+        if acc + L >= overlap_px:
+            t = (overlap_px - acc) / max(L, 1e-9)
+            return np.vstack([closed, closed[1:i], (closed[i - 1] + t * v)[None]])
+        acc += L
+    return np.vstack([closed, closed[1:]])       # tiny ring: full second lap
+
+
+def _turning_satin_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM,
+                         spiral: bool = False) -> list:
+    """CONTOUR-FOLLOWING ("turning") satin centerlines for a broad region: onion-peel the
+    region by its distance field. Ring k's centerline is the iso-contour of the EDT at depth
+    (k+0.5)*step, with the step equalised to <= strip_mm so the deepest core is covered (a
+    fixed step can leave an uncovered centre up to half a strip deep). The outermost ring
+    hugs the region boundary and every deeper ring turns with the shape — the production
+    'turning satin' look; _satin_strip_lines' straight strips (stepped edges on irregular
+    boundaries) remain only as the fallback. Rings are emitted with STAGGERED seams (see
+    _stagger_ring_seams; the travel planner then drops the ring-to-ring trims, so the
+    chain sews near-continuously with no aligned radial seam). `spiral=True` instead
+    returns the single-polyline spiral per nesting chain — valid geometry kept for tests,
+    but NOT sewable as one satin column (rails graze the touching turns; see
+    _stagger_ring_seams). Returns (N,2) root-frame polylines, outermost-first. Empty on
+    degenerate geometry (caller falls back)."""
+    mask, origin, res = _region_raster(poly_el, mm_per_uu)
+    if mask is None:
+        return []
+    D = ndimage.distance_transform_edt(mask)
+    dmax = float(D.max())
+    strip_px = max(strip_mm / (res * mm_per_uu), 3.0)
+    if dmax < strip_px / 2:
+        return []                                  # thinner than one strip everywhere
+    min_len_px = max(_STRIP_MIN_RUN_MM / (res * mm_per_uu), 3.0)
+    n = int(np.ceil(dmax / strip_px))
+    step = dmax / n
+    levels: list[list[np.ndarray]] = []
+    total = 0
+    for k in range(n):
+        rings_k: list[np.ndarray] = []
+        for line in _iso_contours(D, (k + 0.5) * step):
+            line = _rdp(line, _RDP_EPS_PX)
+            if _ring_length(line) < min_len_px:
+                continue
+            rings_k.append(line)
+            total += 1
+            if total >= _MAX_STRIPS_PER_REGION:
+                break
+        levels.append(rings_k)
+        if total >= _MAX_STRIPS_PER_REGION:
+            break
+    if not total:
+        return []
+    if spiral:
+        spirals, single = _spiral_rings(levels, step)
+        out_px = spirals + single
+    else:
+        out_px = _stagger_ring_seams(levels, step)
+    return [origin + pts * res for pts in out_px]
+
+
+# --------------------------------------------------------------------------- #
+# outline objects (--outline-objects): the production "outline family"
+# --------------------------------------------------------------------------- #
+# Production designs are LAYERED: the pink-goku ground-truth pair decomposes into 118 fill
+# + 217 OUTLINE objects — satin borders/detail sewn ON TOP of the fills — which is where
+# most of its 82.9% satin comes from. Our trace is a flat non-overlapping colour partition,
+# so without this pass no border object ever exists. For each substantial fill region we
+# ride a CLOSED satin border along its boundary: centerline = the EDT iso-contour at depth
+# w/2, so the satin's outer edge kisses the region boundary and its inner half OVERLAPS the
+# fill (deliberate, like production — it also acts as a mini-underlap at the seam). Hole
+# rings (letter counters etc.) are bordered too (evenodd raster keeps them).
+_BORDER_MIN_AREA_MM2 = 40.0   # only substantial fills get a border (production borders shapes,
+                              # not specks; small regions are already crisp)
+_BORDER_MIN_LEN_MM = 8.0      # skip border rings shorter than this (slivers)
+_BORDER_W_MIN_MM = 1.5        # clamp for the border width read from the category profile
+_BORDER_W_MAX_MM = 3.0
+_MAX_BORDERS = 150            # guard: a design shouldn't explode into border soup
+
+
+def _outline_border_w_mm(category: str | None) -> float:
+    """Border width: what production sews its outline objects at — the PAIR prior's measured
+    satin width median when the category has ingested pairs, else the ground-truth profile's
+    median satin width; clamped to a sane band. Fallback 2.0 mm."""
+    try:
+        med = priors.border_width_mm(category)
+        if med is None:
+            med = (load_profiles().get(category or "", {}).get("satin_w_mm") or {}).get("med")
+        return float(np.clip(float(med), _BORDER_W_MIN_MM, _BORDER_W_MAX_MM))
+    except Exception:
+        return 2.0
+
+
+def _border_centerlines(poly_el, mm_per_uu: float, w_mm: float) -> list:
+    """Closed border centerlines for one fill region: EDT iso-contours at depth w/2 (outer
+    satin edge on the region boundary), evenodd so hole boundaries are bordered too.
+    Returns (N,2) root-frame polylines; empty when the region is thinner than the border
+    or degenerate (caller just skips it)."""
+    mask, origin, res = _region_raster(poly_el, mm_per_uu, evenodd=True)
+    if mask is None:
+        return []
+    px_mm = res * mm_per_uu                            # mm per raster px
+    if float(mask.sum()) * px_mm * px_mm < _BORDER_MIN_AREA_MM2:
+        return []
+    D = ndimage.distance_transform_edt(mask)
+    depth_px = (w_mm / 2) / px_mm
+    if float(D.max()) <= depth_px:
+        return []                                      # thinner than the border everywhere
+    min_len_px = _BORDER_MIN_LEN_MM / px_mm
+    out = []
+    for line in _iso_contours(D, depth_px):
+        line = _rdp(line, _RDP_EPS_PX)
+        seg = np.diff(line, axis=0)
+        if np.hypot(seg[:, 0], seg[:, 1]).sum() < min_len_px:
+            continue
+        out.append(origin + line * res)
+    return out
+
+
+def _fill_colour(p) -> str | None:
+    """The region's colour: fill attr or style fill; None for non-fills/centerlines."""
+    m = re.search(r"fill:\s*(#[0-9a-fA-F]{6})", p.get("style") or "")
+    c = m.group(1) if m else p.get("fill")
+    return c if (c and c != "none") else None
+
+
+def _add_outline_objects(ctx: PipelineContext, binary: Path, ready_svg: Path) -> int:
+    """Layer closed satin borders over the substantial fill regions of the ready SVG (see
+    the block comment above). Each border is inserted immediately AFTER its fill in the
+    same colour group (sews right after it, before the next colour), then stroke_to_satin
+    turns the batch into satin columns and they get the standard satin params. Best-effort:
+    any failure leaves the ready SVG exactly as it was. Returns how many borders were made."""
+    cfg = ctx.config
+    w_mm = _outline_border_w_mm(cfg.category)
+    tree = etree.parse(str(ready_svg))
+    root = tree.getroot()
+    mm_per_uu = _mm_per_uu(root)
+    w_uu = w_mm / mm_per_uu
+
+    border_ids: list[str] = []
+    n = 0
+    for p in list(root.iter(f"{{{_SVG_NS}}}path")):
+        if n >= _MAX_BORDERS:
+            break
+        if (p.get(f"{{{_INKSTITCH_NS}}}satin_column") is not None
+                or p.get(f"{{{_INKSTITCH_NS}}}stroke_method") is not None
+                or p.get(f"{{{_INKSTITCH_NS}}}end_row_spacing_mm") is not None
+                or _is_centerline(p)):
+            continue
+        colour = _fill_colour(p)
+        if colour is None:
+            continue
+        try:
+            rings = _border_centerlines(p, mm_per_uu, w_mm)
+        except Exception:
+            continue
+        parent = p.getparent()
+        pos = parent.index(p)
+        for ring in rings:
+            if n >= _MAX_BORDERS:
+                break
+            el = etree.Element(f"{{{_SVG_NS}}}path")
+            el.set("id", f"border{n}")
+            el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in ring))
+            _set_stroke_style(el, w_uu, colour)
+            pos += 1
+            parent.insert(pos, el)                     # right after the fill it borders
+            border_ids.append(f"border{n}")
+            n += 1
+
+    if not border_ids:
+        return 0
+    tree.write(str(ready_svg), xml_declaration=True, encoding="UTF-8")
+    try:
+        _run_extension(binary, "stroke_to_satin", border_ids, [], ready_svg, ready_svg,
+                       timeout=_SATIN_TIMEOUT_S)
+        # the new columns need the standard satin params (underlay, pull-comp, trim_after);
+        # pre-existing satins already carry trim_after, so stamp only the unstamped ones.
+        tree = etree.parse(str(ready_svg))
+        satin_params = _satin_params(cfg.resolved_pull_comp_mm, cfg.satin_underlay)
+        for p in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
+            if (p.get(f"{{{_INKSTITCH_NS}}}satin_column") is not None
+                    and p.get(f"{{{_INKSTITCH_NS}}}trim_after") is None):
+                for key, value in satin_params.items():
+                    p.set(f"{{{_INKSTITCH_NS}}}{key}", value)
+                # marker: this satin is a BORDER bonded to the fill before it (the travel
+                # planner must never separate them; stroke_to_satin renamed the ids)
+                p.set("data-wilcom-border", "1")
+        tree.write(str(ready_svg), xml_declaration=True, encoding="UTF-8")
+    except Exception as exc:
+        # roll back: strip any border strokes so the design is exactly the pre-pass one
+        print(f"      outline objects failed ({type(exc).__name__}); skipped", flush=True)
+        try:
+            tree = etree.parse(str(ready_svg))
+            for p in list(tree.getroot().iter(f"{{{_SVG_NS}}}path")):
+                if (p.get("id") or "").startswith("border"):
+                    p.getparent().remove(p)
+            tree.write(str(ready_svg), xml_declaration=True, encoding="UTF-8")
+        except Exception:
+            pass
+        return 0
+    print(f"      outline objects -> {n} satin border(s) @ {w_mm:.1f}mm "
+          f"(production outline family)", flush=True)
+    return n
+
+
+# --------------------------------------------------------------------------- #
+# travel planning (entry/exit + travel-under-cover): kill the trims
+# --------------------------------------------------------------------------- #
+# Production sews near-continuously (pink-goku: 15k stitches, 0 trims); we used to trim
+# after every region (~71 on joker). PROBED Ink-Stitch controllability (see the goal log):
+# the `starting_point` / `ending_point` OBJECT COMMANDS work for fills — a command is a
+# <g> holding a connector <path> (inkscape:connection-end = the target) plus a
+# <use xlink:href="#inkstitch_starting_point|_ending_point" x= y=>, with the two <symbol>
+# defs present in the doc (vendored at vendor/inkstitch/symbols/inkstitch.svg). Ink-Stitch
+# snaps the commanded position to the target's NEAREST BOUNDARY POINT, so entry and exit
+# are fully steerable; satin columns / runs enter and exit at their fixed path endpoints.
+# The planner chains each colour's pieces nearest-neighbour, pins fill entries/exits to
+# the junction points, and drops trim_after ONLY where the straight travel exit->entry is
+# short and covered by stitching that sews later (or stays inside the colour's own
+# regions) — the cover law: never drop a trim where the travel would show.
+_TRAVEL_MAX_MM = 12.0     # longest travel we'll leave untrimmed
+_TRAVEL_COVER_MIN = 0.90  # fraction of the travel that must be covered
+_TRAVEL_RES_MM = 0.5      # raster resolution for the cover masks
+_XLINK_NS = "http://www.w3.org/1999/xlink"
+_INKSCAPE_NS = "http://www.inkscape.org/namespaces/inkscape"
+
+
+def _load_command_symbols() -> dict[str, "etree._Element"] | None:
+    """The starting/ending-point <symbol> defs from the vendored Ink-Stitch bundle."""
+    try:
+        sym_file = _candidate_binary().parent.parent / "symbols" / "inkstitch.svg"
+        root = etree.parse(str(sym_file)).getroot()
+        out = {}
+        for s in root.iter(f"{{{_SVG_NS}}}symbol"):
+            if s.get("id") in ("inkstitch_starting_point", "inkstitch_ending_point"):
+                out[s.get("id")] = s
+        return out if len(out) == 2 else None
+    except Exception:
+        return None
+
+
+def _ensure_command_symbols(root, symbols) -> None:
+    defs = root.find(f"{{{_SVG_NS}}}defs")
+    if defs is None:
+        defs = etree.Element(f"{{{_SVG_NS}}}defs")
+        root.insert(0, defs)
+    have = {s.get("id") for s in defs.iter(f"{{{_SVG_NS}}}symbol")}
+    for sid, sym in symbols.items():
+        if sid not in have:
+            defs.append(etree.fromstring(etree.tostring(sym)))
+
+
+def _add_point_command(target, kind: str, x: float, y: float, n: int) -> None:
+    """Attach a starting_point/ending_point command to `target` (inserted right after it,
+    same structure Ink-Stitch's own `commands` extension emits, sans the scale transform
+    so x/y are plain user units)."""
+    g = etree.Element(f"{{{_SVG_NS}}}g", id=f"command_group_tp{n}")
+    conn = etree.SubElement(g, f"{{{_SVG_NS}}}path", id=f"command_connector_tp{n}")
+    conn.set("d", f"M {x:.3f},{y:.3f} {x + 0.1:.3f},{y:.3f}")
+    conn.set("style", "fill:none;stroke:#000000;stroke-width:1;stroke-opacity:0.5;"
+                      "display:none")
+    conn.set(f"{{{_INKSCAPE_NS}}}connection-start", f"#command_use_tp{n}")
+    conn.set(f"{{{_INKSCAPE_NS}}}connection-end", f"#{target.get('id')}")
+    conn.set(f"{{{_INKSCAPE_NS}}}connector-type", "polyline")
+    use = etree.SubElement(g, f"{{{_SVG_NS}}}use", id=f"command_use_tp{n}")
+    use.set(f"{{{_XLINK_NS}}}href", f"#inkstitch_{kind}")
+    use.set("x", f"{x:.3f}")
+    use.set("y", f"{y:.3f}")
+    parent = target.getparent()
+    parent.insert(parent.index(target) + 1, g)
+
+
+def _path_vertices(p) -> np.ndarray:
+    """All subpath vertices of a path, in the root user-unit frame."""
+    A, _ = _path_segments(p.get("d") or "")
+    return _xf(A, _ctm(p)) if len(A) else A
+
+
+def _closest_pair(P: np.ndarray, Q: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+    """Closest vertex pair between two point sets (brute force; sets are small)."""
+    d = ((P[:, None, :] - Q[None, :, :]) ** 2).sum(-1)
+    i, j = np.unravel_index(int(np.argmin(d)), d.shape)
+    return P[i], Q[j], float(np.sqrt(d[i, j]))
+
+
+def _piece_kind(p) -> str:
+    if p.get(f"{{{_INKSTITCH_NS}}}satin_column") is not None:
+        return "satin"
+    if p.get(f"{{{_INKSTITCH_NS}}}stroke_method") is not None:
+        return "run"
+    if p.get(f"{{{_INKSTITCH_NS}}}end_row_spacing_mm") is not None:
+        return "gradient"
+    return "fill"
+
+
+def _group_pieces(g) -> list[dict]:
+    """The group's stitchable paths in document order, with geometry. A border satin
+    (data-wilcom-border) bonds to the piece before it: the chain must never separate a
+    fill from its border, so bonded paths share a unit id."""
+    pieces = []
+    unit = -1
+    for p in g:
+        if not isinstance(p.tag, str) or etree.QName(p).localname != "path":
+            continue
+        if (p.get("id") or "").startswith(("frame_anchor", "command_")):
+            continue
+        pts = _path_vertices(p)
+        if len(pts) < 2:
+            continue
+        if p.get("data-wilcom-border") is None or not pieces:
+            unit += 1
+        pieces.append({"el": p, "kind": _piece_kind(p), "pts": pts, "unit": unit})
+    return pieces
+
+
+def _chain_units(pieces: list[dict]) -> list[dict]:
+    """Greedy nearest-neighbour ordering of the group's units (bonded paths move
+    together): each unit is followed by the closest remaining one."""
+    units: dict[int, list[dict]] = {}
+    for pc in pieces:
+        units.setdefault(pc["unit"], []).append(pc)
+    ids = sorted(units)
+    if len(ids) <= 2:
+        return pieces
+    order = [ids[0]]
+    remaining = set(ids[1:])
+    while remaining:
+        tail = np.concatenate([pc["pts"] for pc in units[order[-1]]])
+        best = min(remaining,
+                   key=lambda u: _closest_pair(
+                       tail, np.concatenate([pc["pts"] for pc in units[u]]))[2])
+        order.append(best)
+        remaining.discard(best)
+    return [pc for u in order for pc in units[u]]
+
+
+def _piece_endpoints(pc: dict, prev_exit, next_pts) -> tuple[np.ndarray, np.ndarray]:
+    """(entry, exit) points of a piece. Fills are steerable (commands snap to the nearest
+    boundary point, so entry = the vertex nearest the previous exit, exit = the vertex
+    nearest the next piece); satins/runs enter and exit at their fixed path endpoints
+    (a border ring's seam is its first vertex)."""
+    pts = pc["pts"]
+    if pc["kind"] == "fill":
+        entry = (pts[int(np.argmin(((pts - prev_exit) ** 2).sum(1)))]
+                 if prev_exit is not None else pts[0])
+        exit_ = (
+            _closest_pair(pts, next_pts)[0] if next_pts is not None else pts[-1])
+        return entry, exit_
+    d = pc["el"].get("d") or ""
+    verts = [(float(x), float(y)) for x, y in _COORD_RE.findall(d)]
+    first = _xf(np.asarray(verts[:1], float), _ctm(pc["el"]))[0]
+    last = _xf(np.asarray(verts[-1:], float), _ctm(pc["el"]))[0]
+    if pc["kind"] == "satin":
+        # a closed border ring starts and ends at its seam; an open linework column
+        # sews rail-end to rail-end — approximate exit with the first rail's far end
+        return first, (first if np.hypot(*(first - last)) < 1e-6 else last)
+    return first, last
+
+
+def _build_cover_masks(all_pieces: list[dict], mm_per_uu: float):
+    """One raster mask per piece on a SHARED ~0.5mm/px canvas (fills as even-odd
+    polygons; satins/runs as fat polylines). Returns (masks, origin, res_uu_per_px)."""
+    from PIL import Image, ImageDraw
+    allp = np.concatenate([pc["pts"] for pc in all_pieces])
+    x0, y0 = allp.min(0) - 2
+    x1, y1 = allp.max(0) + 2
+    res = _TRAVEL_RES_MM / mm_per_uu
+    W = int((x1 - x0) / res) + 3
+    H = int((y1 - y0) / res) + 3
+    if W * H > 12_000_000:
+        return None, None, 0.0
+    masks = []
+    for pc in all_pieces:
+        im = Image.new("L", (W, H), 0)
+        dr = ImageDraw.Draw(im)
+        M = _ctm(pc["el"])
+        wide = max(int(2.0 / mm_per_uu / res), 2)      # ~2mm band for stroked pieces
+        acc = np.zeros((H, W), bool)
+        subs = []
+        for sub in re.split(r"[Mm]", pc["el"].get("d") or ""):
+            verts = [(float(x), float(y)) for x, y in _COORD_RE.findall(sub)]
+            if len(verts) >= 2:
+                subs.append(_xf(np.asarray(verts, float), M))
+        if pc["kind"] == "satin" and len(subs) >= 2:
+            # a satin column's d holds its two RAILS (the longest subpaths) + rungs;
+            # the stitched area is the band BETWEEN the rails — fill that polygon, not
+            # thin lines along the rails (thin masks under-measure the cover of travels
+            # crossing the column and block legitimate trim drops)
+            rails = sorted(subs, key=lambda s: -_ring_length(s))[:2]
+            poly = np.vstack([rails[0], rails[1][::-1]])
+            px = [((x - x0) / res, (y - y0) / res) for x, y in poly]
+            if len(px) >= 3:
+                dr.polygon(px, fill=255)
+            for s in subs:
+                dr.line([((x - x0) / res, (y - y0) / res) for x, y in s],
+                        fill=255, width=wide)
+        else:
+            for pts in subs:
+                px = [((x - x0) / res, (y - y0) / res) for x, y in pts]
+                if pc["kind"] == "fill" and len(px) >= 3:
+                    im2 = Image.new("L", (W, H), 0)
+                    ImageDraw.Draw(im2).polygon(px, fill=255)
+                    acc ^= np.asarray(im2) > 128       # even-odd: holes stay holes
+                else:
+                    dr.line(px, fill=255, width=wide)
+        masks.append(acc | (np.asarray(im) > 128))
+    return masks, np.array([x0, y0]), res
+
+
+def _segment_covered(p, q, cover: np.ndarray, origin, res) -> float:
+    """Fraction of the straight segment p->q covered by the cover mask."""
+    n = max(int(np.hypot(*(q - p)) / res), 2)
+    ts = np.linspace(0.0, 1.0, n)
+    pts = p[None, :] + ts[:, None] * (q - p)[None, :]
+    ix = ((pts[:, 0] - origin[0]) / res).astype(int)
+    iy = ((pts[:, 1] - origin[1]) / res).astype(int)
+    ok = (ix >= 0) & (ix < cover.shape[1]) & (iy >= 0) & (iy < cover.shape[0])
+    hit = np.zeros(n, bool)
+    hit[ok] = cover[iy[ok], ix[ok]]
+    return float(hit.mean())
+
+
+def _plan_travel(ctx: PipelineContext, ready_svg: Path) -> int:
+    """Chain each colour's pieces, steer fill entries/exits to the junctions, and drop
+    trim_after wherever the travel is short + covered (see the block comment above).
+    Best-effort: any failure leaves the ready SVG untouched. Returns trims dropped."""
+    try:
+        symbols = _load_command_symbols()
+        if symbols is None:
+            return 0
+        tree = etree.parse(str(ready_svg))
+        root = tree.getroot()
+        mm_per_uu = _mm_per_uu(root)
+        groups = _colour_groups(root)
+
+        # 1. chain within each group (reorder the group's children; bonded units intact)
+        per_group: list[list[dict]] = []
+        for g in groups:
+            pieces = _chain_units(_group_pieces(g))
+            for pc in pieces:                          # apply the new document order
+                g.append(pc["el"])
+            per_group.append(pieces)
+
+        all_pieces = [pc for pieces in per_group for pc in pieces]
+        if len(all_pieces) < 2:
+            return 0
+        masks, origin, res = _build_cover_masks(all_pieces, mm_per_uu)
+        if masks is None:
+            return 0
+        # union of everything sewn AFTER piece i (cumulative from the end, doc order)
+        later = [np.zeros_like(masks[0])] * len(masks)
+        acc = np.zeros_like(masks[0])
+        for i in range(len(masks) - 1, -1, -1):
+            later[i] = acc
+            acc = acc | masks[i]
+
+        trim_attr = f"{{{_INKSTITCH_NS}}}trim_after"
+        max_uu = _TRAVEL_MAX_MM / mm_per_uu
+        n_cmd = 0
+        dropped = 0
+        base = 0
+        for pieces in per_group:
+            colour_union = np.zeros_like(masks[0])
+            for k in range(len(pieces)):
+                colour_union = colour_union | masks[base + k]
+            prev_exit = None
+            exits: list = []
+            entries: list = []
+            for k, pc in enumerate(pieces):
+                nxt = pieces[k + 1]["pts"] if k + 1 < len(pieces) else None
+                entry, exit_ = _piece_endpoints(pc, prev_exit, nxt)
+                if pc["kind"] == "fill":               # steer via object commands
+                    _add_point_command(pc["el"], "starting_point",
+                                       float(entry[0]), float(entry[1]), n_cmd)
+                    n_cmd += 1
+                    _add_point_command(pc["el"], "ending_point",
+                                       float(exit_[0]), float(exit_[1]), n_cmd)
+                    n_cmd += 1
+                entries.append(entry)
+                exits.append(exit_)
+                prev_exit = exit_
+            for k in range(len(pieces) - 1):           # drop trims where the law allows
+                p, q = exits[k], entries[k + 1]
+                if np.hypot(*(q - p)) > max_uu:
+                    continue
+                cover = later[base + k + 1] | colour_union
+                if _segment_covered(p, q, cover, origin, res) >= _TRAVEL_COVER_MIN:
+                    if pieces[k]["el"].get(trim_attr) is not None:
+                        del pieces[k]["el"].attrib[trim_attr]
+                        dropped += 1
+            base += len(pieces)
+
+        if n_cmd:
+            _ensure_command_symbols(root, symbols)
+        tree.write(str(ready_svg), xml_declaration=True, encoding="UTF-8")
+        if dropped:
+            print(f"      travel plan -> {dropped} trim(s) dropped "
+                  f"(covered travel <= {_TRAVEL_MAX_MM:g}mm), {n_cmd} entry/exit "
+                  f"command(s)", flush=True)
+        return dropped
+    except Exception as exc:
+        print(f"      travel plan skipped ({type(exc).__name__}: {exc})", flush=True)
+        return 0
 
 
 def _ensure_guide_marker(root) -> None:
@@ -1198,6 +2152,337 @@ def _read_vp3_from_zip(stdout: bytes, stderr: bytes) -> "pe.EmbPattern":
         return pe.read(tmp_path)
     finally:
         os.unlink(tmp_path)
+
+
+_WHOLE_DIGITIZE_TIMEOUT_S = 120   # fall back to per-group if the single pass hasn't finished by now
+_GROUP_DIGITIZE_TIMEOUT_S = 150   # per-group budget (each group completes in seconds normally)
+_GROUP_RETRY_TIMEOUT_S = 90       # degraded retries (underlay off / fills-satins split): a hanging
+                                  # group's raw fills complete in seconds, so a tighter budget does
+_PREVIEW_TIMEOUT_S = 120          # realistic preview: fall back to the fast polyline draw if the
+                                  # stitch_plan_preview pass hangs (same combined-routing risk)
+_ANCHOR_MARGIN_MM = 5.0           # frame anchors sit this far outside the canvas so no real stitch
+                                  # (pull-comp overshoot etc.) can beat them to the bbox extremes
+_ANCHOR_COLOURS = ("#010101", "#fe01fe", "#01fe01")
+
+
+def _digitize(binary: Path, ready_svg: Path) -> tuple["pe.EmbPattern", list[Path] | None]:
+    """Digitize the whole design in one Ink-Stitch pass. Ink-Stitch's auto_fill router can
+    INFINITE-LOOP on the *combined* design even when every colour group completes fine ALONE
+    (measured on joker: each colour digitizes in 2-12s, but the single all-colours pass never
+    returns). So on timeout we fall back to digitizing each top-level colour group separately and
+    merging the results in sew order — every region then gets proper tatami without the combined-
+    routing hang. The fast path (one pass) is unchanged for designs that don't hang.
+
+    Returns (pattern, per-group working SVGs): the SVG list is None on the fast path; on the
+    per-group path it holds the file(s) each group was actually digitized from, in sew order,
+    so step 6 can composite the realistic preview without re-hitting the combined hang."""
+    args = [str(binary), "--extension=zip", "--format-vp3=True", str(ready_svg)]
+    try:
+        proc = subprocess.run(args, capture_output=True, timeout=_WHOLE_DIGITIZE_TIMEOUT_S)
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"Ink-Stitch failed (exit {proc.returncode}): "
+                f"{proc.stderr.decode('utf-8', 'replace')[:1000]}"
+            )
+        return _read_vp3_from_zip(proc.stdout, proc.stderr), None
+    except subprocess.TimeoutExpired:
+        print(f"      whole-design digitize exceeded {_WHOLE_DIGITIZE_TIMEOUT_S}s "
+              f"(auto_fill combined-routing hang) -> per-colour-group fallback", flush=True)
+        return _digitize_per_group(binary, ready_svg)
+
+
+def _colour_groups(root):
+    """Top-level <g> elements that contain at least one path (each ~ one colour sew unit)."""
+    out = []
+    for g in root:
+        if etree.QName(g).localname == "g" and next(g.iter(f"{{{_SVG_NS}}}path"), None) is not None:
+            out.append(g)
+    return out
+
+
+def _try_digitize(binary: Path, svg_path: Path, timeout: int = _GROUP_DIGITIZE_TIMEOUT_S):
+    """Digitize one SVG; return the pattern, or None on timeout/failure."""
+    try:
+        proc = subprocess.run(
+            [str(binary), "--extension=zip", "--format-vp3=True", str(svg_path)],
+            capture_output=True, timeout=timeout)
+        if proc.returncode == 0:
+            return _read_vp3_from_zip(proc.stdout, proc.stderr)
+    except subprocess.TimeoutExpired:
+        pass
+    return None
+
+
+# ---- shared coordinate frame for the per-group minis ------------------------------- #
+# Ink-Stitch's VP3 export centres each output on its OWN stitch bbox (verified: a mini's
+# pattern always reads back exactly symmetric about the origin, while the same group inside
+# the whole-design pass keeps its true off-centre position). Concatenating raw per-group
+# patterns therefore shifts every group to a common centre and the merge misaligns. The fix:
+# sew a tiny "frame anchor" FIRST in every mini — one manual stitch just outside each of two
+# opposite canvas corners. Every mini then has identical stitch-bbox extremes, so every group
+# is framed identically and absolute coords align; the anchor block is stripped after read-back.
+
+def _anchor_corners(root) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Two fixed frame-defining points (user units) outside every stitchable extreme:
+    the canvas (viewBox) corners inflated by _ANCHOR_MARGIN_MM."""
+    vb = (root.get("viewBox") or "").split()
+    x0 = y0 = 0.0
+    w = h = 1000.0
+    if len(vb) == 4:
+        try:
+            x0, y0, w, h = (float(v) for v in vb)
+        except ValueError:
+            pass
+    m = _ANCHOR_MARGIN_MM / _mm_per_uu(root)
+    return (x0 - m, y0 - m), (x0 + w + m, y0 + h + m)
+
+
+def _pick_anchor_colour(root) -> str:
+    """An anchor thread colour NOT already in the design: Ink-Stitch merges adjacent
+    same-colour blocks (no boundary colour change), which would make the anchor strip
+    eat the first real group's stitches."""
+    used = set()
+    for p in root.iter(f"{{{_SVG_NS}}}path"):
+        for attr in (p.get("style"), p.get("fill"), p.get("stroke")):
+            used.update(hx.lower() for hx in re.findall(r"#[0-9a-fA-F]{6}", attr or ""))
+    for c in _ANCHOR_COLOURS:
+        if c not in used:
+            return c
+    for r in range(256):  # design uses all candidates (bizarre) -> scan until free
+        c = f"#{r:02x}0203"
+        if c not in used:
+            return c
+    return _ANCHOR_COLOURS[0]
+
+
+def _add_frame_anchor(root) -> None:
+    """Insert the first-sewn frame-anchor group: a 1 mm manual-stitch segment pointing
+    INWARD from each anchor corner (lock stitches retrace the segment, so nothing can poke
+    past the corner extremes and change the bbox between minis)."""
+    (ax0, ay0), (ax1, ay1) = _anchor_corners(root)
+    eps = 1.0 / _mm_per_uu(root)
+    colour = _pick_anchor_colour(root)
+    g = etree.Element(f"{{{_SVG_NS}}}g", id="frame_anchor")
+    for i, (x, y, s) in enumerate(((ax0, ay0, 1.0), (ax1, ay1, -1.0))):
+        p = etree.SubElement(g, f"{{{_SVG_NS}}}path", id=f"frame_anchor_{i}")
+        p.set("d", f"M {x:.3f},{y:.3f} L {x + s * eps:.3f},{y + s * eps:.3f}")
+        p.set("style", f"fill:none;stroke:{colour};stroke-width:0.264583")
+        p.set(f"{{{_INKSTITCH_NS}}}stroke_method", "manual_stitch")
+    root.insert(0, g)
+
+
+def _strip_anchor_block(pat: "pe.EmbPattern"):
+    """Drop the leading frame-anchor colour block: its thread and every stitch through the
+    first COLOR_CHANGE. Returns None if nothing but the anchor was stitched."""
+    cc = pe.COLOR_CHANGE & 0xFF
+    idx = next((k for k, s in enumerate(pat.stitches) if (s[2] & 0xFF) == cc), None)
+    if idx is None:
+        return None
+    out = pe.EmbPattern()
+    for th in pat.threadlist[1:]:
+        out.add_thread(th)
+    out.stitches = [[s[0], s[1], s[2]] for s in pat.stitches[idx + 1:]]
+    if not any((s[2] & 0xFF) == (pe.STITCH & 0xFF) for s in out.stitches):
+        return None
+    return out
+
+
+def _try_digitize_anchored(binary: Path, svg_path: Path,
+                           timeout: int = _GROUP_DIGITIZE_TIMEOUT_S):
+    """Digitize an anchored mini-SVG and strip its frame-anchor block; None on failure."""
+    pat = _try_digitize(binary, svg_path, timeout)
+    return _strip_anchor_block(pat) if pat is not None else None
+
+
+# ---- degraded retries for a group that hangs even alone ---------------------------- #
+
+def _write_fill_variant(src: Path, dst: Path, *, pull_comp0: bool = False,
+                        underlay_off: bool = False) -> None:
+    """Degraded variant of an anchored mini, dropping the fill params that can hang the
+    auto_fill router while KEEPING tatami. Pull compensation is the measured primary
+    trigger (joker's hair: hangs as-is, completes in 8s with pull-comp 0); the underlay
+    pass is the secondary weight."""
+    tree = etree.parse(str(src))
+    for p in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
+        is_fill = (p.get(f"{{{_INKSTITCH_NS}}}row_spacing_mm") is not None
+                   or p.get(f"{{{_INKSTITCH_NS}}}fill_underlay") is not None)
+        if not is_fill:
+            continue
+        if pull_comp0 and p.get(f"{{{_INKSTITCH_NS}}}pull_compensation_mm") is not None:
+            p.set(f"{{{_INKSTITCH_NS}}}pull_compensation_mm", "0")
+        if underlay_off:
+            p.set(f"{{{_INKSTITCH_NS}}}fill_underlay", "False")
+    tree.write(str(dst), xml_declaration=True, encoding="UTF-8")
+
+
+def _split_fills_satins(mini: Path) -> tuple[Path | None, Path | None]:
+    """Write fills-only and satins/runs-only variants of an anchored mini (each keeps the
+    anchor, so both halves share the frame). Returns (fills_svg, satins_svg); None where a
+    half has no content, in which case there is nothing to split."""
+    out: list[Path | None] = []
+    for suffix, keep_linework in (("_fill", False), ("_satin", True)):
+        tree = etree.parse(str(mini))
+        root = tree.getroot()
+        kept = 0
+        for p in list(root.iter(f"{{{_SVG_NS}}}path")):
+            pid = p.get("id") or ""
+            if pid.startswith(("frame_anchor", "command_")):
+                continue  # anchors stay in both halves; command connectors go with groups
+            is_linework = (p.get(f"{{{_INKSTITCH_NS}}}satin_column") is not None
+                           or p.get(f"{{{_INKSTITCH_NS}}}stroke_method") is not None)
+            if is_linework != keep_linework:
+                p.getparent().remove(p)
+            else:
+                kept += 1
+        # drop entry/exit command groups whose target path was removed above (Ink-Stitch
+        # must not see a connector pointing at a missing element)
+        ids = {p.get("id") for p in root.iter(f"{{{_SVG_NS}}}path")}
+        for cg in list(root.iter(f"{{{_SVG_NS}}}g")):
+            if not (cg.get("id") or "").startswith("command_group"):
+                continue
+            conn = cg.find(f"{{{_SVG_NS}}}path")
+            target = ((conn.get(f"{{{_INKSCAPE_NS}}}connection-end") or "").lstrip("#")
+                      if conn is not None else "")
+            if target not in ids:
+                cg.getparent().remove(cg)
+        if kept:
+            dst = mini.with_name(mini.stem + suffix + ".svg")
+            tree.write(str(dst), xml_declaration=True, encoding="UTF-8")
+            out.append(dst)
+        else:
+            out.append(None)
+    return out[0], out[1]
+
+
+def _concat_same_colour(a, b) -> "pe.EmbPattern":
+    """Rejoin the fills-only + satins-only halves of ONE colour group: one thread, one
+    block, a trim between the halves (they were digitized separately, so no meaningful
+    travel joins them). Either half may be None."""
+    if a is None or b is None:
+        return a or b
+    _END, _CC = pe.END & 0xFF, pe.COLOR_CHANGE & 0xFF
+    out = pe.EmbPattern()
+    out.add_thread(a.threadlist[0] if a.threadlist else b.threadlist[0])
+    for k, half in enumerate((a, b)):
+        if k:
+            out.trim()
+        for s in half.stitches:
+            if (s[2] & 0xFF) in (_END, _CC):
+                continue
+            out.stitches.append([s[0], s[1], s[2]])
+    return out
+
+
+def _route_group_fills_to_contour(svg_path: Path) -> None:
+    """Set fill_method=contour_fill on every fill path (has row_spacing, not a satin) in an SVG —
+    the LAST-resort fallback for a region whose auto_fill can't complete even in isolation.
+    'Large regions = tatami' is the hard rule; contour is only reached when tatami truly can't
+    finish as-is, without underlay, or with the group's fills and satins split apart."""
+    tree = etree.parse(str(svg_path))
+    for p in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
+        if (p.get(f"{{{_INKSTITCH_NS}}}row_spacing_mm") is not None
+                and p.get(f"{{{_INKSTITCH_NS}}}satin_column") is None
+                and p.get(f"{{{_INKSTITCH_NS}}}fill_method") is None):
+            p.set(f"{{{_INKSTITCH_NS}}}fill_method", "contour_fill")
+    tree.write(str(svg_path), xml_declaration=True, encoding="UTF-8")
+
+
+def _digitize_group_with_retries(binary: Path, mini: Path,
+                                 label: str) -> tuple["pe.EmbPattern | None", list[Path]]:
+    """Digitize one anchored mini, degrading only as far as needed to keep tatami:
+    ① as-is → ② pull-comp 0 (the measured hang trigger; underlay kept) → ③ pull-comp 0 +
+    underlay off → ④ fills-only + satins-only in two passes (rejoined as one colour block)
+    → ⑤ contour_fill (last resort: present + flagged, but not tatami).
+    Returns (pattern, [svg files actually used]) or (None, [])."""
+    pat = _try_digitize_anchored(binary, mini)
+    if pat is not None:
+        return pat, [mini]
+
+    for tag, kw in (("pull-comp 0", {"pull_comp0": True}),
+                    ("pull-comp 0 + underlay off",
+                     {"pull_comp0": True, "underlay_off": True})):
+        print(f"        {label}: auto_fill hung/failed alone -> retrying, {tag}",
+              flush=True)
+        variant = mini.with_name(mini.stem + ("_pc0.svg" if "underlay" not in tag
+                                              else "_pc0nou.svg"))
+        _write_fill_variant(mini, variant, **kw)
+        pat = _try_digitize_anchored(binary, variant, timeout=_GROUP_RETRY_TIMEOUT_S)
+        if pat is not None:
+            mini.unlink(missing_ok=True)
+            return pat, [variant]
+        variant.unlink(missing_ok=True)
+
+    fills_svg, satins_svg = _split_fills_satins(mini)
+    if fills_svg is not None and satins_svg is not None:
+        print(f"        {label}: still hung -> splitting fills / satins", flush=True)
+        pat_f = _try_digitize_anchored(binary, fills_svg, timeout=_GROUP_RETRY_TIMEOUT_S)
+        pat_s = _try_digitize_anchored(binary, satins_svg, timeout=_GROUP_RETRY_TIMEOUT_S)
+        if pat_f is not None and pat_s is not None:
+            mini.unlink(missing_ok=True)
+            return _concat_same_colour(pat_f, pat_s), [fills_svg, satins_svg]
+    for leftover in (fills_svg, satins_svg):
+        if leftover is not None:
+            leftover.unlink(missing_ok=True)
+
+    print(f"        {label}: tatami can't complete even split -> contour_fill fallback",
+          flush=True)
+    _route_group_fills_to_contour(mini)
+    pat = _try_digitize_anchored(binary, mini)
+    if pat is not None:
+        return pat, [mini]
+    return None, []
+
+
+def _digitize_per_group(binary: Path, ready_svg: Path) -> tuple["pe.EmbPattern", list[Path]]:
+    """Digitize each top-level colour group on its own (they don't hang alone) and merge.
+    Every mini carries the same frame anchor so all groups share one coordinate frame (see
+    _add_frame_anchor). A group that hangs alone walks the retry ladder in
+    _digitize_group_with_retries before it may fall back to contour_fill; the working
+    per-group SVGs are KEPT (in sew order) for step 6's realistic-preview composite."""
+    n_groups = len(_colour_groups(etree.parse(str(ready_svg)).getroot()))
+    patterns: list = []
+    group_svgs: list[Path] = []
+    for i in range(n_groups):
+        tree = etree.parse(str(ready_svg))
+        groups = _colour_groups(tree.getroot())
+        for j, g in enumerate(groups):            # keep only group i (defs + other siblings stay)
+            if j != i:
+                g.getparent().remove(g)
+        _add_frame_anchor(tree.getroot())
+        mini = ready_svg.with_name(f"{ready_svg.stem}_grp{i}.svg")
+        tree.write(str(mini), xml_declaration=True, encoding="UTF-8")
+        pat, used = _digitize_group_with_retries(binary, mini, f"group {i}")
+        if pat is not None:
+            patterns.append(pat)
+            group_svgs.extend(used)
+        else:
+            print(f"        group {i}: every fallback failed — skipped", flush=True)
+            mini.unlink(missing_ok=True)
+    if not patterns:
+        raise RuntimeError("per-group digitize produced no stitches")
+    print(f"      merged {len(patterns)}/{n_groups} colour groups", flush=True)
+    return _merge_patterns(patterns), group_svgs
+
+
+def _merge_patterns(patterns: list) -> "pe.EmbPattern":
+    """Concatenate per-group patterns into one, in order, with a colour change between groups.
+    Every mini was digitized with the SAME frame anchor, so after the anchor block is stripped
+    all groups share one coordinate frame and absolute stitch coords align."""
+    _END = pe.END & 0xFF
+    _CC = pe.COLOR_CHANGE & 0xFF
+    merged = pe.EmbPattern()
+    for i, gp in enumerate(patterns):
+        for th in gp.threadlist:
+            merged.add_thread(th)
+        if i > 0:
+            merged.color_change()
+        for s in gp.stitches:
+            cmd = s[2] & 0xFF
+            if cmd in (_END, _CC):                # drop per-group END + leading colour changes
+                continue
+            merged.stitches.append([s[0], s[1], s[2]])
+    merged.end()
+    return merged
 
 
 def _print_summary(pattern: "pe.EmbPattern", n_satin: int, n_run: int) -> None:

@@ -17,6 +17,14 @@ __pycache__/
 /input/*
 !/input/.gitkeep
 
+# Pairs drop zone: keep the README, ignore the (large, transient) dropped pairs.
+# Ingested pairs are filed under <category>/pairs/ and tracked there instead.
+/pairs-inbox/*
+!/pairs-inbox/README.md
+
+# Ad-hoc local pair scratch space (large SVG/VP3 working files, not source)
+/falahi/
+
 # Vendored Ink-Stitch portable bundle (~185MB, downloaded, not source)
 /vendor/
 

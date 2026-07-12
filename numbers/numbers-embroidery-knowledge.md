@@ -14,7 +14,7 @@ Distilled from **4 reference `.VP3` files** the user supplied as production exam
 `output/2.jpg`, `output/3.png`) were run through this repo's pipeline and the output
 `.vp3`s measured against their own source photos (palette ΔE, object type, stitch count,
 density, ink-coverage IoU). Every number below is **measured**, not guessed. Reproduce
-any of it with the scripts in [`tools/`](tools/).
+any of it with the scripts in [`orchestrator/scripts/`](../orchestrator/scripts/).
 
 ---
 
@@ -239,7 +239,7 @@ single-cone outputs are crisp — one path per digit, counters open.)
 
 **Before delivering any number, render the output and measure it against the source
 photo; iterate until the drift is explained or gone.** (Standing directive
-[[compare-output-to-original-iterate]]; tools in [`tools/`](tools/):
+[[compare-output-to-original-iterate]]; tools in [`orchestrator/scripts/`](../orchestrator/scripts/):
 `analyze_vp3.py`, `render_vp3.py`, `vp3_to_photo.py`, `compare_to_photo.py`.)
 
 What "good" looked like on the three `2027` jobs, and **how each drift was explained**:
@@ -318,7 +318,7 @@ only as an image; type/hand-finish when you want typeset satin sheen or a 3-D ed
 
 ## 8. Provenance & how to reproduce
 - Files parsed with `pyembroidery`; satin-vs-fill via consecutive-segment turn-angle
-  (> 120° = reversal); pieces split on `TRIM`/`COLOR_CHANGE`. Scripts in [`tools/`](tools/)
+  (> 120° = reversal); pieces split on `TRIM`/`COLOR_CHANGE`. Scripts in [`orchestrator/scripts/`](../orchestrator/scripts/)
   (copied from simple-shapes, identical methodology).
 - End-to-end calibration: the three supplied `2027` photos → flatten/composite (§5) →
   `python -m wilcom_pipeline` (recipe §5) → `compare_to_photo.py` against each source.

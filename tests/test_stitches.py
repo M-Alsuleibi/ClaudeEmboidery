@@ -6,6 +6,7 @@ Skipped when the Ink-Stitch binary isn't vendored, so the suite stays portable.
 from __future__ import annotations
 
 import numpy as np
+import pyembroidery as pe
 import pytest
 from PIL import Image
 
@@ -142,3 +143,95 @@ def test_requires_svg_path(tmp_path):
     ctx = PipelineContext(config=cfg)
     with pytest.raises(RuntimeError, match="svg_path"):
         stitches.run(ctx)
+
+
+def _block_bboxes_mm(pattern):
+    """Per-colour-block stitch bbox in mm (split on COLOR_CHANGE)."""
+    blocks, cur = [], []
+    for x, y, c in pattern.stitches:
+        cmd = c & 0xFF
+        if cmd == (pe.COLOR_CHANGE & 0xFF):
+            blocks.append(cur)
+            cur = []
+        elif cmd == (pe.STITCH & 0xFF):
+            cur.append((x, y))
+    if cur:
+        blocks.append(cur)
+    out = []
+    for b in blocks:
+        xs = [x for x, _ in b]
+        ys = [y for _, y in b]
+        out.append((min(xs) / 10, min(ys) / 10, max(xs) / 10, max(ys) / 10))
+    return out
+
+
+def test_per_group_digitize_is_coordinate_faithful(tmp_path):
+    # Ink-Stitch's VP3 export centres each mini on its OWN stitch bbox, so without the
+    # frame anchor the merged groups shift relative to each other. Digitize the same
+    # ready SVG whole and per-group: every colour block must land in the same place
+    # relative to the design (frames may differ by a global constant only).
+    ctx = _run_to_trace(tmp_path, _two_colour_logo())
+    stitches.run(ctx)                       # fast path: single whole-design pass
+    assert ctx.per_group_svgs is None       # non-hanging design never goes per-group
+    whole = ctx.stitch_pattern
+
+    binary = stitches._locate_binary()
+    merged, group_svgs = stitches._digitize_per_group(binary, ctx.stitch_svg_path)
+    assert len(group_svgs) == 2             # both groups digitized as-is, files kept
+    assert all(p.exists() for p in group_svgs)
+
+    wb = _block_bboxes_mm(whole)
+    mb = _block_bboxes_mm(merged)
+    assert len(wb) == len(mb) == 2
+    # anchor thread stripped: only the real cones, in sew order, same as the whole pass
+    assert [t.color for t in merged.threadlist] == [t.color for t in whole.threadlist]
+
+    def centre(bb):
+        return ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
+
+    # relative offset between the two colour blocks must match the whole pass sub-mm
+    dwx = centre(wb[1])[0] - centre(wb[0])[0]
+    dwy = centre(wb[1])[1] - centre(wb[0])[1]
+    dmx = centre(mb[1])[0] - centre(mb[0])[0]
+    dmy = centre(mb[1])[1] - centre(mb[0])[1]
+    assert abs(dwx - dmx) < 1.0 and abs(dwy - dmy) < 1.0
+    # and each block keeps its size (nothing rescaled/reframed)
+    for w, m in zip(wb, mb):
+        assert abs((w[2] - w[0]) - (m[2] - m[0])) < 1.0
+        assert abs((w[3] - w[1]) - (m[3] - m[1])) < 1.0
+
+
+def test_outline_objects_layer_borders_over_fills(tmp_path):
+    # --outline-objects: each substantial fill gains a closed satin border sewn right
+    # after it (same colour group) — the production "outline family". Off by default
+    # for an uncategorised design (AUTO = satin-dominant categories only).
+    import dataclasses
+    ctx = _run_to_trace(tmp_path, _two_colour_logo())
+    ctx.config = dataclasses.replace(ctx.config, outline_objects=True)
+    stitches.run(ctx)
+    # NOTE stroke_to_satin renames the border ids, so assert STRUCTURE: in every colour
+    # group the fill is followed by a satin column in the SAME colour (the border).
+    from lxml import etree as _et
+    root = _et.parse(str(tmp_path / "out" / "t_working.svg")).getroot()
+    svg = "http://www.w3.org/2000/svg"
+    ink = "http://inkstitch.org/namespace"
+    n_groups_with_border = 0
+    for g in root.iter(f"{{{svg}}}g"):
+        paths = list(g.iter(f"{{{svg}}}path"))
+        fills = [p for p in paths if p.get("fill") and p.get("fill") != "none"]
+        satins = [p for p in paths if p.get(f"{{{ink}}}satin_column")]
+        if not (fills and satins):
+            continue
+        n_groups_with_border += 1
+        assert paths.index(satins[0]) > paths.index(fills[0])   # border sews AFTER its fill
+        assert fills[0].get("fill").lower() in (satins[0].get("style") or "").lower()
+        assert satins[0].get(f"{{{ink}}}trim_after") == "True"  # standard satin params on
+        assert satins[0].get(f"{{{ink}}}center_walk_underlay") == "True"
+    assert n_groups_with_border == 2                     # both colour groups got borders
+
+
+def test_outline_objects_default_off_without_category(tmp_path):
+    ctx = _run_to_trace(tmp_path, _two_colour_logo())
+    stitches.run(ctx)                                    # outline_objects=None, no category
+    ready = (tmp_path / "out" / "t_working.svg").read_text()
+    assert "border" not in ready

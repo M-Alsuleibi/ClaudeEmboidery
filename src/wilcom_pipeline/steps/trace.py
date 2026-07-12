@@ -90,6 +90,35 @@ def run(ctx: PipelineContext) -> None:
     groups = _group_paths_by_palette(raw_svg, ctx.palette)
     order = _sew_order(img, ctx.palette)  # background first, foreground last
     clusters = _shade_clusters(img, ctx.palette) if ctx.config.gradient else []
+
+    # Underlap (--underlap-mm): production objects OVERLAP — an earlier-sewn colour extends
+    # UNDER its later-sewn neighbours so fabric pull can't open a white gap at the seam.
+    # vtracer's single cutout pass can't express overlap (each pixel belongs to one path),
+    # so each colour that borders a later-sewn colour is RE-traced alone from its dilated
+    # mask (expansion clipped to later-sewn pixels — never background, never the dropped
+    # counter holes, which are transparent and in no colour's mask) and replaces its paths.
+    # The later colour keeps its full shape and covers the seam. 0 = exact old behaviour.
+    # Distinct from pull-comp (step 5): pull-comp widens STITCHES uniformly; underlap moves
+    # the traced GEOMETRY, only along seams, only under later colours.
+    if ctx.config.underlap_mm > 0:
+        px_per_mm = px_w / ctx.analysis["size_mm"]["width_mm"]
+        r_px = int(round(ctx.config.underlap_mm * px_per_mm))
+        grad_members = {i for cl in clusters for i in cl["members"]}
+        if r_px >= 1:
+            masks = _palette_masks(img, ctx.palette)
+            expanded = _underlap_masks(masks, order, r_px)
+            n_under = 0
+            for i, mask in expanded.items():
+                if i in grad_members:      # gradient clusters build their own union path
+                    continue
+                traced = _trace_single_colour(mask, ctx.palette[i], (px_w, px_h),
+                                              mode, filter_speckle)
+                if traced:
+                    groups[i] = traced
+                    n_under += 1
+            if n_under:
+                print(f"      underlap -> {n_under} colour(s) extended "
+                      f"{ctx.config.underlap_mm:g}mm under later-sewn neighbours")
     svg_path = ctx.config.output_dir / f"{ctx.config.name}_pro.svg"
     n_paths = _write_layered_svg(
         svg_path, groups, order, ctx.thread_map, ctx.analysis["size_mm"], (px_w, px_h),
@@ -140,6 +169,60 @@ def _group_paths_by_palette(
     return groups
 
 
+def _palette_masks(img, palette: list[tuple[int, int, int]]) -> list[np.ndarray]:
+    """One boolean mask per palette colour (opaque pixels only — the dropped background
+    and any opened counter holes are transparent, so they belong to NO colour's mask)."""
+    arr = np.asarray(img)
+    opaque = arr[..., 3] > 128
+    rgb = arr[..., :3]
+    return [opaque & np.all(rgb == np.asarray(c, np.uint8), axis=-1) for c in palette]
+
+
+def _underlap_masks(masks: list[np.ndarray], order: list[int],
+                    r_px: int) -> dict[int, np.ndarray]:
+    """Expand each colour's mask by r_px, but ONLY into pixels owned by colours sewn
+    LATER (walk the sew order backwards accumulating the later-sewn union). The earlier
+    colour gains the overlap; the later colour is untouched and covers the seam.
+    Background / transparent pixels (incl. opened counters) are in no mask, so they are
+    never claimed. Returns {palette idx: expanded mask} only for colours that gained."""
+    if r_px < 1:  # guard: scipy treats iterations<1 as "repeat until convergence"
+        return {}
+    out: dict[int, np.ndarray] = {}
+    later = np.zeros_like(masks[0])
+    for pos in range(len(order) - 1, -1, -1):
+        i = order[pos]
+        m = masks[i]
+        if m.any() and later.any():
+            grow = ndimage.binary_dilation(m, iterations=r_px) & later
+            if grow.any():
+                out[i] = m | grow
+        later = later | m
+    return out
+
+
+def _trace_single_colour(mask: np.ndarray, rgb: tuple[int, int, int],
+                         size_px: tuple[int, int], mode: str,
+                         filter_speckle: int) -> list[tuple[str, str | None]]:
+    """vtracer one colour's (expanded) mask alone — colour on transparent, same tracing
+    params as the main pass — and return its [(d, transform), ...] path list."""
+    h, w = mask.shape
+    canvas = np.zeros((h, w, 4), np.uint8)
+    canvas[mask] = (*rgb, 255)
+    pixels = [tuple(p) for p in canvas.reshape(-1, 4).tolist()]
+    raw = vtracer.convert_pixels_to_svg(
+        pixels, size=size_px, colormode="color", hierarchical="cutout", mode=mode,
+        filter_speckle=filter_speckle, color_precision=8, path_precision=8,
+    )
+    root = etree.fromstring(raw.encode("utf-8"))
+    out = []
+    for path in root.findall(f"{{{SVG_NS}}}path"):
+        d = path.get("d")
+        fill = path.get("fill")
+        if d and fill and fill != "none":
+            out.append((d, path.get("transform")))
+    return out
+
+
 def _sew_order(img, palette: list[tuple[int, int, int]]) -> list[int]:
     """Order palette indices background-first, foreground-last.
 
@@ -148,11 +231,8 @@ def _sew_order(img, palette: list[tuple[int, int, int]]) -> list[int]:
     colour sits on top and must sew later. Depth = how many enclosures deep; sew
     by depth ascending, larger area first as a tiebreak.
     """
-    arr = np.asarray(img)
-    opaque = arr[..., 3] > 128
-    rgb = arr[..., :3]
     n = len(palette)
-    masks = [opaque & np.all(rgb == np.asarray(c, np.uint8), axis=-1) for c in palette]
+    masks = _palette_masks(img, palette)
     areas = [int(m.sum()) for m in masks]
 
     surround: list[int | None] = [None] * n
@@ -190,11 +270,8 @@ def _shade_clusters(img, palette: list[tuple[int, int, int]]) -> list[dict]:
     cluster: {members: [idx...] light->dark, dir: (x1,y1,x2,y2), stops: [(offset, idx)...]}
     in viewBox (working-pixel) coordinates.
     """
-    arr = np.asarray(img)
-    opaque = arr[..., 3] > 128
-    rgb = arr[..., :3]
     n = len(palette)
-    masks = [opaque & np.all(rgb == np.asarray(c, np.uint8), axis=-1) for c in palette]
+    masks = _palette_masks(img, palette)
     areas = [int(m.sum()) for m in masks]
     labs = srgb_to_lab(np.array(palette, dtype=float))  # (n,3): L, a, b
 

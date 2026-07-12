@@ -10,12 +10,12 @@
 > and the **calibrated, end-to-end-tested recipe.**
 
 Distilled from **45 reference `.VP3` files** the user supplied as production examples
-(`decoration/re.zip` → `decoration/unzipped/`), parsed byte-for-byte with `pyembroidery`.
+(`decoration/unzipped/`), parsed byte-for-byte with `pyembroidery`.
 One synthetic motif was also **validated end-to-end** (§6): a clean radial rosette was
 authored from scratch, run through this repo's pipeline with the decoration recipe, and
 measured against its own source (size, colour, object type, density, ink-mask IoU +
 source-coverage). Every number below is **measured**, not guessed. Reproduce any of it with
-the scripts in [`tools/`](tools/).
+the scripts in [`orchestrator/scripts/`](../orchestrator/scripts/).
 
 ---
 
@@ -78,7 +78,7 @@ method** (`contour_fill`, §4 — ornament is thin and sprawling), the **chart b
 ## 1. What the reference files are (measured)
 
 A representative slice across the seven sub-types (full data in
-[`output/_analysis.json`](output/); regenerate with `tools/batch_analyze.py`):
+[`output/_analysis.json`](output/); regenerate with `orchestrator/scripts/batch_analyze.py`):
 
 | File | Sub-type / subject | Size (mm) | Colours | Object (rev / medW) | Trims | density |
 |------|--------------------|-----------|---------|---------------------|-------|---------|
@@ -268,7 +268,7 @@ IoU 86.4 %,** colour Green Dust ΔE 6.1.
 ## 6. Compare-to-original & iterate — the mandatory last step ⭐⭐
 
 **Before delivering, always render the output and measure it against the source; iterate
-until the drift is explained or gone.** The tools in [`tools/`](tools/):
+until the drift is explained or gone.** The tools in [`orchestrator/scripts/`](../orchestrator/scripts/):
 
 - `batch_analyze.py <files…>` — threads, size, satin-vs-fill (reversal %), trims, density
   for many files at once (the survey behind §1). Writes `output/_analysis.json`.
@@ -346,11 +346,11 @@ exists only as an image; author/hand-satin (Phase B) to finish.
 
 - 45 files parsed with `pyembroidery`; satin-vs-fill via consecutive-segment turn-angle
   (> 120° = reversal); pieces split on `TRIM`/`COLOR_CHANGE`; density = pure stitches ÷
-  bounding area. Survey via `tools/batch_analyze.py` → `output/_analysis.json`; sub-types
-  identified from `tools/montage.py` grids.
+  bounding area. Survey via `orchestrator/scripts/batch_analyze.py` → `output/_analysis.json`; sub-types
+  identified from `orchestrator/scripts/montage.py` grids.
 - End-to-end validation: `assets/make_decoration_test.py` authors a clean radial rosette →
   `python -m wilcom_pipeline` (recipe §5) → `compare_to_photo.py` against its own source
-  (coverage 99.9 %, IoU 86.4 %, ΔE 6.1, gate PASS). All scripts in [`tools/`](tools/); the
+  (coverage 99.9 %, IoU 86.4 %, ΔE 6.1, gate PASS). All scripts in [`orchestrator/scripts/`](../orchestrator/scripts/); the
   worked outputs in [`output/`](output/).
 - Consistent with [`../EMBROIDERY-PLAYBOOK.md`](../EMBROIDERY-PLAYBOOK.md) (decoration =
   the ornamental-embellishment branch) and the cross-cutting `.vp3`/thread reference

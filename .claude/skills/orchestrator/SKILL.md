@@ -91,8 +91,8 @@ geometry** using the router in `references/routing-and-recipes.md`:
   a year/score/numeral → **Numbers**). Dominant object: satin.
 - **Geometric solid with flat shaded facets** (cube, prism, cylinder) → **3D**. Tatami per
   facet + a distinct angle each + wireframe last. *Prefer to build as SVG, not trace.*
-- **Character / portrait / detailed illustration with shading** → **Anime/portrait**. Flat
-  fills + shadow satins; 8–12 colours.
+- **Character / portrait / detailed illustration with shading** → **Anime/portrait**. Satin-
+  dominant (outline + shadow satins, measured 82.9% satin); ~7–8 colours; **add `--satin-lean`**.
 - **Bold flat icon / vector shape** (star, heart, arrow, swirl, frame) → **Simple shapes**.
   One object per shape by width; **isacord** chart.
 - **Ornamental embellishment** (floral, vine, mandala, wreath, frame, lace, border) →
@@ -113,11 +113,21 @@ ruined:**
 - **`--lettering` vs `--purify-colors`.** `--lettering` dissects glyphs into satin columns —
   right for plain separable block caps, *fatal* for cursive/ornate/cropped glyphs (it shatters
   them). For anything cursive, use the default path + `--purify-colors`.
-- **`contour_fill` for thin sprawling shapes *only*** (thin calligraphy/script, swirls, vines,
-  long borders) — `auto_fill` over-stitches and can *hang* there. **But broad or thick solid
-  shapes** (bold display calligraphy, chunky logos, cut-paper silhouettes, filled facets) must
-  stay on `auto_fill` — `contour_fill` traces a wide area as concentric rings and it reads
-  **hollow / cross-hatched**. Rule of thumb: contour follows a *stroke*; fill packs an *area*.
+- **HARD RULE: large/broad regions = TATAMI (`auto_fill`), never `contour_fill`.** `contour_fill`
+  is for **thin sprawling stroke-ornament *only*** (thin calligraphy/script, swirls, vines, long
+  borders) — it follows a *stroke*; tatami packs an *area*. Contour on a broad region is concentric
+  rings that read **hollow / cross-hatched**, and rings ≠ the production tatami rows. Rule of thumb:
+  contour follows a *stroke*; `auto_fill` (tatami) packs an *area*. **Do NOT ship `contour_fill` on
+  a broad region as if it were tatami** just because `auto_fill` was slow.
+- **`auto_fill` can HANG on a broad region with wispy/feathered geometry** (hair, fur, torn edges) —
+  its fill-router infinite-loops on the many concavities (`underpath` off, median-smoothing, and
+  downscaling all fail to unblock it; **pull-comp is the measured trigger** — joker's hair hangs
+  with pull-comp 0.2, completes in 8 s at 0). **Auto-handled now** (`stitches._digitize`): the
+  whole-design pass times out at 120 s → per-colour-group digitize + aligned merge (shared frame
+  anchor); a group that hangs even alone walks a retry ladder — pull-comp 0 → + underlay off →
+  fills/satins split — so the region stays TATAMI; `contour_fill` is only the last resort
+  (present + flagged in the log). Just wait (~10 min on hang-designs); check the run log for
+  which rung each group used.
 - **`isacord` for bright primaries** — Madeira Polyneon has **no pure blue** (ΔE 90). Keep
   `--purify-colors` *off* for custom/pastel colours; it snaps them toward a primary and worsens
   the match.
@@ -127,7 +137,7 @@ Point `--output-dir` at the design folder so every artifact lands inside it:
 ```bash
 .claude/skills/orchestrator/scripts/digitize.sh orchestrator/output/<name>/<name>_src.png \
     --width-mm <size> --colors <N> --thread-chart <chart> --category <category> \
-    [--lettering | --purify-colors] [--fill-method contour_fill] \
+    [--lettering | --purify-colors] [--satin-lean] [--fill-method contour_fill] \
     [--pull-comp-mm 0.05] [--no-fill-underlay] \
     --name <name> --output-dir orchestrator/output/<name>
 ```
@@ -176,6 +186,7 @@ fixable mistake.** Otherwise diagnose and re-run:
 | Gate FAIL on fragmentation; script in illegible pieces | `--lettering` shattered cursive/ornate/cropped glyphs | drop `--lettering` → default path + `--purify-colors` |
 | Gate FAIL / hang / density way over band on thin sprawling art | `auto_fill` travel routing over-stitches | add `--fill-method contour_fill` |
 | Broad areas / **thick** strokes come out **hollow / cross-hatched** (a woven mesh, not solid) | `contour_fill` traced a wide shape as concentric rings — it is for *thin sprawling* ornament **only** | switch to solid `auto_fill` (bold display calligraphy, cut-paper shapes, chunky logos are broad-solid, not thin) |
+| `auto_fill` (tatami) **HANGS** on the combined design (some colour makes the single pass infinite-loop) | Ink-Stitch's fill-router chokes on the *combined* pass even though each colour digitizes fine ALONE (NOT `underpath`/smoothing/downscaling; per-group, **pull-comp** is the measured trigger) | **Auto-handled now:** the pipeline times out the whole-pass at 120s and falls back to **per-colour-group digitize + aligned merge** (`stitches._digitize`, frame-anchored so groups can't shift); a group that hangs even alone retries pull-comp 0 → + underlay off → fills/satins split before any contour last-resort, so it stays TATAMI. Just wait (~10min); the realistic preview still renders (per-group composite). If the log shows a group ended contour, that colour is genuinely pathological — flag it |
 | A **phantom extra cone** appears | input wasn't crisp (JPEG ringing / soft scan) | re-threshold to clean flat colour; Arabic → pure-black-on-white |
 | Colour reads **neon** where the source is muted/custom | `--purify-colors` snapped a custom colour, or wrong chart | drop `--purify-colors` for that colour; try the other chart |
 | Fine hairline **line-art reads pale gray**, not black (single colour) | thin strokes upscale with anti-alias halos → `--colors 1` averages to gray | add `--purify-colors`; **but** if the fill then **crashes** (`contour_fill` `NoneType … length`) or **hangs** (`auto_fill`), do NOT purify — **binarize the source** to crisp black-on-white (threshold ~<200), trace plain `contour_fill`, then if the lone cone still lands gray, **stamp it black** in the `.vp3` (`pe.read` → `thread.set_color(0,0,0)` + catalog/desc → `pe.write_vp3`) and recolour the preview to match |
@@ -206,7 +217,7 @@ and what's in it, the gate result, the measured coverage/density, and the drift 
 typeset/hand-digitized Wilcom — for a *known* word/solid/primitive, **building** it (Wilcom satin
 lettering, an authored SVG, `3D/make_3d_test.py`) beats tracing a picture of it. The `.vp3` is a
 faithful, editable intermediate; the licensed `.emb` save is **Phase B** (Windows + Wilcom
-dongle, `phase_b/emb_save.ahk`).
+dongle — a one-off manual File ▸ Save As; the old AHK automation was dropped, recover from git history if needed).
 
 ## When to *build* instead of trace
 For **geometric 3-D solids** and **known primitives** (a perfect star/heart/arrow), author the
@@ -215,12 +226,46 @@ the reusable pattern (per-facet `inkstitch:angle`, underlay, `trim_after`; outli
 stitch, last). Tracing a 3-D photo loses per-facet angle control. For a *known word*, typing it
 in Wilcom's satin lettering tool (Phase B) beats tracing a picture of it.
 
+## Production pairs — the user's (SVG, VP3) ground truth ⭐
+The user drops **(CorelDRAW-SVG, production-VP3) pairs** — matching stems — into
+**`pairs-inbox/`** at the repo root. Whenever pairs are there (or the user says "ingest the
+pairs" / mentions new pairs), run:
+
+```bash
+.venv/bin/python orchestrator/scripts/ingest_pairs.py        # --dry-run to preview
+```
+
+It **auto-categorizes** each pair (VP3 fingerprint vs `data/category_profiles.json`), moves it
+to **`<category>/pairs/<design>/`**, **labels** it (`extract_pair.py` = families/colours/order;
+`register_pair.py` = SVG↔VP3 registration → per-object mm widths, density, row spacing,
+satin-vs-tatami), `git add -f`s the VP3, rebuilds the profiles, and prints the
+`PAIRS-FINDINGS.md` table row — append it. Review its printed scores: near-ties inside the
+satin-dominant family (letters/arabic/simple-shapes/numbers/decoration) are flagged
+`~ ambiguous` — eyeball the design and move the folder if the call is wrong.
+
+**Use the pairs when digitizing.** Before finalizing flags for a category, check
+`<category>/pairs/*/<design>_measures.json`: the per-object **width distribution** tells you
+where satin ends and tatami begins for that category; **density / row-spacing / satin_w** are
+the numbers the output should land on; `sew_order` in `_objects.json` is the production
+layering. Profiles rebuilt from pairs feed step 7's drift gate automatically. The method +
+accumulated findings live in [`PAIRS-FINDINGS.md`](../../../PAIRS-FINDINGS.md). Target **2–3
+pairs per category** before trusting a profile shift (n=1 is a flagged single data point).
+
+**Unknown category:** a pair the classifier can't place lands in `pairs-inbox/unknown/<design>/`.
+Look at the design; if it truly fits no existing category, create the category properly:
+`<category>/` dir + `<category>-embroidery-knowledge.md`, add it to `SUPPORTED_CATEGORIES` and
+`CATEGORY_COLORS` in `src/wilcom_pipeline/config.py`, move the pair to `<category>/pairs/`,
+re-run `fingerprint_vp3.py`, then wire it into the playbook + `references/routing-and-recipes.md`
+(see "Adding a new category" below). If it does fit one, re-ingest with `--category <cat>`.
+
 ## Adding a new category
-If the user supplies ground-truth `.VP3` files for a subject not covered, follow the **update
-protocol in playbook §7**: create `<category>/<category>-embroidery-knowledge.md`, measure the
-references with the `tools/` scripts, distil the DNA + a calibrated command, validate
-end-to-end, then wire it into the playbook (§1 router, §2 recipe, §8 cheat sheet) and update
-`references/routing-and-recipes.md` here.
+If the user supplies ground-truth `.VP3` files (or pairs) for a subject not covered, follow the
+**update protocol in playbook §7**: create `<category>/<category>-embroidery-knowledge.md`,
+measure the references with the `orchestrator/scripts/` toolbox, distil the DNA + a calibrated
+command, validate end-to-end, then wire it into the playbook (§1 router, §2 recipe, §8 cheat
+sheet) and update `references/routing-and-recipes.md` here. Register the category in
+`SUPPORTED_CATEGORIES` + `CATEGORY_COLORS` (config.py) so the CLI, colour prior, fingerprint
+profiles, and the pairs auto-categorizer all know it.
 
 ## Bundled scripts & references
 - `scripts/normalize_input.py` — any format → clean RGB(A) PNG (Pillow + pillow-heif + cairosvg,

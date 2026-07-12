@@ -13,7 +13,7 @@ validated end-to-end**: each reference was rendered to a clean raster "photo", r
 back through this repo's pipeline, and the output `.vp3` compared against the
 ground-truth file (size, colour, object type, stitch count, areal density, ink-mask
 IoU). Every number below is **measured**, not guessed. Reproduce any of it with the
-scripts in [`tools/`](tools/).
+scripts in [`orchestrator/scripts/`](../orchestrator/scripts/).
 
 ---
 
@@ -198,7 +198,7 @@ ground truth. Both gate **PASS**, both stamp **`1800 Black (0,0,0)`**.
 ## 6. Compare-to-original & iterate — the mandatory last step ⭐⭐
 
 **Before delivering, always render the output and measure it against the source/ground
-truth; iterate until the drift is explained or gone.** The tools in [`tools/`](tools/)
+truth; iterate until the drift is explained or gone.** The tools in [`orchestrator/scripts/`](../orchestrator/scripts/)
 do exactly this:
 
 - `analyze_vp3.py <file.vp3>` — threads, bounds, satin-vs-fill (reversal %), trims,
@@ -263,7 +263,7 @@ calligraphy exists only as an image; hand-satin to finish. See
   (> 120° = reversal); pieces split on `TRIM`/`COLOR_CHANGE`.
 - The end-to-end calibration: `vp3_to_photo.py` → `python -m wilcom_pipeline` (recipe
   §5) → `compare_vp3.py` against the ground truth. All four scripts are in
-  [`tools/`](tools/); the worked outputs are in [`output/`](output/).
+  [`orchestrator/scripts/`](../orchestrator/scripts/); the worked outputs are in [`output/`](output/).
 - Consistent with [`../letters/letters-embroidery-knowledge.md`](../letters/letters-embroidery-knowledge.md)
   (Arabic = the script sub-type of letters; satin dominant, §0 there) and the
   cross-cutting `.vp3`/thread reference (letters §7–§8). The Arabic-specific additions
