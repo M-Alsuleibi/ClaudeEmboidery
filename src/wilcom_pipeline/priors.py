@@ -69,3 +69,10 @@ def border_width_mm(category: str | None) -> float | None:
     rec = category_prior(category)
     med = ((rec or {}).get("satin_w_mm") or {}).get("med")
     return float(med) if med else None
+
+
+def cross_stitch_pitch_mm(category: str | None) -> float | None:
+    """The measured cross-stitch cell pitch for a counted-cross-stitch category
+    (falahi): the register pass measures each little cross arm as a "satin" width, so
+    the satin-width median IS the grid pitch (falahi ≈ 2.1 mm). None with no pairs."""
+    return border_width_mm(category)

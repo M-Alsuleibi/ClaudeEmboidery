@@ -104,6 +104,16 @@ density, pull-comp, and `trim_after` (so a colour's disjoint regions aren't join
 travel — each trim is a Wilcom Break-Apart boundary). The pre-pass is best-effort: anything
 that errors falls back to plain fills so the step always yields a valid design.
 
+**Cross-stitch categories bypass all of the above.** A `config.CROSS_STITCH_CATEGORIES` category
+(currently **falahi** — Palestinian tatreez) is *counted cross-stitch*, a distinct primitive, not
+run/satin/tatami. When `resolved_cross_stitch` is on (AUTO for those categories; force with
+`--cross-stitch`/`--no-cross-stitch`), step 5 short-circuits into `steps/crossstitch.py`: a fixed
+square grid (pitch = the pair prior ≈ 2.1 mm, or `--cross-stitch-pitch-mm`), each majority-covered
+cell becomes an **X** (the per-corner reversals give the high-reversal character the fingerprint
+reads as ~100 % satin, matching the ground truth). It's built **directly with pyembroidery** — no
+Ink-Stitch (whose `manual_stitch` exact-node mode hangs the router), no trace SVG; cones are still
+named in step 6 by RGB match. See `falahi/falahi-embroidery-knowledge.md`.
+
 ### The mode flags (config.py / cli.py)
 
 These change step 2/3/5 behaviour and are central to output quality:

@@ -1,0 +1,114 @@
+{
+ "design": "falahi-09",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 18,
+  "outline_to_fill_ratio": 18.0,
+  "n_colours": 6,
+  "colours": [
+   "#009900",
+   "#33CCCC",
+   "#C000C0",
+   "BLUE",
+   "RED",
+   "YELLOW"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#009900": 4,
+   "BLUE": 1,
+   "RED": 4,
+   "YELLOW": 4,
+   "#33CCCC": 4,
+   "#C000C0": 1
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#C000C0"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 396.0,
+  "aspect": 1.37,
+  "n_colors": 6,
+  "n_stitch": 56734,
+  "n_blocks": 6,
+  "density": 0.49,
+  "satin_frac": 99.98,
+  "fill_frac": 0.02,
+  "mixed_frac": 0.0,
+  "satin_w_mm": 2.24,
+  "stitch_len_mm": 2.24,
+  "trim_rate": 0.0
+ }
+}

@@ -44,6 +44,16 @@ OUTLIER_PATH_FRAC = 0.5  # >this fraction of misses -> the whole path is a non-s
 RASTER_MM_PX = 0.4     # per-object mask resolution
 OUTLINE_HALO_MM = 1.2  # half-width when rasterising an outline object's polyline mask
 
+# The CSS/SVG basic named colours (CorelDRAW exports use these instead of hex for
+# primaries). Resolved to #RRGGBB at parse time so downstream hex parsing is total.
+_NAMED_COLORS = {
+    "black": "#000000", "white": "#FFFFFF", "red": "#FF0000", "lime": "#00FF00",
+    "green": "#008000", "blue": "#0000FF", "yellow": "#FFFF00", "cyan": "#00FFFF",
+    "aqua": "#00FFFF", "magenta": "#FF00FF", "fuchsia": "#FF00FF", "gray": "#808080",
+    "grey": "#808080", "silver": "#C0C0C0", "maroon": "#800000", "olive": "#808000",
+    "navy": "#000080", "teal": "#008080", "purple": "#800080", "orange": "#FFA500",
+}
+
 
 # --------------------------------------------------------------------------- #
 # SVG parsing (CorelDRAW export: class-styled paths, M/l/c/z data)
@@ -176,7 +186,9 @@ def parse_svg(svg_path: Path) -> list[dict]:
     def hx(c):
         if c is None:
             return None
-        return "#000000" if c == "black" else c.upper()
+        # CorelDRAW/SVG exports mix hex (#RRGGBB) with CSS named colours (blue, red,
+        # yellow, ...). Resolve names to hex so _rgb()'s int(...,16) never chokes.
+        return _NAMED_COLORS.get(c.lower(), c.upper())
 
     objs = []
     for i, (cls, d) in enumerate(re.findall(r'<path\s+class="([^"]*)"\s+d="([^"]*)"', svg)):

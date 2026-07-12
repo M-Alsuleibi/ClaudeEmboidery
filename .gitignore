@@ -22,8 +22,9 @@ __pycache__/
 /pairs-inbox/*
 !/pairs-inbox/README.md
 
-# Ad-hoc local pair scratch space (large SVG/VP3 working files, not source)
-/falahi/
+# Falahi category: track its knowledge doc + any ingested pairs/, but ignore the loose
+# large working SVGs dropped at the dir root (VP3s are already ignored globally above).
+/falahi/*.svg
 
 # Vendored Ink-Stitch portable bundle (~185MB, downloaded, not source)
 /vendor/

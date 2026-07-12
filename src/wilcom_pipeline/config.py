@@ -19,6 +19,7 @@ SUPPORTED_THREAD_CHARTS = ("madeira-polyneon", "isacord")
 # to compare a run against the ground-truth profile for its category (data/category_profiles.json).
 SUPPORTED_CATEGORIES = (
     "letters", "arabic", "3D", "anime", "simple-shapes", "decoration", "numbers",
+    "falahi",
 )
 
 # Ink-Stitch fill methods for solid regions (step 5). `auto_fill` routes one
@@ -52,11 +53,19 @@ _DEFAULT_PULL_COMP_MM = 0.20  # historical default when neither --fabric nor --p
 CATEGORY_COLORS = {
     "letters": 2, "arabic": 1, "3D": 8, "anime": 8,
     "simple-shapes": 1, "decoration": 1, "numbers": 4,
+    "falahi": 4,  # tatreez cross-stitch: median of the first 11 pairs (mono banners 1 → qabbeh 3-7)
 }
 # NB anime = 8 (was 12) and anime is now satin-dominant, from the first real anime ground-truth
 # pair (pink-goku: 7 colours, 82.9% satin). See svg-and-geometry-approach/FINDINGS.md. n=1 —
 # firm up with more anime pairs.
 _DEFAULT_NUM_COLORS = 8  # when neither --colors nor --category is given
+
+# Categories whose production technique is counted CROSS-STITCH (a fixed grid of X
+# motifs), not the run/satin/tatami tiers — step 5 generates them with the cross-stitch
+# primitive instead. falahi (Palestinian tatreez) is the first; the flag can still force
+# it on/off per design. See steps/crossstitch.py.
+CROSS_STITCH_CATEGORIES = ("falahi",)
+_DEFAULT_CROSS_STITCH_PITCH_MM = 2.2  # grid cell size when neither the flag nor a pair prior gives one
 
 
 @dataclass(frozen=True)
@@ -219,6 +228,15 @@ class PipelineConfig:
     # and it reads satin_frac=100 like the ground truth. Falls back to fixed-width per column on
     # any geometry failure. Off by default on its own, but IMPLIED by --satin-lean.
     vwidth_satin: bool = False
+    # Cross-stitch (step 5): generate counted cross-stitch (a fixed grid of X motifs) instead
+    # of the run/satin/tatami tiers — the falahi (Palestinian tatreez) technique. Built directly
+    # as stitches (pyembroidery), so it needs no Ink-Stitch and never hits its router hangs on a
+    # dense (50k-cell) qabbeh. Tri-state: None = AUTO (on for a CROSS_STITCH_CATEGORIES category),
+    # True/False force it. See steps/crossstitch.py.
+    cross_stitch: bool | None = None
+    # Cross-stitch grid cell pitch in mm. None => the category's measured pair prior (falahi's
+    # satin-width median ≈ 2.1 mm), else the 2.2 mm default. Smaller = finer counted grid.
+    cross_stitch_pitch_mm: float | None = None
 
     @property
     def resolved_num_colors(self) -> int:
@@ -239,6 +257,23 @@ class PipelineConfig:
         if self.fabric is not None:
             return FABRIC_PULL_COMP.get(self.fabric, _DEFAULT_PULL_COMP_MM)
         return _DEFAULT_PULL_COMP_MM
+
+    @property
+    def resolved_cross_stitch(self) -> bool:
+        """Whether step 5 generates counted cross-stitch: explicit --cross-stitch /
+        --no-cross-stitch wins, else AUTO = the category is a CROSS_STITCH_CATEGORIES one."""
+        if self.cross_stitch is not None:
+            return self.cross_stitch
+        return self.category in CROSS_STITCH_CATEGORIES
+
+    @property
+    def resolved_cross_stitch_pitch_mm(self) -> float:
+        """Cross-stitch grid pitch (mm): explicit --cross-stitch-pitch-mm wins, else the
+        category's measured pair prior, else the default. priors is import-safe (best-effort)."""
+        if self.cross_stitch_pitch_mm is not None:
+            return self.cross_stitch_pitch_mm
+        from . import priors
+        return priors.cross_stitch_pitch_mm(self.category) or _DEFAULT_CROSS_STITCH_PITCH_MM
 
     @property
     def purify(self) -> bool:
@@ -279,6 +314,8 @@ class PipelineConfig:
             )
         if not (0.0 <= self.underlap_mm <= 2.0):
             raise ValueError("underlap_mm must be between 0 (off) and 2.0")
+        if self.cross_stitch_pitch_mm is not None and not (0.5 <= self.cross_stitch_pitch_mm <= 10.0):
+            raise ValueError("cross_stitch_pitch_mm must be between 0.5 and 10.0")
 
     # --- Conventional artifact paths (step 6 deliverables) ---
     @property

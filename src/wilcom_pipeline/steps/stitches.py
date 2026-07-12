@@ -210,6 +210,13 @@ def run(ctx: PipelineContext) -> None:
     if ctx.svg_path is None:
         raise RuntimeError("stitches requires ctx.svg_path; run trace first.")
 
+    # Cross-stitch categories (falahi tatreez): counted cross-stitch is a distinct stitch
+    # primitive (a fixed grid of X motifs), not the run/satin/tatami tiers. It's built
+    # directly as stitches (no Ink-Stitch), so it short-circuits the whole SVG/digitize path.
+    if ctx.config.resolved_cross_stitch:
+        _run_cross_stitch(ctx)
+        return
+
     binary = _locate_binary()
     # The stitch-ready ("working") SVG: every path carries its inkstitch:* object type + params.
     # It's a kept deliverable (the object structure is lost when flattened to the VP3) and also
@@ -241,6 +248,29 @@ def run(ctx: PipelineContext) -> None:
     ctx.stitch_pattern = pattern
     ctx.per_group_svgs = group_svgs
     _print_summary(pattern, n_satin, n_run)
+
+
+def _run_cross_stitch(ctx: PipelineContext) -> None:
+    """Step-5 cross-stitch path: build the counted-cross-stitch pattern directly and
+    set ctx.stitch_pattern. No stitch-ready SVG (step 6 uses the polyline preview, which
+    is faithful for an X-grid) and no per-group SVGs."""
+    from .crossstitch import build_cross_stitch_pattern
+
+    pitch = ctx.config.resolved_cross_stitch_pitch_mm
+    pattern, n_cells, n_colours = build_cross_stitch_pattern(ctx, pitch)
+    ctx.stitch_pattern = pattern
+    ctx.stitch_svg_path = None
+    ctx.per_group_svgs = None
+
+    cmds = Counter(c & 0xFF for _, _, c in pattern.stitches)
+    n_stitch = cmds.get(pe.STITCH & 0xFF, 0)
+    n_trim = cmds.get(pe.TRIM & 0xFF, 0)
+    xs = [s[0] for s in pattern.stitches]
+    ys = [s[1] for s in pattern.stitches]
+    w = (max(xs) - min(xs)) / 10 if xs else 0
+    h = (max(ys) - min(ys)) / 10 if ys else 0
+    print(f"      cross-stitch -> {n_cells} X-cells, {n_stitch} stitches, {n_colours} "
+          f"colour(s), {n_trim} trim(s); extent ~{w:.1f}x{h:.1f}mm @ {pitch:.2f}mm grid")
 
 
 def render_realistic_preview(ctx: PipelineContext, svg: Path, dst: Path) -> bool:

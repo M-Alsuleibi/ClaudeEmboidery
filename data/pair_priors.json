@@ -12,5 +12,19 @@
   "fill_density_st_mm2": 1.425,
   "row_spacing_mm": 1.005,
   "outline_to_fill": 1.99
+ },
+ "falahi": {
+  "n_pairs": 11,
+  "n_objects": 381,
+  "satin_w_mm": {
+   "p10": 1.4,
+   "med": 2.1,
+   "p90": 2.41,
+   "n": 284
+  },
+  "crossover_mm": 2.41,
+  "fill_density_st_mm2": 0.535,
+  "row_spacing_mm": 4.785,
+  "outline_to_fill": 381.0
  }
 }

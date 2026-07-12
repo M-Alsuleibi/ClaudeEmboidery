@@ -1,0 +1,29 @@
+{
+ "design": "falahi-01",
+ "transform": {
+  "scale_mm_per_uu": 0.002698840019602065,
+  "rotation_deg": 1.560329745108483,
+  "translation_mm": [
+   -30.47514759523156,
+   -39.86548793350496
+  ],
+  "trimmed_rms_mm": 0.9973698275604369
+ },
+ "objects": [
+  {
+   "i": 0,
+   "family": "outline",
+   "colour": "#009900",
+   "outlier": false,
+   "area_mm2": 975.68,
+   "n_stitches": 260,
+   "density_st_mm2": 0.27,
+   "row_spacing_mm": 5.18,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 55
+   },
+   "satin_w_mm": 3.82
+  }
+ ]
+}

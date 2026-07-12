@@ -1,0 +1,194 @@
+{
+ "design": "falahi-04",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 38,
+  "outline_to_fill_ratio": 38.0,
+  "n_colours": 6,
+  "colours": [
+   "#009900",
+   "#33CCCC",
+   "#C000C0",
+   "BLUE",
+   "RED",
+   "YELLOW"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#009900": 7,
+   "BLUE": 8,
+   "RED": 8,
+   "YELLOW": 3,
+   "#33CCCC": 10,
+   "#C000C0": 2
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#C000C0"
+   ],
+   [
+    "outline",
+    "#C000C0"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 234.2,
+  "aspect": 1.0,
+  "n_colors": 6,
+  "n_stitch": 50041,
+  "n_blocks": 6,
+  "density": 0.91,
+  "satin_frac": 100.0,
+  "fill_frac": 0.0,
+  "mixed_frac": 0.0,
+  "satin_w_mm": 2.01,
+  "stitch_len_mm": 2.01,
+  "trim_rate": 0.0
+ }
+}

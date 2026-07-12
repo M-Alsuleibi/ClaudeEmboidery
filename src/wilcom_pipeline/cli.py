@@ -180,6 +180,14 @@ def build_parser() -> argparse.ArgumentParser:
                         "(pink-goku: 217 outline vs 118 fill objects). Default: AUTO — on for "
                         "a satin-dominant category (anime/letters/arabic/...), off otherwise; "
                         "pass --outline-objects/--no-outline-objects to force.")
+    p.add_argument("--cross-stitch", action=argparse.BooleanOptionalAction, default=None,
+                   help="Generate counted cross-stitch (a fixed grid of X motifs) instead of "
+                        "the run/satin/tatami tiers — the falahi (Palestinian tatreez) "
+                        "technique. Default: AUTO — on for a cross-stitch category (falahi), "
+                        "off otherwise; pass --cross-stitch/--no-cross-stitch to force.")
+    p.add_argument("--cross-stitch-pitch-mm", type=float, default=None,
+                   help="Cross-stitch grid cell size in mm (0.5-10). Default: the category's "
+                        "measured pair prior (falahi ~2.1mm), else 2.2mm. Smaller = finer grid.")
     return p
 
 
@@ -221,6 +229,8 @@ def main(argv: list[str] | None = None) -> int:
             underlap_mm=args.underlap_mm,
             travel_plan=args.travel_plan,
             auto_repair=args.auto_repair,
+            cross_stitch=args.cross_stitch,
+            cross_stitch_pitch_mm=args.cross_stitch_pitch_mm,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

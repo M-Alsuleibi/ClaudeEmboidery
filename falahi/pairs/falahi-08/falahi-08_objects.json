@@ -1,0 +1,248 @@
+{
+ "design": "falahi-08",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 52,
+  "outline_to_fill_ratio": 52.0,
+  "n_colours": 5,
+  "colours": [
+   "#009900",
+   "#33CCCC",
+   "BLUE",
+   "RED",
+   "YELLOW"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#009900": 5,
+   "BLUE": 10,
+   "RED": 9,
+   "YELLOW": 10,
+   "#33CCCC": 18
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "#009900"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "BLUE"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ],
+   [
+    "outline",
+    "#33CCCC"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 360.0,
+  "aspect": 1.42,
+  "n_colors": 5,
+  "n_stitch": 54013,
+  "n_blocks": 5,
+  "density": 0.59,
+  "satin_frac": 100.0,
+  "fill_frac": 0.0,
+  "mixed_frac": 0.0,
+  "satin_w_mm": 2.1,
+  "stitch_len_mm": 2.1,
+  "trim_rate": 0.0
+ }
+}

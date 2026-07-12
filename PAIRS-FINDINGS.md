@@ -135,3 +135,28 @@ pipeline can safely default from.
 | design | category | fill obj | outline obj | out:fill | colours | size mm | satin% | satin w mm |
 |---|---|---|---|---|---|---|---|---|
 | pink-goku | anime | 118 | 217 | 1.84 | 7 | 120 | 82.9 | 2.25 |
+| falahi-01 | falahi | 0 | 1 | — | 1 | 348.9 | 100.0 | 3.8 |
+| falahi-02 | falahi | 0 | 2 | — | 1 | 450.2 | 100.0 | 3.85 |
+| falahi-03 | falahi | 0 | 10 | — | 1 | 1098.8 | 100.0 | 3.83 |
+| falahi-04 | falahi | 0 | 38 | — | 6 | 234.2 | 100.0 | 2.01 |
+| falahi-05 | falahi | 0 | 32 | — | 4 | 190.6 | 100.0 | 2.42 |
+| falahi-06 | falahi | 0 | 77 | — | 3 | 420.2 | 98.48 | 2.25 |
+| falahi-07 | falahi | 0 | 12 | — | 5 | 208.0 | 100.0 | 2.24 |
+| falahi-08 | falahi | 0 | 52 | — | 5 | 360.0 | 100.0 | 2.1 |
+| falahi-09 | falahi | 0 | 18 | — | 6 | 396.0 | 99.98 | 2.24 |
+| falahi-10 | falahi | 0 | 11 | — | 2 | 558.9 | 100.0 | 2.24 |
+| falahi-11 | falahi | 0 | 136 | — | 7 | 273.4 | 100.0 | 1.41 |
+
+### Falahi — new category (n = 11), Palestinian tatreez cross-stitch
+
+Registered `falahi` and ingested 11 pairs (garment tatreez: neck yokes/*qabbeh*, plackets,
+rosette bands, full dress fronts). All 11 are **0 fill objects / all outline motifs** — the
+counted **cross-stitch** grid reads as thousands of tiny outline strokes, not areas. The
+fingerprint calls it ~100 % "satin" (each cross arm = a short high-reversal segment), so falahi
+lands as satin-dominant, but it is really a *counted-grid* look our tiers can't yet reproduce
+(no cross-stitch primitive — see `falahi/falahi-embroidery-knowledge.md`). Priors learned:
+satin-w 1.4 / 2.1 / 2.41 mm (grid pitch: 3.8 mm coarse banners → 1.4–2.4 mm fine qabbeh),
+crossover 2.41 mm (→ 3 mm ceiling), colours 1 (mono banner) → 3–7 (polychrome), pure primaries
+led by green `(0,153,0)`. Registration RMS 0.38–0.69 mm on the fine panels (1–2.2 mm on the
+coarse repetitive banners). Note: `register_pair.py` was fixed to resolve CSS **named** colours
+(`blue`/`red`/`yellow`) — the polychrome exports use them instead of hex.
