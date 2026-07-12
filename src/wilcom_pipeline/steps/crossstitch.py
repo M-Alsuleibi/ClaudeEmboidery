@@ -127,11 +127,19 @@ def build_cross_stitch_pattern(
         labeled, n_comp = ndimage.label(grid, structure=structure)
         for cid in range(1, n_comp + 1):
             cells = np.argwhere(labeled == cid)
+            prev = None
             for r, c, l2r in _order_cells(cells):
+                # A serpentine row can have GAPS (cells of this colour's connected lattice
+                # separated by other colours). Bridging them with a stitch draws a long
+                # horizontal travel across the design; instead lift the needle (trim) so each
+                # contiguous run is its own piece. Adjacent = Chebyshev distance 1.
+                if prev is not None and (abs(r - prev[0]) > 1 or abs(c - prev[1]) > 1):
+                    pat.trim()
                 for x, y in _cell_points(r, c, l2r, ph, upp):
                     # add_stitch_absolute (not stitches.append) so pyembroidery tracks the
                     # needle position — else trim()/color_change()/end() land at (0,0).
                     pat.add_stitch_absolute(pe.STITCH, x, y)
+                prev = (r, c)
             pat.trim()  # each cell cluster is its own Break-Apart piece
             n_cells += len(cells)
     pat.end()
