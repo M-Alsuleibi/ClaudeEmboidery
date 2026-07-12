@@ -1,0 +1,174 @@
+{
+ "design": "6",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 31,
+  "outline_to_fill_ratio": 31.0,
+  "n_colours": 10,
+  "colours": [
+   "#000000",
+   "#204030",
+   "#6B552C",
+   "#8F1010",
+   "#907453",
+   "#CDB88D",
+   "#FED8A7",
+   "#FF7ECC",
+   "#FFFF99",
+   "WHITE"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#000000": 4,
+   "#CDB88D": 3,
+   "#FED8A7": 1,
+   "WHITE": 3,
+   "#204030": 3,
+   "#8F1010": 3,
+   "#FFFF99": 1,
+   "#6B552C": 3,
+   "#FF7ECC": 1,
+   "#907453": 9
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#CDB88D"
+   ],
+   [
+    "outline",
+    "#CDB88D"
+   ],
+   [
+    "outline",
+    "#CDB88D"
+   ],
+   [
+    "outline",
+    "#FED8A7"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#204030"
+   ],
+   [
+    "outline",
+    "#204030"
+   ],
+   [
+    "outline",
+    "#204030"
+   ],
+   [
+    "outline",
+    "#8F1010"
+   ],
+   [
+    "outline",
+    "#8F1010"
+   ],
+   [
+    "outline",
+    "#8F1010"
+   ],
+   [
+    "outline",
+    "#FFFF99"
+   ],
+   [
+    "outline",
+    "#6B552C"
+   ],
+   [
+    "outline",
+    "#6B552C"
+   ],
+   [
+    "outline",
+    "#6B552C"
+   ],
+   [
+    "outline",
+    "#FF7ECC"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ],
+   [
+    "outline",
+    "#907453"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.4,
+  "aspect": 1.33,
+  "n_colors": 11,
+  "n_stitch": 19592,
+  "n_blocks": 11,
+  "density": 1.8,
+  "satin_frac": 51.48,
+  "fill_frac": 0.0,
+  "mixed_frac": 48.52,
+  "satin_w_mm": 1.94,
+  "stitch_len_mm": 2.59,
+  "trim_rate": 0.0
+ }
+}
