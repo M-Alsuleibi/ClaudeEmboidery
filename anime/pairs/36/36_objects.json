@@ -1,0 +1,96 @@
+{
+ "design": "36",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 13,
+  "outline_to_fill_ratio": 13.0,
+  "n_colours": 7,
+  "colours": [
+   "#000000",
+   "#8484E7",
+   "#D6D6D6",
+   "#FF9C5A",
+   "#FFC6DE",
+   "RED",
+   "WHITE"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#D6D6D6": 5,
+   "#FFC6DE": 1,
+   "WHITE": 1,
+   "RED": 2,
+   "#8484E7": 1,
+   "#FF9C5A": 1,
+   "#000000": 2
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#D6D6D6"
+   ],
+   [
+    "outline",
+    "#D6D6D6"
+   ],
+   [
+    "outline",
+    "#FFC6DE"
+   ],
+   [
+    "outline",
+    "#D6D6D6"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#D6D6D6"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "#8484E7"
+   ],
+   [
+    "outline",
+    "#FF9C5A"
+   ],
+   [
+    "outline",
+    "#D6D6D6"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 10,
+  "n_stitch": 15537,
+  "n_blocks": 10,
+  "density": 1.44,
+  "satin_frac": 85.53,
+  "fill_frac": 0.0,
+  "mixed_frac": 14.47,
+  "satin_w_mm": 1.35,
+  "stitch_len_mm": 1.44,
+  "trim_rate": 0.0
+ }
+}

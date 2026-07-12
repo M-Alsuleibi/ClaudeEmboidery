@@ -1,0 +1,188 @@
+{
+ "design": "1",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 36,
+  "outline_to_fill_ratio": 36.0,
+  "n_colours": 7,
+  "colours": [
+   "#000000",
+   "#9191A5",
+   "#A223A2",
+   "#E6AABE",
+   "#EBD7CD",
+   "#EBDCEB",
+   "#FF9ACD"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#EBDCEB": 8,
+   "#A223A2": 6,
+   "#9191A5": 1,
+   "#000000": 8,
+   "#EBD7CD": 7,
+   "#E6AABE": 1,
+   "#FF9ACD": 5
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#A223A2"
+   ],
+   [
+    "outline",
+    "#9191A5"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#EBD7CD"
+   ],
+   [
+    "outline",
+    "#E6AABE"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#EBDCEB"
+   ],
+   [
+    "outline",
+    "#FF9ACD"
+   ],
+   [
+    "outline",
+    "#FF9ACD"
+   ],
+   [
+    "outline",
+    "#FF9ACD"
+   ],
+   [
+    "outline",
+    "#FF9ACD"
+   ],
+   [
+    "outline",
+    "#FF9ACD"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 9,
+  "n_stitch": 15183,
+  "n_blocks": 9,
+  "density": 1.41,
+  "satin_frac": 82.92,
+  "fill_frac": 4.71,
+  "mixed_frac": 12.36,
+  "satin_w_mm": 2.25,
+  "stitch_len_mm": 2.25,
+  "trim_rate": 0.0
+ }
+}

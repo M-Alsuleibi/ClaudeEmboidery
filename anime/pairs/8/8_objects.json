@@ -1,0 +1,188 @@
+{
+ "design": "8",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 35,
+  "outline_to_fill_ratio": 35.0,
+  "n_colours": 9,
+  "colours": [
+   "#000000",
+   "#199F71",
+   "#C5EBD6",
+   "#D62E02",
+   "#D7455A",
+   "#E99DA6",
+   "#F3E4CD",
+   "#FFC900",
+   "WHITE"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#F3E4CD": 2,
+   "#E99DA6": 2,
+   "#D7455A": 6,
+   "WHITE": 10,
+   "#D62E02": 1,
+   "#000000": 9,
+   "#FFC900": 3,
+   "#199F71": 1,
+   "#C5EBD6": 1
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#F3E4CD"
+   ],
+   [
+    "outline",
+    "#F3E4CD"
+   ],
+   [
+    "outline",
+    "#E99DA6"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "#D7455A"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#D62E02"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#FFC900"
+   ],
+   [
+    "outline",
+    "#FFC900"
+   ],
+   [
+    "outline",
+    "#FFC900"
+   ],
+   [
+    "outline",
+    "#199F71"
+   ],
+   [
+    "outline",
+    "#C5EBD6"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#E99DA6"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 12,
+  "n_stitch": 17863,
+  "n_blocks": 12,
+  "density": 1.65,
+  "satin_frac": 65.41,
+  "fill_frac": 0.0,
+  "mixed_frac": 34.59,
+  "satin_w_mm": 1.81,
+  "stitch_len_mm": 2.13,
+  "trim_rate": 0.0
+ }
+}

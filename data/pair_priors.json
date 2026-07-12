@@ -1,30 +1,44 @@
 {
  "anime": {
-  "n_pairs": 1,
-  "n_objects": 305,
+  "n_pairs": 18,
+  "n_objects": 1056,
   "satin_w_mm": {
-   "p10": 1.09,
-   "med": 2.18,
-   "p90": 3.96,
-   "n": 72
+   "p10": 0.84,
+   "med": 1.375,
+   "p90": 2.48,
+   "n": 552
   },
-  "crossover_mm": 2.86,
-  "fill_density_st_mm2": 1.425,
-  "row_spacing_mm": 1.005,
-  "outline_to_fill": 1.99
+  "crossover_mm": 2.12,
+  "fill_density_st_mm2": 1.34,
+  "row_spacing_mm": 0.82,
+  "outline_to_fill": 9.353
+ },
+ "decoration": {
+  "n_pairs": 33,
+  "n_objects": 3208,
+  "satin_w_mm": {
+   "p10": 0.61,
+   "med": 0.94,
+   "p90": 1.57,
+   "n": 2171
+  },
+  "crossover_mm": 1.57,
+  "fill_density_st_mm2": 2.0,
+  "row_spacing_mm": 0.5,
+  "outline_to_fill": 3208.0
  },
  "falahi": {
-  "n_pairs": 11,
-  "n_objects": 381,
+  "n_pairs": 12,
+  "n_objects": 523,
   "satin_w_mm": {
-   "p10": 1.4,
-   "med": 2.1,
-   "p90": 2.41,
-   "n": 284
+   "p10": 0.82,
+   "med": 1.45,
+   "p90": 2.37,
+   "n": 417
   },
-  "crossover_mm": 2.41,
-  "fill_density_st_mm2": 0.535,
-  "row_spacing_mm": 4.785,
-  "outline_to_fill": 381.0
+  "crossover_mm": 2.37,
+  "fill_density_st_mm2": 0.54,
+  "row_spacing_mm": 4.76,
+  "outline_to_fill": 523.0
  }
 }

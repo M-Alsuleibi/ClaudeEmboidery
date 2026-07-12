@@ -1,0 +1,174 @@
+{
+ "design": "35",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 35,
+  "outline_to_fill_ratio": 35.0,
+  "n_colours": 2,
+  "colours": [
+   "#000000",
+   "#D9D9D9"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#D9D9D9": 2,
+   "#000000": 33
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#D9D9D9"
+   ],
+   [
+    "outline",
+    "#D9D9D9"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 2,
+  "n_stitch": 7441,
+  "n_blocks": 2,
+  "density": 0.69,
+  "satin_frac": 61.84,
+  "fill_frac": 0.0,
+  "mixed_frac": 38.16,
+  "satin_w_mm": 1.63,
+  "stitch_len_mm": 2.25,
+  "trim_rate": 0.0
+ }
+}

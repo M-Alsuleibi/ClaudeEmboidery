@@ -1,0 +1,130 @@
+{
+ "design": "3",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 21,
+  "outline_to_fill_ratio": 21.0,
+  "n_colours": 8,
+  "colours": [
+   "#000000",
+   "#29343C",
+   "#41695F",
+   "#5096B4",
+   "#DBD7CC",
+   "#FBFDFC",
+   "GRAY",
+   "MAROON"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#5096B4": 3,
+   "#DBD7CC": 3,
+   "GRAY": 4,
+   "#29343C": 2,
+   "#FBFDFC": 3,
+   "MAROON": 3,
+   "#000000": 2,
+   "#41695F": 1
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#5096B4"
+   ],
+   [
+    "outline",
+    "#5096B4"
+   ],
+   [
+    "outline",
+    "#5096B4"
+   ],
+   [
+    "outline",
+    "#DBD7CC"
+   ],
+   [
+    "outline",
+    "GRAY"
+   ],
+   [
+    "outline",
+    "#29343C"
+   ],
+   [
+    "outline",
+    "GRAY"
+   ],
+   [
+    "outline",
+    "#FBFDFC"
+   ],
+   [
+    "outline",
+    "MAROON"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#41695F"
+   ],
+   [
+    "outline",
+    "#DBD7CC"
+   ],
+   [
+    "outline",
+    "GRAY"
+   ],
+   [
+    "outline",
+    "#29343C"
+   ],
+   [
+    "outline",
+    "#DBD7CC"
+   ],
+   [
+    "outline",
+    "GRAY"
+   ],
+   [
+    "outline",
+    "#FBFDFC"
+   ],
+   [
+    "outline",
+    "#FBFDFC"
+   ],
+   [
+    "outline",
+    "MAROON"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "MAROON"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 18,
+  "n_stitch": 69271,
+  "n_blocks": 18,
+  "density": 6.41,
+  "satin_frac": 55.36,
+  "fill_frac": 40.34,
+  "mixed_frac": 4.3,
+  "satin_w_mm": 1.83,
+  "stitch_len_mm": 2.35,
+  "trim_rate": 0.0
+ }
+}

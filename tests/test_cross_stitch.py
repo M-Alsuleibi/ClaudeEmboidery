@@ -154,12 +154,16 @@ def test_cross_stitch_flag_overrides_category():
 
 
 def test_cross_stitch_pitch_resolution():
+    from wilcom_pipeline import priors
     # explicit override wins
     assert _cfg(cross_stitch_pitch_mm=1.5).resolved_cross_stitch_pitch_mm == 1.5
-    # falahi has ingested pairs -> the prior (its measured satin-width median) drives it
+    # falahi has ingested pairs -> the prior (its measured satin-width median) drives it.
+    # Assert the LOGIC (prior value flows through), not a fixed number that shifts as pairs
+    # are added — just sanity-bound it to a plausible cross-stitch pitch.
     p = _cfg(category="falahi").resolved_cross_stitch_pitch_mm
-    assert 1.5 <= p <= 3.5
-    # a category with no cross-stitch prior falls back to the default
+    assert p == priors.cross_stitch_pitch_mm("falahi")
+    assert 0.5 < p < 5.0
+    # a category with no cross-stitch prior falls back to the positive default
     assert _cfg(category="anime").resolved_cross_stitch_pitch_mm > 0
 
 

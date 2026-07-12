@@ -28,6 +28,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from PIL import ImageColor
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 import pyembroidery as pe  # noqa: E402
@@ -302,8 +303,19 @@ def _stitch_blocks(pat) -> list[tuple[int, np.ndarray]]:
     return [(i, b) for i, b in blocks if len(b)]
 
 
-def _rgb(hexs: str) -> np.ndarray:
-    return np.array([int(hexs[i:i + 2], 16) for i in (1, 3, 5)], float)
+def _rgb(colour: str):
+    """Colour token (hex #RRGGBB or ANY CSS name — CorelDRAW uses the full extended set,
+    e.g. `antiquewhite`) -> (r,g,b) float array. PIL's ImageColor resolves both; an
+    unparseable token returns None (that object just gets no colour filter, rather than
+    crashing the whole pair — the failure mode this replaced)."""
+    if not colour:
+        return None
+    for form in (colour, colour.lower()):
+        try:
+            return np.array(ImageColor.getrgb(form), float)
+        except (ValueError, AttributeError):
+            continue
+    return None
 
 
 def measure_objects(objs, pat, s, R, t, dist_per_pt, pt_path_idx):

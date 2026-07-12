@@ -1,0 +1,302 @@
+{
+ "design": "52",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 65,
+  "outline_to_fill_ratio": 65.0,
+  "n_colours": 6,
+  "colours": [
+   "#3B1D0F",
+   "#5EA845",
+   "#FFADAC",
+   "#FFD6DF",
+   "#FFD91C",
+   "WHITE"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#FFD6DF": 2,
+   "WHITE": 10,
+   "#5EA845": 15,
+   "#FFADAC": 20,
+   "#FFD91C": 11,
+   "#3B1D0F": 7
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#FFD6DF"
+   ],
+   [
+    "outline",
+    "#FFD6DF"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#5EA845"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFADAC"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#FFD91C"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ],
+   [
+    "outline",
+    "#3B1D0F"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 140.0,
+  "aspect": 1.15,
+  "n_colors": 6,
+  "n_stitch": 25770,
+  "n_blocks": 6,
+  "density": 1.51,
+  "satin_frac": 93.02,
+  "fill_frac": 0.0,
+  "mixed_frac": 6.98,
+  "satin_w_mm": 2.21,
+  "stitch_len_mm": 2.31,
+  "trim_rate": 0.0
+ }
+}

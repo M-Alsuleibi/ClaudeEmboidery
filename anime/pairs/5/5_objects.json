@@ -1,0 +1,208 @@
+{
+ "design": "5",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 40,
+  "outline_to_fill_ratio": 40.0,
+  "n_colours": 9,
+  "colours": [
+   "#1F1A17",
+   "#4D485B",
+   "#622000",
+   "#BB825B",
+   "#EF9A48",
+   "#FEFECF",
+   "RED",
+   "WHITE",
+   "YELLOW"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#EF9A48": 5,
+   "RED": 15,
+   "WHITE": 6,
+   "#BB825B": 4,
+   "#FEFECF": 1,
+   "YELLOW": 1,
+   "#622000": 3,
+   "#4D485B": 3,
+   "#1F1A17": 2
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#EF9A48"
+   ],
+   [
+    "outline",
+    "#EF9A48"
+   ],
+   [
+    "outline",
+    "#EF9A48"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#EF9A48"
+   ],
+   [
+    "outline",
+    "#EF9A48"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "#BB825B"
+   ],
+   [
+    "outline",
+    "#BB825B"
+   ],
+   [
+    "outline",
+    "#BB825B"
+   ],
+   [
+    "outline",
+    "#BB825B"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "#FEFECF"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "YELLOW"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "#622000"
+   ],
+   [
+    "outline",
+    "#622000"
+   ],
+   [
+    "outline",
+    "#622000"
+   ],
+   [
+    "outline",
+    "#4D485B"
+   ],
+   [
+    "outline",
+    "#4D485B"
+   ],
+   [
+    "outline",
+    "#4D485B"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "#1F1A17"
+   ],
+   [
+    "outline",
+    "#1F1A17"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 15,
+  "n_stitch": 40737,
+  "n_blocks": 15,
+  "density": 3.76,
+  "satin_frac": 82.87,
+  "fill_frac": 0.0,
+  "mixed_frac": 17.13,
+  "satin_w_mm": 1.82,
+  "stitch_len_mm": 1.92,
+  "trim_rate": 0.0
+ }
+}

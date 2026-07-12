@@ -1,0 +1,226 @@
+{
+ "design": "27",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 45,
+  "outline_to_fill_ratio": 45.0,
+  "n_colours": 8,
+  "colours": [
+   "#000000",
+   "#27635A",
+   "#349E70",
+   "#58A5BA",
+   "#A1FF8E",
+   "#B16DCC",
+   "#F8FFDC",
+   "#FF7ECC"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#B16DCC": 7,
+   "#27635A": 11,
+   "#FF7ECC": 2,
+   "#F8FFDC": 3,
+   "#349E70": 7,
+   "#A1FF8E": 2,
+   "#58A5BA": 3,
+   "#000000": 10
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#B16DCC"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#27635A"
+   ],
+   [
+    "outline",
+    "#FF7ECC"
+   ],
+   [
+    "outline",
+    "#FF7ECC"
+   ],
+   [
+    "outline",
+    "#F8FFDC"
+   ],
+   [
+    "outline",
+    "#F8FFDC"
+   ],
+   [
+    "outline",
+    "#F8FFDC"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#349E70"
+   ],
+   [
+    "outline",
+    "#A1FF8E"
+   ],
+   [
+    "outline",
+    "#A1FF8E"
+   ],
+   [
+    "outline",
+    "#58A5BA"
+   ],
+   [
+    "outline",
+    "#58A5BA"
+   ],
+   [
+    "outline",
+    "#58A5BA"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 120.0,
+  "aspect": 1.33,
+  "n_colors": 8,
+  "n_stitch": 19031,
+  "n_blocks": 8,
+  "density": 1.76,
+  "satin_frac": 91.91,
+  "fill_frac": 0.0,
+  "mixed_frac": 8.09,
+  "satin_w_mm": 1.5,
+  "stitch_len_mm": 1.55,
+  "trim_rate": 0.0
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "design": "38",
+ "transform": {
+  "scale_mm_per_uu": 0.009622942159659047,
+  "rotation_deg": 0.004881794738441458,
+  "translation_mm": [
+   -108.01005967349586,
+   -118.42723034074436
+  ],
+  "trimmed_rms_mm": 0.22743615780848153
+ },
+ "objects": [
+  {
+   "i": 0,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 5477.44,
+   "n_stitches": 15799,
+   "density_st_mm2": 2.88,
+   "row_spacing_mm": 0.24,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 12485,
+    "fill": 100,
+    "mixed": 636
+   },
+   "satin_w_mm": 1.82
+  }
+ ]
+}

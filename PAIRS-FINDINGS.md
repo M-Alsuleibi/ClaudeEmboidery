@@ -160,3 +160,26 @@ crossover 2.41 mm (→ 3 mm ceiling), colours 1 (mono banner) → 3–7 (polychr
 led by green `(0,153,0)`. Registration RMS 0.38–0.69 mm on the fine panels (1–2.2 mm on the
 coarse repetitive banners). Note: `register_pair.py` was fixed to resolve CSS **named** colours
 (`blue`/`red`/`yellow`) — the polychrome exports use them instead of hex.
+
+### Bulk ingest (51 pairs) + reviewed categorization
+
+Ingested the 51-pair `pairs-inbox/` backlog. Auto-categorization (VP3 fingerprint vs profiles)
+was **uncertain on 29/51** — the satin-dominant blind spot (letters/arabic/decoration/numbers all
+read ~100 % satin, ~2 mm, few colours). Reviewed every flagged pair visually and corrected the
+clear misfilings before committing:
+
+- **numbers was 100 % wrong** — all 8 auto-filed "numbers" pairs are illustrations with **no
+  digits** (a beach hat, a dump truck, peacocks, a Nike logo, …); the fingerprint matched them to
+  numbers only because that category's ground truth has 3-D digits with fills. Moved all 8 out
+  (7 → decoration, the walking figure → anime); **numbers keeps 0 ingested pairs** (its profile
+  reverts to its 4 real digit reference VP3s).
+- **anime florals → decoration**: #15 (sunflowers), #27 (parrot) were nature motifs, not characters.
+- **2 UNKNOWN pairs resolved**: #3 (Kakashi) + #4 are framed anime manga panels → anime; #20 is
+  textbook falahi (green-first primaries, 100 % satin, fine grid) → falahi-12.
+
+Final ingested-pair counts: **decoration 33, anime 18, falahi 12, numbers 0** (63 total). Priors
+rebuilt: anime crossover 2.12, satin-w med 1.38; decoration crossover 1.57, med 0.94; falahi
+pitch med 1.45 (dropped from 2.1 as the fine #20 joined). The borderline anime↔decoration calls
+left as-filed are low-harm (both satin-dominant multicolour). `register_pair.py` `_rgb` now
+resolves **any** CSS colour name (via PIL `ImageColor`) and fails soft — CorelDRAW uses the full
+extended set (`antiquewhite` crashed the old hex parser).

@@ -1,0 +1,126 @@
+{
+ "design": "37",
+ "svg": {
+  "n_fill_objects": 0,
+  "n_outline_objects": 20,
+  "outline_to_fill_ratio": 20.0,
+  "n_colours": 8,
+  "colours": [
+   "#000000",
+   "#082C84",
+   "#5A5959",
+   "#A5BACE",
+   "#B5714A",
+   "#CEA684",
+   "RED",
+   "WHITE"
+  ],
+  "fill_objects_by_colour": {},
+  "outline_objects_by_colour": {
+   "#A5BACE": 1,
+   "#5A5959": 1,
+   "#000000": 9,
+   "#CEA684": 1,
+   "#B5714A": 1,
+   "#082C84": 1,
+   "WHITE": 2,
+   "RED": 4
+  },
+  "sew_order": [
+   [
+    "outline",
+    "#A5BACE"
+   ],
+   [
+    "outline",
+    "#5A5959"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#CEA684"
+   ],
+   [
+    "outline",
+    "#B5714A"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#082C84"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "WHITE"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "RED"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ],
+   [
+    "outline",
+    "#000000"
+   ]
+  ]
+ },
+ "vp3": {
+  "longest_mm": 122.6,
+  "aspect": 1.36,
+  "n_colors": 10,
+  "n_stitch": 32624,
+  "n_blocks": 10,
+  "density": 2.96,
+  "satin_frac": 92.42,
+  "fill_frac": 0.0,
+  "mixed_frac": 7.58,
+  "satin_w_mm": 2.48,
+  "stitch_len_mm": 2.6,
+  "trim_rate": 0.0
+ }
+}
