@@ -38,20 +38,51 @@ def background_like(rgb: np.ndarray, bg_color, tol: float = BG_DELTA_E) -> np.nd
     return delta_e(lab, bg_lab) < tol
 
 
+# A border-touching component with no corner is kept as background only if the
+# border accounts for at least this share of its own perimeter (edge slivers /
+# antialiasing strips qualify; a subject region merely cut off by the frame,
+# like a white shirt running out the bottom of a portrait, does not).
+BORDER_CONTACT_FRAC = 0.25
+
+
 def border_connected_background(
     rgb: np.ndarray, bg_color, tol: float = BG_DELTA_E
 ) -> np.ndarray:
-    """Background-like pixels in a region that touches the image border."""
+    """Background-like pixels in a region that touches the image border.
+
+    The page background wraps around the subject, so it holds at least one image
+    corner. A background-like region that touches the border but holds no corner
+    is usually part of a subject the frame cuts off (a garment exiting the bottom
+    edge) — that must stay foreground, not be flooded away. Corner-less border
+    components are therefore kept as background only when the border makes up a
+    large fraction of their perimeter. If *no* component holds a corner (subject
+    art covering all four corners), fall back to plain border connectivity.
+    """
     like = background_like(rgb, bg_color, tol)
     labels, n = ndimage.label(like)
     if n == 0:
         return np.zeros(rgb.shape[:2], dtype=bool)
     edge = np.concatenate([labels[0, :], labels[-1, :], labels[:, 0], labels[:, -1]])
-    keep = np.unique(edge)
-    keep = keep[keep != 0]
-    if keep.size == 0:
+    border_labels = np.unique(edge)
+    border_labels = border_labels[border_labels != 0]
+    if border_labels.size == 0:
         return np.zeros(rgb.shape[:2], dtype=bool)
-    return np.isin(labels, keep)
+    corner_labels = {labels[0, 0], labels[0, -1], labels[-1, 0], labels[-1, -1]} - {0}
+    if corner_labels:
+        keep = []
+        for lb in border_labels:
+            if lb in corner_labels:
+                keep.append(lb)
+                continue
+            comp = labels == lb
+            contact = int(
+                comp[0, :].sum() + comp[-1, :].sum() + comp[:, 0].sum() + comp[:, -1].sum()
+            )
+            perimeter = int((comp & ~ndimage.binary_erosion(comp)).sum())
+            if perimeter == 0 or contact >= BORDER_CONTACT_FRAC * perimeter:
+                keep.append(lb)
+        border_labels = np.asarray(keep)
+    return np.isin(labels, border_labels)
 
 
 def foreground_mask(
