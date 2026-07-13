@@ -1,6 +1,6 @@
 """Cross-stitch primitive (step 5) — counted tatreez cross-stitch.
 
-The falahi category (Palestinian/Levantine *fellahi* tatreez) is NOT run/satin/tatami:
+The tatreez category (Palestinian/Levantine *fellahi* tatreez) is NOT run/satin/tatami:
 it is **counted cross-stitch** — a fixed square grid where each covered cell is an X of
 two diagonal stitches. No amount of fill/satin reproduces that counted-thread look, so
 this module is a distinct stitch generator selected by `--cross-stitch` (AUTO for a

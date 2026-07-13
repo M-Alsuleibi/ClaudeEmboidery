@@ -121,7 +121,7 @@ def test_disjoint_clusters_get_separate_trims():
 
 def test_high_reversal_character():
     # The per-cell X must read as high-reversal (satin-like counted cross-stitch), NOT a
-    # smooth run — that is what matches the falahi ground-truth fingerprint (satin_frac~100).
+    # smooth run — that is what matches the tatreez ground-truth fingerprint (satin_frac~100).
     arr = _block(60, 60, [(6, 54, 6, 54, (0, 153, 0))])
     ctx = _ctx(arr, [(0, 153, 0)], width_mm=30.0)
     pat, _, _ = build_cross_stitch_pattern(ctx, 2.0)
@@ -130,7 +130,7 @@ def test_high_reversal_character():
     ang = np.arctan2(d[:, 1], d[:, 0])
     turn = np.abs((np.diff(ang) + np.pi) % (2 * np.pi) - np.pi)
     reversal_frac = np.mean(np.degrees(turn) > 120)
-    assert reversal_frac > 0.4  # production falahi measures ~0.8
+    assert reversal_frac > 0.4  # production tatreez measures ~0.8
 
 
 # --------------------------------------------------------------------------- #
@@ -142,14 +142,14 @@ def _cfg(**kw) -> PipelineConfig:
     return PipelineConfig(**base)
 
 
-def test_cross_stitch_auto_for_falahi():
-    assert _cfg(category="falahi").resolved_cross_stitch is True
+def test_cross_stitch_auto_for_tatreez():
+    assert _cfg(category="tatreez").resolved_cross_stitch is True
     assert _cfg(category="arabic").resolved_cross_stitch is False
     assert _cfg().resolved_cross_stitch is False
 
 
 def test_cross_stitch_flag_overrides_category():
-    assert _cfg(category="falahi", cross_stitch=False).resolved_cross_stitch is False
+    assert _cfg(category="tatreez", cross_stitch=False).resolved_cross_stitch is False
     assert _cfg(category="arabic", cross_stitch=True).resolved_cross_stitch is True
 
 
@@ -157,11 +157,11 @@ def test_cross_stitch_pitch_resolution():
     from wilcom_pipeline import priors
     # explicit override wins
     assert _cfg(cross_stitch_pitch_mm=1.5).resolved_cross_stitch_pitch_mm == 1.5
-    # falahi has ingested pairs -> the prior (its measured satin-width median) drives it.
+    # tatreez has ingested pairs -> the prior (its measured satin-width median) drives it.
     # Assert the LOGIC (prior value flows through), not a fixed number that shifts as pairs
     # are added — just sanity-bound it to a plausible cross-stitch pitch.
-    p = _cfg(category="falahi").resolved_cross_stitch_pitch_mm
-    assert p == priors.cross_stitch_pitch_mm("falahi")
+    p = _cfg(category="tatreez").resolved_cross_stitch_pitch_mm
+    assert p == priors.cross_stitch_pitch_mm("tatreez")
     assert 0.5 < p < 5.0
     # a category with no cross-stitch prior falls back to the positive default
     assert _cfg(category="anime").resolved_cross_stitch_pitch_mm > 0
