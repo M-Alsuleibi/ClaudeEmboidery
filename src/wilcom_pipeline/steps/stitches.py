@@ -44,6 +44,7 @@ Two DIFFERENT gap-fighting mechanisms exist — don't confuse them:
 from __future__ import annotations
 
 import io
+import math
 import os
 import re
 import subprocess
@@ -2097,6 +2098,64 @@ def _apply_spine_fills(root, spine_cands, originals, thread_hex) -> int:
     return n
 
 
+# meander_fill needs room for at least one pattern cell: on a region much smaller — or
+# THINNER — than the pattern, Ink-Stitch raises "Could not build graph for meander
+# stitching" and the whole pass dies. A fur sliver has a big bbox but a tiny mean width,
+# so the gate needs both: extent in both axes AND mean width (2·area/perimeter).
+_MEANDER_MIN_MM = 8.0
+_MEANDER_MIN_WIDTH_MM = 5.0
+
+
+def _svg_mm_per_unit(root) -> float:
+    """viewBox-unit -> mm scale from the SVG root (0.0 when unknowable)."""
+    w, vb = root.get("width"), root.get("viewBox")
+    try:
+        wmm = float(w[:-2]) if w and w.endswith("mm") else float(w)
+        vw = float(vb.split()[2])
+        return wmm / vw if vw else 0.0
+    except (TypeError, ValueError, IndexError):
+        return 0.0
+
+
+def _path_scale(p) -> float:
+    m = re.search(r"scale\(\s*(-?\d+\.?\d*)", p.get("transform") or "")
+    return abs(float(m.group(1))) if m else 1.0
+
+
+def _path_bbox_units(p) -> tuple[float, float]:
+    """Bounding-box (w, h) of a path's coordinates in root units (M/L/C data — every
+    number is one half of a coordinate pair — with any scale() transform applied)."""
+    nums = [float(v) for v in re.findall(r"-?\d+\.?\d*(?:e-?\d+)?", p.get("d", ""))]
+    if len(nums) < 4:
+        return 0.0, 0.0
+    xs, ys = nums[0::2], nums[1::2]
+    sc = _path_scale(p)
+    return (max(xs) - min(xs)) * sc, (max(ys) - min(ys)) * sc
+
+
+def _path_mean_width_units(p) -> float:
+    """Mean-width proxy 2·|area|/perimeter in root units, shoelace per subpath (signed,
+    so opposite-winding holes subtract). A fur sliver measures big in bbox but ~its
+    stroke width here — which is what meander actually needs room across."""
+    area = 0.0
+    perim = 0.0
+    for sub in re.split(r"[Mm]", p.get("d", "")):
+        nums = [float(v) for v in re.findall(r"-?\d+\.?\d*(?:e-?\d+)?", sub)]
+        if len(nums) < 6:
+            continue
+        xs, ys = nums[0::2], nums[1::2]
+        n = min(len(xs), len(ys))
+        a = 0.0
+        for i in range(n):
+            j = (i + 1) % n
+            a += xs[i] * ys[j] - xs[j] * ys[i]
+            perim += math.hypot(xs[j] - xs[i], ys[j] - ys[i])
+        area += a / 2.0
+    if perim <= 0:
+        return 0.0
+    return 2.0 * abs(area) / perim * _path_scale(p)
+
+
 def _apply_fill_params(
     root, fill_method: str = "auto_fill",
     pull_comp_mm: float = 0.2, fill_underlay: bool = True,
@@ -2132,6 +2191,13 @@ def _apply_fill_params(
             # guided_fill); only stamp the global one when the region hasn't picked one.
             if (fill_method != "auto_fill"
                     and p.get(f"{{{_INKSTITCH_NS}}}fill_method") is None):
+                if fill_method == "meander_fill":
+                    mm = _svg_mm_per_unit(root)
+                    bw, bh = _path_bbox_units(p)
+                    if mm and (min(bw, bh) * mm < _MEANDER_MIN_MM
+                               or _path_mean_width_units(p) * mm
+                               < _MEANDER_MIN_WIDTH_MM):
+                        continue  # no room for a meander cell -> default auto_fill
                 p.set(f"{{{_INKSTITCH_NS}}}fill_method", fill_method)
 
 
@@ -2225,6 +2291,14 @@ def _digitize(binary: Path, ready_svg: Path) -> tuple["pe.EmbPattern", list[Path
         print(f"      whole-design digitize exceeded {_WHOLE_DIGITIZE_TIMEOUT_S}s "
               f"(auto_fill combined-routing hang) -> per-colour-group fallback", flush=True)
         return _digitize_per_group(binary, ready_svg)
+    except RuntimeError as exc:
+        # A hard CRASH of the combined pass (one bad region poisons the whole design,
+        # e.g. meander_fill's "could not build graph" on a speck) gets the same
+        # per-group fallback as a hang: the healthy colours digitize, and the failing
+        # group walks the retry ladder instead of sinking the entire run.
+        print(f"      whole-design digitize failed ({str(exc)[:160]}) "
+              f"-> per-colour-group fallback", flush=True)
+        return _digitize_per_group(binary, ready_svg)
 
 
 def _colour_groups(root):
@@ -2245,6 +2319,10 @@ def _try_digitize(binary: Path, svg_path: Path, timeout: int = _GROUP_DIGITIZE_T
         if proc.returncode == 0:
             return _read_vp3_from_zip(proc.stdout, proc.stderr)
     except subprocess.TimeoutExpired:
+        pass
+    except RuntimeError:
+        # exit 0 but no valid zip (a region crashed the extension, e.g. meander's
+        # "could not build graph") — a failure like any other; let the ladder degrade.
         pass
     return None
 
@@ -2423,6 +2501,20 @@ def _route_group_fills_to_contour(svg_path: Path) -> None:
     tree.write(str(svg_path), xml_declaration=True, encoding="UTF-8")
 
 
+def _route_group_meander_to_auto(svg_path: Path) -> bool:
+    """Strip fill_method=meander_fill from every path in an SVG (back to Ink-Stitch's
+    default auto_fill). Returns True when anything was stripped."""
+    tree = etree.parse(str(svg_path))
+    changed = False
+    for p in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
+        if p.get(f"{{{_INKSTITCH_NS}}}fill_method") == "meander_fill":
+            del p.attrib[f"{{{_INKSTITCH_NS}}}fill_method"]
+            changed = True
+    if changed:
+        tree.write(str(svg_path), xml_declaration=True, encoding="UTF-8")
+    return changed
+
+
 def _digitize_group_with_retries(binary: Path, mini: Path,
                                  label: str) -> tuple["pe.EmbPattern | None", list[Path]]:
     """Digitize one anchored mini, degrading only as far as needed to keep tatami:
@@ -2433,6 +2525,16 @@ def _digitize_group_with_retries(binary: Path, mini: Path,
     pat = _try_digitize_anchored(binary, mini)
     if pat is not None:
         return pat, [mini]
+
+    # meander_fill crashes outright on regions without room for a pattern cell (thin
+    # fur slivers pass a bbox test but not the graph build) — strip the group's meander
+    # routing back to plain tatami before touching pull-comp, which targets hangs.
+    if _route_group_meander_to_auto(mini):
+        print(f"        {label}: meander crashed -> meander regions back to tatami",
+              flush=True)
+        pat = _try_digitize_anchored(binary, mini, timeout=_GROUP_RETRY_TIMEOUT_S)
+        if pat is not None:
+            return pat, [mini]
 
     for tag, kw in (("pull-comp 0", {"pull_comp0": True}),
                     ("pull-comp 0 + underlay off",
