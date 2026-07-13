@@ -51,40 +51,37 @@ deliberately showing through between strokes. Solid coverage exists only as smal
 
 ## Fingerprint caveat
 
-`satin_frac` reads ~99 for these files — the same block-granularity artifact as falahi:
+`satin_frac` reads ~99 for these files — the same block-granularity artifact as tatreez:
 dense overlapping runs reverse often enough to score "satin". The **real discriminator vs
 anime/decoration is the mixed-block signature** (rev 20–25 %, medSeg ≥2 mm) plus
 all-outline object families. The auto-categorizer scored these decoration/anime (0.3–0.9)
 before the profile existed — always sanity-check by eye.
 
-## Recipe (today's pipeline approximation)
+## Recipe — the sketch_stitch primitive (built 2026-07-13, `steps/sketchstitch.py`)
 
-The pipeline **lacks a sketch/fur-stroke primitive** (as it lacked cross-stitch before
-falahi): it cannot yet lay directional overlapping runs along the fur. Until that exists,
-the honest approximation:
+`--category animals` AUTO-routes step 5 into the **sketch-stitch generator** (force with
+`--sketch-stitch`/`--no-sketch-stitch`), which builds the stitches directly with
+pyembroidery — no Ink-Stitch, no traced SVG (steps 4's trace skips itself):
 
 ```bash
 digitize.sh photo.png --width-mm 130 --category animals --thread-chart madeira-polyneon \
-    [--fill-method meander_fill]   # scribble-ish fill = the closest existing texture
+    [--sketch-spacing-mm 0.98]   # default = the pair prior row spacing
 ```
 
-- **`--category animals`** — priors steer step 5 (ceiling 3.0 mm, vwidth clamps
-  0.78–1.64, border width ~1.1 mm) and step 7 scores against the sketch profile.
-- **Colours:** omit `--colors` (prior = 8); natural fur tones → **madeira-polyneon**.
-- **Size ≥ ~120 mm** so the thin fur strokes clear the 1.6 mm run/satin boundary as runs.
-- **Feed a clean flat-colour source**; the fox-style failure mode is a photo quantizing
-  into big solid regions that then tatami-fill into a heavy sticker — the opposite of the
-  airy production look. `meander_fill` on broad fur regions gives a scribble texture that
-  reads closer to sketch fur than tatami rows; keep `auto_fill` only for genuinely solid
-  props (a bow, a rope).
-- **Keyline detail split** (black linework sews last) matches this category's production
-  order exactly — leave `--snap-black` on so eyes/whisker linework top the fur.
+How it draws:
+- **Fur-direction field** from the SOURCE art (structure tensor of the luminance at
+  ~2 mm scale) — strokes follow the fur the artist drew; flat areas fall back to the
+  region's own axis. Orientation is resolved per ~9 mm cell, so flow curves.
+- **Fur flicks**: each stroke is a ~4.2 mm doubled-back pen stroke (forward-back-forward,
+  return passes fanned ~0.3 mm, pivoting at shared endpoints) — the pivot turns are the
+  closely-spaced reversals the ground-truth fingerprint reads as satin (a serpentine
+  scanline turns 90° at row ends and reads as a FILL — measured satin_frac 4 vs 100).
+- **Keyline detail** (`KEYLINE_DETAIL_RGB`, split by preprocess) sews LAST as true
+  **bean** runs (re-entering the same penetrations) = the black sketch outline on top.
+- Calibrated constants: stitch pitch 1.7 mm, spacing factor 0.75 × the prior (production
+  layers repeated stops the per-object prior can't see), jitter ±0.35 mm.
 
-## The real fix (future work — the fur primitive)
-
-A `sketch_stitch` generator in the falahi mould: quantize → per-colour region → extract a
-**fur-direction field** (medial axis / source gradient) → lay **overlapping bean-run
-strokes** (1.5–4 mm segments, ±jitter) along the field at the measured ~1 mm spacing,
-leaving fabric visible; small high-reversal satin accents for nose/eyes. Ground truth to
-calibrate against is in `animals/pairs/*/_measures.json` (per-object density 1.6–2.3
-st/mm², row spacing ~0.9–1.0 mm).
+Fox validation (130 mm): gate PASS, satin_frac 100 [92–100], fill 0 [0–0], density 2.38
+[2.30–3.24], satin_w 1.68 [1.26–1.674] (0.006 mm over — noise), 36k stitches vs ~39k
+expected, coverage 99.6 %, IoU 97.2 %. Other knobs: omit `--colors` (prior 8), madeira
+for fur naturals, size ≥ ~120 mm, `--snap-black` on (feeds the keyline layer).

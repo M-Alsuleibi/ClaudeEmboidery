@@ -104,15 +104,21 @@ density, pull-comp, and `trim_after` (so a colour's disjoint regions aren't join
 travel — each trim is a Wilcom Break-Apart boundary). The pre-pass is best-effort: anything
 that errors falls back to plain fills so the step always yields a valid design.
 
-**Cross-stitch categories bypass all of the above.** A `config.CROSS_STITCH_CATEGORIES` category
-(currently **falahi** — Palestinian tatreez) is *counted cross-stitch*, a distinct primitive, not
-run/satin/tatami. When `resolved_cross_stitch` is on (AUTO for those categories; force with
-`--cross-stitch`/`--no-cross-stitch`), step 5 short-circuits into `steps/crossstitch.py`: a fixed
-square grid (pitch = the pair prior ≈ 2.1 mm, or `--cross-stitch-pitch-mm`), each majority-covered
-cell becomes an **X** (the per-corner reversals give the high-reversal character the fingerprint
-reads as ~100 % satin, matching the ground truth). It's built **directly with pyembroidery** — no
-Ink-Stitch (whose `manual_stitch` exact-node mode hangs the router), no trace SVG; cones are still
-named in step 6 by RGB match. See `falahi/falahi-embroidery-knowledge.md`.
+**Cross-stitch and sketch-stitch categories bypass all of the above.** A
+`config.CROSS_STITCH_CATEGORIES` category (currently **tatreez** — Palestinian tatreez) is
+*counted cross-stitch*, a distinct primitive, not run/satin/tatami. When `resolved_cross_stitch`
+is on (AUTO for those categories; force with `--cross-stitch`/`--no-cross-stitch`), step 5
+short-circuits into `steps/crossstitch.py`: a fixed square grid (pitch = the pair prior ≈ 2.1 mm,
+or `--cross-stitch-pitch-mm`), each majority-covered cell becomes an **X** (the per-corner
+reversals give the high-reversal character the fingerprint reads as ~100 % satin, matching the
+ground truth). Likewise a `SKETCH_STITCH_CATEGORIES` category (currently **animals** —
+fur/feather illustrations) short-circuits into `steps/sketchstitch.py`: **fur flicks** (~4 mm
+doubled-back pen strokes, forward-back-forward pivoting at shared endpoints) laid along a
+structure-tensor **direction field measured from the source art**, at the pair-prior row spacing
+(`--sketch-spacing-mm`); the keyline-detail layer sews last as bean runs. Both are built
+**directly with pyembroidery** — no Ink-Stitch (whose `manual_stitch` exact-node mode hangs the
+router), no trace SVG (step 4 skips itself); cones are still named in step 6 by RGB match. See
+`tatreez/tatreez-embroidery-knowledge.md` and `animals/animals-embroidery-knowledge.md`.
 
 ### The mode flags (config.py / cli.py)
 
@@ -217,6 +223,13 @@ documented — **consult these rather than re-deriving**:
   only (structure rules like "large regions = tatami" stand). Method + findings:
   **`PAIRS-FINDINGS.md`**. Shared VP3 measurement scripts live in
   `orchestrator/scripts/` (one copy; the old per-category `tools/` were consolidated).
+
+## Agent memory (cross-machine)
+
+`docs/agent-memory/` is the assistant's persistent memory, checked into git and
+**symlinked into the session's native memory directory** on each machine (one-time setup:
+`docs/agent-memory/README.md`). If your memory feels empty on this machine, that symlink
+hasn't been created yet — set it up per the README before re-deriving project knowledge.
 
 ## Standing conventions
 

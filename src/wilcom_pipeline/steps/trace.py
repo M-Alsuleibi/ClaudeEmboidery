@@ -63,10 +63,14 @@ def run(ctx: PipelineContext) -> None:
     # Cross-stitch categories build their stitches directly from the quantized image
     # (steps/crossstitch.py) and never read the traced SVG — and vtracer on a counted-grid
     # mock-up (thousands of AA speck regions) allocates unboundedly (measured: OOM-killed
-    # at ~5GB on a 400mm falahi panel). Skip the whole trace.
+    # at ~5GB on a 400mm tatreez panel). Skip the whole trace.
     if ctx.config.resolved_cross_stitch:
         print("      cross-stitch category: skipping trace "
               "(stitches are built directly from the quantized grid)")
+        return
+    if ctx.config.resolved_sketch_stitch:
+        print("      sketch-stitch category: skipping trace "
+              "(strokes are built directly from the quantized image + direction field)")
         return
 
     img = ctx.preprocessed_image

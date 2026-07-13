@@ -73,6 +73,15 @@ def border_width_mm(category: str | None) -> float | None:
 
 def cross_stitch_pitch_mm(category: str | None) -> float | None:
     """The measured cross-stitch cell pitch for a counted-cross-stitch category
-    (falahi): the register pass measures each little cross arm as a "satin" width, so
-    the satin-width median IS the grid pitch (falahi ≈ 2.1 mm). None with no pairs."""
+    (tatreez): the register pass measures each little cross arm as a "satin" width, so
+    the satin-width median IS the grid pitch (tatreez ≈ 2.1 mm). None with no pairs."""
     return border_width_mm(category)
+
+
+def sketch_row_spacing_mm(category: str | None) -> float | None:
+    """The measured scribble row spacing for a sketch-stitch category (animals): the
+    register pass measures the spacing between a scribble object's parallel strokes as
+    its row_spacing (animals ≈ 0.98 mm). None with no pairs."""
+    rec = category_prior(category)
+    v = (rec or {}).get("row_spacing_mm")
+    return float(v) if v else None

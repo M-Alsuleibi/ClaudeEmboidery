@@ -182,12 +182,21 @@ def build_parser() -> argparse.ArgumentParser:
                         "pass --outline-objects/--no-outline-objects to force.")
     p.add_argument("--cross-stitch", action=argparse.BooleanOptionalAction, default=None,
                    help="Generate counted cross-stitch (a fixed grid of X motifs) instead of "
-                        "the run/satin/tatami tiers — the falahi (Palestinian tatreez) "
-                        "technique. Default: AUTO — on for a cross-stitch category (falahi), "
+                        "the run/satin/tatami tiers — the tatreez (Palestinian tatreez) "
+                        "technique. Default: AUTO — on for a cross-stitch category (tatreez), "
                         "off otherwise; pass --cross-stitch/--no-cross-stitch to force.")
     p.add_argument("--cross-stitch-pitch-mm", type=float, default=None,
                    help="Cross-stitch grid cell size in mm (0.5-10). Default: the category's "
-                        "measured pair prior (falahi ~2.1mm), else 2.2mm. Smaller = finer grid.")
+                        "measured pair prior (tatreez ~2.1mm), else 2.2mm. Smaller = finer grid.")
+    p.add_argument("--sketch-stitch", action=argparse.BooleanOptionalAction, default=None,
+                   help="Generate fur/feather sketch stitch (layered run strokes along the "
+                        "measured fur-direction field, fabric showing through) instead of the "
+                        "run/satin/tatami tiers — the animals technique. Default: AUTO — on "
+                        "for a sketch category (animals), off otherwise.")
+    p.add_argument("--sketch-spacing-mm", type=float, default=None,
+                   dest="sketch_row_spacing_mm",
+                   help="Sketch scribble row spacing in mm (0.2-5). Default: the category's "
+                        "measured pair prior (animals ~0.98mm), else 0.95mm. Smaller = denser fur.")
     return p
 
 
@@ -231,6 +240,8 @@ def main(argv: list[str] | None = None) -> int:
             auto_repair=args.auto_repair,
             cross_stitch=args.cross_stitch,
             cross_stitch_pitch_mm=args.cross_stitch_pitch_mm,
+            sketch_stitch=args.sketch_stitch,
+            sketch_row_spacing_mm=args.sketch_row_spacing_mm,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

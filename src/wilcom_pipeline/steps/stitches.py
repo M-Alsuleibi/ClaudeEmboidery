@@ -208,7 +208,7 @@ def _locate_binary() -> Path:
 
 
 def run(ctx: PipelineContext) -> None:
-    # Cross-stitch categories (falahi tatreez): counted cross-stitch is a distinct stitch
+    # Cross-stitch categories (tatreez tatreez): counted cross-stitch is a distinct stitch
     # primitive (a fixed grid of X motifs), not the run/satin/tatami tiers. It's built
     # directly as stitches (no Ink-Stitch) from the quantized image — no traced SVG needed
     # (step 4 skips itself for these categories: vtracer on a pixel-grid mock-up with AA
@@ -216,6 +216,12 @@ def run(ctx: PipelineContext) -> None:
     # tatreez panel at ~5GB RSS).
     if ctx.config.resolved_cross_stitch:
         _run_cross_stitch(ctx)
+        return
+
+    # Sketch-stitch categories (animals fur/feather): layered run strokes along the
+    # measured fur-direction field — also built directly (no Ink-Stitch, no traced SVG).
+    if ctx.config.resolved_sketch_stitch:
+        _run_sketch_stitch(ctx)
         return
 
     if ctx.svg_path is None:
@@ -275,6 +281,30 @@ def _run_cross_stitch(ctx: PipelineContext) -> None:
     h = (max(ys) - min(ys)) / 10 if ys else 0
     print(f"      cross-stitch -> {n_cells} X-cells, {n_stitch} stitches, {n_colours} "
           f"colour(s), {n_trim} trim(s); extent ~{w:.1f}x{h:.1f}mm @ {pitch:.2f}mm grid")
+
+
+def _run_sketch_stitch(ctx: PipelineContext) -> None:
+    """Step-5 sketch-stitch path: build the fur/feather scribble pattern directly and
+    set ctx.stitch_pattern. No stitch-ready SVG (step 6 uses the polyline preview,
+    which is faithful for run strokes) and no per-group SVGs."""
+    from .sketchstitch import build_sketch_pattern
+
+    spacing = ctx.config.resolved_sketch_row_spacing_mm
+    pattern, n_strokes, n_colours = build_sketch_pattern(ctx, spacing)
+    ctx.stitch_pattern = pattern
+    ctx.stitch_svg_path = None
+    ctx.per_group_svgs = None
+
+    cmds = Counter(c & 0xFF for _, _, c in pattern.stitches)
+    n_stitch = cmds.get(pe.STITCH & 0xFF, 0)
+    n_trim = cmds.get(pe.TRIM & 0xFF, 0)
+    xs = [s[0] for s in pattern.stitches]
+    ys = [s[1] for s in pattern.stitches]
+    w = (max(xs) - min(xs)) / 10 if xs else 0
+    h = (max(ys) - min(ys)) / 10 if ys else 0
+    print(f"      sketch-stitch -> {n_strokes} stroke(s), {n_stitch} stitches, "
+          f"{n_colours} colour(s), {n_trim} trim(s); extent ~{w:.1f}x{h:.1f}mm "
+          f"@ {spacing:.2f}mm rows")
 
 
 def render_realistic_preview(ctx: PipelineContext, svg: Path, dst: Path) -> bool:

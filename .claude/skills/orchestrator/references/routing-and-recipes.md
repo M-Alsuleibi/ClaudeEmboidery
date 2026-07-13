@@ -45,7 +45,7 @@ scatter, lace) is *normal*; small palette; **size set once** via `--width-mm`/`-
 | a **bold flat icon / vector shape** (star, heart, arrow, swirl, frame) | **Simple shapes** | one object per shape by width | [`simple-shapes/simple-shapes-embroidery-knowledge.md`](../../../../simple-shapes/simple-shapes-embroidery-knowledge.md) |
 | **ornamental embellishment** (floral, vine, mandala, wreath, frame, lace, border) | **Decoration** | thin satin ornament | [`decoration/decoration-embroidery-knowledge.md`](../../../../decoration/decoration-embroidery-knowledge.md) |
 | a **fur/feather animal** (pet portrait, bird, farm animal — sketchy/fluffy texture) | **Animals** | sketch-stitch: airy layered run strokes, fabric shows through | [`animals/animals-embroidery-knowledge.md`](../../../../animals/animals-embroidery-knowledge.md) |
-| **Palestinian tatreez / counted cross-stitch** (blocky grid motifs, garment panels) | **Falahi** | cross-stitch X's on a fixed grid (own step-5 primitive) | [`falahi/falahi-embroidery-knowledge.md`](../../../../falahi/falahi-embroidery-knowledge.md) |
+| **Palestinian tatreez / counted cross-stitch** (blocky grid motifs, garment panels) | **Tatreez** | cross-stitch X's on a fixed grid (own step-5 primitive) | [`tatreez/tatreez-embroidery-knowledge.md`](../../../../tatreez/tatreez-embroidery-knowledge.md) |
 | a **flat logo / mixed** artwork | **Hybrid** | decompose & route each part | playbook §3 |
 
 **Tell-tales:** zig-zag satin sheen along strokes ⇒ letters · same colour as two planes at
@@ -169,12 +169,13 @@ Shared defaults unless a row overrides: `--pull-comp-mm 0.2`, `--fill-underlay` 
 - **Colours:** median **9** (natural fur tones + black sketch linework + white highlights;
   cones repeat across stops for layering). **Chart madeira** (muted naturals). Size
   77–216 mm, median ~130 mm.
-- **Recipe (approximation — the sketch/fur primitive isn't built yet):**
-  `--category animals` (priors: 3 mm ceiling, 0.78–1.64 vwidth clamps) + omit `--colors`
-  (prior 8) + **`--fill-method meander_fill`** on fur regions (scribble texture ≈ sketch
-  fur; keep `auto_fill` only for genuinely solid props) + size ≥ ~120 mm + `--snap-black`
-  on (the keyline-detail layer sews last = production's black-sketch-then-white-highlights
-  order).
+- **Recipe:** `--category animals` AUTO-routes step 5 into the **sketch_stitch primitive**
+  (`steps/sketchstitch.py`, built directly with pyembroidery — no Ink-Stitch, trace skips
+  itself): fur flicks (~4.2 mm doubled-back pen strokes) along a structure-tensor
+  direction field measured from the source art, keyline detail sewn last as bean runs.
+  Omit `--colors` (prior 8) + size ≥ ~120 mm + `--snap-black` on. Optional
+  `--sketch-spacing-mm` (default = pair prior ~0.98). Fox validation: satin 100/fill 0
+  in band, density in band, coverage 99.6 %.
 - **Sew order (measured):** base wash strokes → mid/dark fur layers → black sketch
   outline + face detail → white highlights/whiskers LAST.
 

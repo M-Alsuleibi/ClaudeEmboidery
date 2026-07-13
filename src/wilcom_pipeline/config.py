@@ -19,7 +19,7 @@ SUPPORTED_THREAD_CHARTS = ("madeira-polyneon", "isacord")
 # to compare a run against the ground-truth profile for its category (data/category_profiles.json).
 SUPPORTED_CATEGORIES = (
     "letters", "arabic", "3D", "anime", "simple-shapes", "decoration", "numbers",
-    "falahi", "animals",
+    "tatreez", "animals",
 )
 
 # Ink-Stitch fill methods for solid regions (step 5). `auto_fill` routes one
@@ -53,7 +53,7 @@ _DEFAULT_PULL_COMP_MM = 0.20  # historical default when neither --fabric nor --p
 CATEGORY_COLORS = {
     "letters": 2, "arabic": 1, "3D": 8, "anime": 8,
     "simple-shapes": 1, "decoration": 1, "numbers": 4,
-    "falahi": 4,  # tatreez cross-stitch: median of the first 11 pairs (mono banners 1 → qabbeh 3-7)
+    "tatreez": 4,  # tatreez cross-stitch: median of the first 11 pairs (mono banners 1 → qabbeh 3-7)
     "animals": 8,  # fur/feather sketch-stitch: median ~9 colour blocks over the first 10 pairs
 }
 # NB anime = 8 (was 12) and anime is now satin-dominant, from the first real anime ground-truth
@@ -63,10 +63,17 @@ _DEFAULT_NUM_COLORS = 8  # when neither --colors nor --category is given
 
 # Categories whose production technique is counted CROSS-STITCH (a fixed grid of X
 # motifs), not the run/satin/tatami tiers — step 5 generates them with the cross-stitch
-# primitive instead. falahi (Palestinian tatreez) is the first; the flag can still force
+# primitive instead. tatreez (Palestinian tatreez) is the first; the flag can still force
 # it on/off per design. See steps/crossstitch.py.
-CROSS_STITCH_CATEGORIES = ("falahi",)
+CROSS_STITCH_CATEGORIES = ("tatreez",)
 _DEFAULT_CROSS_STITCH_PITCH_MM = 2.2  # grid cell size when neither the flag nor a pair prior gives one
+
+# Categories whose production technique is SKETCH STITCH (layered run strokes along the
+# fur/feather direction, fabric showing through — all-outline, zero fills in the animal
+# ground truth) — step 5 generates them with steps/sketchstitch.py instead of the
+# run/satin/tatami tiers. The flag can still force it on/off per design.
+SKETCH_STITCH_CATEGORIES = ("animals",)
+_DEFAULT_SKETCH_ROW_SPACING_MM = 0.95  # between scribble rows, when no flag / pair prior
 
 # Sentinel palette colour for the black KEYLINE-DETAIL sew layer. Black plays two roles
 # in one design: solid base panels (hair, a jacket) that sew at their enclosure depth,
@@ -239,14 +246,22 @@ class PipelineConfig:
     # any geometry failure. Off by default on its own, but IMPLIED by --satin-lean.
     vwidth_satin: bool = False
     # Cross-stitch (step 5): generate counted cross-stitch (a fixed grid of X motifs) instead
-    # of the run/satin/tatami tiers — the falahi (Palestinian tatreez) technique. Built directly
+    # of the run/satin/tatami tiers — the tatreez (Palestinian tatreez) technique. Built directly
     # as stitches (pyembroidery), so it needs no Ink-Stitch and never hits its router hangs on a
     # dense (50k-cell) qabbeh. Tri-state: None = AUTO (on for a CROSS_STITCH_CATEGORIES category),
     # True/False force it. See steps/crossstitch.py.
     cross_stitch: bool | None = None
-    # Cross-stitch grid cell pitch in mm. None => the category's measured pair prior (falahi's
+    # Cross-stitch grid cell pitch in mm. None => the category's measured pair prior (tatreez's
     # satin-width median ≈ 2.1 mm), else the 2.2 mm default. Smaller = finer counted grid.
     cross_stitch_pitch_mm: float | None = None
+    # Sketch-stitch (step 5): generate fur/feather sketch strokes (layered runs along the
+    # measured fur-direction field) instead of the run/satin/tatami tiers — the animals
+    # technique. Built directly as stitches (pyembroidery), no Ink-Stitch. Tri-state:
+    # None = AUTO (on for a SKETCH_STITCH_CATEGORIES category). See steps/sketchstitch.py.
+    sketch_stitch: bool | None = None
+    # Scribble row spacing in mm. None => the category's pair prior (animals row_spacing
+    # ≈ 0.98), else the 0.95 mm default. Smaller = denser fur.
+    sketch_row_spacing_mm: float | None = None
 
     @property
     def resolved_num_colors(self) -> int:
@@ -284,6 +299,24 @@ class PipelineConfig:
             return self.cross_stitch_pitch_mm
         from . import priors
         return priors.cross_stitch_pitch_mm(self.category) or _DEFAULT_CROSS_STITCH_PITCH_MM
+
+    @property
+    def resolved_sketch_stitch(self) -> bool:
+        """Whether step 5 generates sketch stitch: explicit --sketch-stitch /
+        --no-sketch-stitch wins, else AUTO = the category is a SKETCH_STITCH_CATEGORIES
+        one. Cross-stitch wins if both somehow resolve on (distinct category sets)."""
+        if self.sketch_stitch is not None:
+            return self.sketch_stitch
+        return self.category in SKETCH_STITCH_CATEGORIES
+
+    @property
+    def resolved_sketch_row_spacing_mm(self) -> float:
+        """Scribble row spacing (mm): explicit flag wins, else the category's measured
+        pair prior (animals row_spacing_mm), else the default."""
+        if self.sketch_row_spacing_mm is not None:
+            return self.sketch_row_spacing_mm
+        from . import priors
+        return priors.sketch_row_spacing_mm(self.category) or _DEFAULT_SKETCH_ROW_SPACING_MM
 
     @property
     def purify(self) -> bool:
@@ -326,6 +359,8 @@ class PipelineConfig:
             raise ValueError("underlap_mm must be between 0 (off) and 2.0")
         if self.cross_stitch_pitch_mm is not None and not (0.5 <= self.cross_stitch_pitch_mm <= 10.0):
             raise ValueError("cross_stitch_pitch_mm must be between 0.5 and 10.0")
+        if self.sketch_row_spacing_mm is not None and not (0.2 <= self.sketch_row_spacing_mm <= 5.0):
+            raise ValueError("sketch_row_spacing_mm must be between 0.2 and 5.0")
 
     # --- Conventional artifact paths (step 6 deliverables) ---
     @property
