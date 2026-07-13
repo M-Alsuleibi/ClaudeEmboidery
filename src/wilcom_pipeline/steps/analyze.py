@@ -21,6 +21,7 @@ from PIL import Image
 from scipy import ndimage
 from sklearn.cluster import MiniBatchKMeans
 
+from ..color import srgb_to_lab
 from ..config import PipelineContext
 from ..imaging import background_like, border_connected_background, load_rgb_alpha
 
@@ -29,6 +30,9 @@ _ANALYSIS_MAX_DIM = 400        # downsample longest side to this for stats (spee
 _BG_BORDER_FRAC = 0.60         # >=60% of the border ring must be background-like
 _MAX_CLUSTERS_PROBE = 12       # upper bound on element colours we look for
 _MIN_CLUSTER_COVERAGE = 0.02   # clusters below this fraction of fg are noise
+_ACCENT_MIN_DE = 25.0          # a pixel this far (Lab) from every kept colour is an accent
+_MIN_ACCENT_COVERAGE = 0.001   # an accent population >= this fraction of fg is a real
+                               # element colour (red eyes on a monochrome portrait), not noise
 _LOW_CONTRAST_RATIO = 2.0      # WCAG contrast ratio below this = merge/vanish risk
 _FLAT_GRAD_THRESH = 10.0       # per-channel gradient below this = "flat" pixel
 _PHOTO_FLAT_FRAC = 0.45        # below this flat fraction we call it a photo
@@ -185,7 +189,43 @@ def _cluster_colors(rgb: np.ndarray, fg_mask: np.ndarray) -> list[dict]:
         out.append(
             {"rgb": tuple(int(c) for c in km.cluster_centers_[i]), "coverage": round(float(cov), 4)}
         )
+    out.extend(_recover_accents(pixels, out, total))
     return out
+
+
+def _recover_accents(pixels: np.ndarray, kept: list[dict], total: int) -> list[dict]:
+    """Small but chromatically-distinct populations the coverage filter dropped.
+
+    K-means splits big clusters by variance, so a tiny vivid accent (red eyes on a
+    monochrome portrait, a brand dot) either never gets a centre or falls below
+    _MIN_CLUSTER_COVERAGE — yet it's a real element colour that must reach the
+    palette. Pixels far (Lab) from every kept colour form the accent pool; each
+    sufficiently-populated pool colour is appended."""
+    if not kept or not len(pixels):
+        return []
+    kept_lab = srgb_to_lab(np.array([c["rgb"] for c in kept], dtype=np.float32))
+    px_lab = srgb_to_lab(pixels)
+    d_min = np.min(
+        np.linalg.norm(px_lab[:, None, :] - kept_lab[None, :, :], axis=-1), axis=1
+    )
+    pool = pixels[d_min > _ACCENT_MIN_DE]
+    if len(pool) < max(16, _MIN_ACCENT_COVERAGE * total):
+        return []
+    k = int(min(2, len(np.unique((pool // 8).astype(np.int32), axis=0))))
+    if k < 1:
+        return []
+    km = MiniBatchKMeans(n_clusters=k, random_state=0, n_init=3, batch_size=2048)
+    labels = km.fit_predict(pool)
+    counts = np.bincount(labels, minlength=k)
+    accents = []
+    for i in np.argsort(counts)[::-1]:
+        cov = counts[i] / total
+        if cov < _MIN_ACCENT_COVERAGE:
+            continue
+        accents.append(
+            {"rgb": tuple(int(c) for c in km.cluster_centers_[i]), "coverage": round(float(cov), 4)}
+        )
+    return accents
 
 
 def _flat_fraction(rgb: np.ndarray) -> float:

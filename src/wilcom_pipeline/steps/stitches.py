@@ -2188,8 +2188,11 @@ _WHOLE_DIGITIZE_TIMEOUT_S = 120   # fall back to per-group if the single pass ha
 _GROUP_DIGITIZE_TIMEOUT_S = 150   # per-group budget (each group completes in seconds normally)
 _GROUP_RETRY_TIMEOUT_S = 90       # degraded retries (underlay off / fills-satins split): a hanging
                                   # group's raw fills complete in seconds, so a tighter budget does
-_PREVIEW_TIMEOUT_S = 120          # realistic preview: fall back to the fast polyline draw if the
-                                  # stitch_plan_preview pass hangs (same combined-routing risk)
+_PREVIEW_TIMEOUT_S = 300          # realistic preview: fall back to the fast polyline draw if the
+                                  # stitch_plan_preview pass hangs (same combined-routing risk).
+                                  # Per group, not total: a big completed fill group re-runs its
+                                  # whole stitch plan here and can legitimately need >2min (anime
+                                  # portrait hair group: 130s) — only a true hang should trip it.
 _ANCHOR_MARGIN_MM = 5.0           # frame anchors sit this far outside the canvas so no real stitch
                                   # (pull-comp overshoot etc.) can beat them to the bbox extremes
 _ANCHOR_COLOURS = ("#010101", "#fe01fe", "#01fe01")
