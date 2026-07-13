@@ -25,7 +25,7 @@ from PIL import Image
 from scipy import ndimage
 
 from ..color import srgb_to_lab
-from ..config import PipelineContext
+from ..config import KEYLINE_DETAIL_RGB, PipelineContext
 from ..imaging import BG_DELTA_E, background_like, foreground_mask, load_rgb_alpha
 
 # Cap working resolution. Embroidery doesn't need photo-grade detail: at an 80 mm
@@ -119,6 +119,15 @@ def run(ctx: PipelineContext) -> None:
     k = round(_CONSOLIDATE_MM / mm_per_px)
     k = max(3, k + 1 - (k % 2))  # nearest odd >= 3
     idx_map = _consolidate(idx_map, len(palette), k)
+    if black_mask is not None:
+        # The mode filter can't preserve interior linework: a black mouth line inside
+        # a skin fill is thinner than k and loses every neighbourhood vote (only
+        # strokes on transparent background are safe). The ink that matters — facial
+        # features, keylines, pupils — is exactly the snapped black mask, so re-impose
+        # it after consolidation. Anti-aliased transition bands stay consolidated
+        # (mid-tone, they fail the black-ink test), and sub-sewable leftovers are
+        # still cleaned by the speck repair below.
+        idx_map[black_mask] = palette.index((0, 0, 0))
 
     # Auto-repair (--auto-repair): act on what the analyzer only warned about, the way a
     # digitizer edits the artwork — merge sub-sewable specks into their surroundings and
@@ -131,6 +140,18 @@ def run(ctx: PipelineContext) -> None:
         if hairline_fixed:
             warns = analysis.get("warnings", [])
             analysis["warnings"] = [w for w in warns if "satin minimum" not in w]
+
+    # Split black into base panels + thin keyline detail: thin interior linework (a
+    # mouth on a skin fill) must sew LAST or the fills it sits on bury it (their
+    # pull-comp closes a sub-mm hole right over linework that sewed earlier). Thick
+    # black regions (hair, a base panel) keep their enclosure-depth position, so a
+    # white-on-black-panel design is unaffected. See config.KEYLINE_DETAIL_RGB.
+    if (0, 0, 0) in palette and KEYLINE_DETAIL_RGB not in palette:
+        idx_map, n_detail = _split_keyline_detail(idx_map, palette, mm_per_px)
+        if n_detail:
+            palette.append(KEYLINE_DETAIL_RGB)
+            print(f"      keyline detail: {n_detail} thin black component(s) "
+                  "-> dedicated sew-last layer")
 
     out, counts = _render(idx_map, palette)
 
@@ -402,6 +423,34 @@ def _assign_indices(
 
     idx_map[mask] = best_idx
     return idx_map
+
+
+# Max half-width (mm) for a black component to count as keyline DETAIL (strokes up to
+# ~2 mm wide: mouths, brows, fold lines, collar seams). Thicker black = a base panel.
+_KEYLINE_HALF_MM = 1.0
+
+
+def _split_keyline_detail(
+    idx_map: np.ndarray, palette: list[tuple[int, int, int]], mm_per_px: float
+) -> tuple[np.ndarray, int]:
+    """Move thin black components onto the KEYLINE_DETAIL_RGB sentinel index
+    (= len(palette), appended by the caller when any moved). Returns (idx_map, n_moved)."""
+    black_idx = palette.index((0, 0, 0))
+    black = idx_map == black_idx
+    if not black.any():
+        return idx_map, 0
+    half_px = _KEYLINE_HALF_MM / mm_per_px
+    edt = ndimage.distance_transform_edt(black)
+    labels, n = ndimage.label(black, structure=ndimage.generate_binary_structure(2, 2))
+    if n == 0:
+        return idx_map, 0
+    max_half = ndimage.maximum(edt, labels, index=np.arange(1, n + 1))
+    thin = np.flatnonzero(np.atleast_1d(max_half) <= half_px) + 1
+    if thin.size == 0:
+        return idx_map, 0
+    idx_map = idx_map.copy()
+    idx_map[np.isin(labels, thin)] = len(palette)
+    return idx_map, int(thin.size)
 
 
 def _consolidate(idx_map: np.ndarray, n_colors: int, k: int) -> np.ndarray:

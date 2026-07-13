@@ -89,6 +89,47 @@ def test_sew_order_enclosed_colour_sews_last():
     assert order.index(0) < order.index(1)      # its encloser (red) sews first
 
 
+def test_sew_order_keyline_detail_layer_sews_last():
+    # skin block with a thin detail stroke (the split sentinel) + a big black base:
+    # the base sews at its depth, the detail layer is pinned last regardless of area.
+    from wilcom_pipeline.config import KEYLINE_DETAIL_RGB
+
+    arr = np.zeros((120, 200, 4), np.uint8)
+    arr[10:110, 10:110] = (247, 210, 185, 255)          # skin (idx 0)
+    arr[60:62, 30:90] = (*KEYLINE_DETAIL_RGB, 255)      # thin mouth line inside it (idx 1)
+    arr[10:110, 130:190] = (0, 0, 0, 255)               # black base panel (idx 2)
+    img = Image.fromarray(arr, "RGBA")
+    palette = [(247, 210, 185), KEYLINE_DETAIL_RGB, (0, 0, 0)]
+
+    order = trace._sew_order(img, palette)
+    assert order[-1] == 1                       # detail linework sews last
+    assert order.index(0) < order.index(1)      # after the fill it decorates
+
+
+def test_keyline_detail_group_keeps_thin_stroke(tmp_path):
+    # End-to-end through trace: a 1px black line inside a skin block lands on the
+    # keyline-detail layer (preprocess split) and must still be a traced path — the
+    # detail layer is isolated-re-traced because the whole-image cutout culls thin
+    # strokes and underlap never re-traces the last-sewn colour.
+    from wilcom_pipeline.config import KEYLINE_DETAIL_RGB
+
+    arr = np.full((400, 800, 3), 255, np.uint8)
+    arr[40:360, 40:760] = (247, 210, 185)     # skin block
+    arr[200, 250:550] = (0, 0, 0)             # 1px interior line (mouth)
+    arr[40:360, 40:80] = (0, 0, 0)            # black bar (base black + snap trigger)
+    ctx = _run_to_trace(tmp_path, arr, width_mm=300.0, num_colors=3)
+
+    assert KEYLINE_DETAIL_RGB in [tuple(c) for c in ctx.palette]
+    detail_idx = [tuple(c) for c in ctx.palette].index(KEYLINE_DETAIL_RGB)
+    root = etree.parse(str(ctx.svg_path)).getroot()
+    gs = root.findall(f"{{{SVG_NS}}}g")
+    detail_g = [g for g in gs if g.get("id", "").startswith(f"color{detail_idx}_")]
+    assert detail_g, "keyline-detail colour group missing from traced SVG"
+    assert detail_g[0].findall(f"{{{SVG_NS}}}path"), "thin stroke lost in trace"
+    # and it is the LAST group in document (= sew) order
+    assert gs[-1] is detail_g[0]
+
+
 def test_requires_thread_map(tmp_path):
     # Run only up to preprocess, then trace must refuse.
     path = tmp_path / "in.png"

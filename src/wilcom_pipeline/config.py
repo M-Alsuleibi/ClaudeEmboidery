@@ -67,6 +67,15 @@ _DEFAULT_NUM_COLORS = 8  # when neither --colors nor --category is given
 CROSS_STITCH_CATEGORIES = ("falahi",)
 _DEFAULT_CROSS_STITCH_PITCH_MM = 2.2  # grid cell size when neither the flag nor a pair prior gives one
 
+# Sentinel palette colour for the black KEYLINE-DETAIL sew layer. Black plays two roles
+# in one design: solid base panels (hair, a jacket) that sew at their enclosure depth,
+# and thin detail linework (a mouth, brows, fold lines) that production sews LAST, on
+# top of the fills it decorates (playbook: "skin & base fills → shading → hairline &
+# outlines last"). One colour gets one sew stop, so preprocess splits the thin black
+# components onto this near-black sentinel — visually identical, matches the same Black
+# cone in step 3 (exempt from the shared-cone merge), and trace._sew_order pins it last.
+KEYLINE_DETAIL_RGB = (1, 1, 1)
+
 
 @dataclass(frozen=True)
 class PipelineConfig:

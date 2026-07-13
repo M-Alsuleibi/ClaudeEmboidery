@@ -115,6 +115,25 @@ def test_consolidate_keeps_background_dropped():
     assert (out == -1).sum() == (idx == -1).sum()
 
 
+def test_interior_black_linework_survives_consolidate(tmp_path):
+    # A thin black line INSIDE a flat colour region (a mouth on a face) is thinner
+    # than the consolidation kernel and would lose every neighbourhood vote; the
+    # snapped black-ink mask must be re-imposed so facial linework isn't erased.
+    arr = _solid(400, 800, (255, 255, 255))
+    arr[40:360, 40:760] = (247, 210, 185)      # skin block
+    arr[200, 250:550] = (0, 0, 0)              # 1px black line inside it (mouth)
+    arr[40:360, 40:80] = (0, 0, 0)             # a black bar so ink fraction > _BLACK_MIN_FRAC
+    # 800px input stays unscaled; k=3 mode filter erases a 1px interior line (3/9 votes)
+    ctx = _run(tmp_path, arr, num_colors=3, width_mm=300.0)
+    a = np.asarray(ctx.preprocessed_image)
+    line = a[200, 300]
+    # survives as black ink — on the keyline-detail layer (thin stroke => sews last)
+    from wilcom_pipeline.config import KEYLINE_DETAIL_RGB
+
+    assert tuple(line[:3]) in ((0, 0, 0), KEYLINE_DETAIL_RGB) and line[3] == 255
+    assert KEYLINE_DETAIL_RGB in ctx.palette
+
+
 def test_working_resolution_is_capped(tmp_path):
     arr = _solid(2000, 2000, (255, 255, 255))
     arr[400:1600, 400:1600] = (30, 120, 60)

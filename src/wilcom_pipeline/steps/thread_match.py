@@ -19,7 +19,7 @@ import numpy as np
 from PIL import Image
 
 from ..catalog import load_catalog
-from ..config import PipelineContext
+from ..config import KEYLINE_DETAIL_RGB, PipelineContext
 
 _GOOD_DE = 5.0   # <= this: a faithful match
 _POOR_DE = 12.0  # > this: the cone is visibly off; worth flagging
@@ -83,6 +83,10 @@ def _merge_shared_cones(ctx: PipelineContext) -> bool:
     for i in range(len(palette)):
         for j in range(i + 1, len(palette)):
             if j in keep_of or i in keep_of:
+                continue
+            # never merge the keyline-detail layer back into base black — the split
+            # exists to give the two roles different sew stops (detail sews last)
+            if KEYLINE_DETAIL_RGB in (tuple(palette[i]), tuple(palette[j])):
                 continue
             if tm[i]["code"] == tm[j]["code"] and \
                     float(delta_e(labs[i], labs[j])) < 5.0:

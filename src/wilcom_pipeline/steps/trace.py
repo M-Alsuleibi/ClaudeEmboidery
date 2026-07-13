@@ -24,7 +24,7 @@ from lxml import etree
 from scipy import ndimage
 
 from ..color import delta_e, srgb_to_lab
-from ..config import PipelineContext
+from ..config import KEYLINE_DETAIL_RGB, PipelineContext
 
 SVG_NS = "http://www.w3.org/2000/svg"
 INK_NS = "http://www.inkscape.org/namespaces/inkscape"
@@ -119,6 +119,26 @@ def run(ctx: PipelineContext) -> None:
             if n_under:
                 print(f"      underlap -> {n_under} colour(s) extended "
                       f"{ctx.config.underlap_mm:g}mm under later-sewn neighbours")
+
+    # The keyline-detail layer sews LAST, so the underlap loop above never re-traces
+    # it (no later-sewn neighbour). But the whole-image cutout pass culls its thinnest
+    # strokes — vtracer drops 1-2 px linework when clustering all colours together,
+    # while the same stroke traced alone survives — so always re-trace it from its
+    # own mask, the isolated trace every other colour already gets via underlap.
+    detail_idx = next(
+        (i for i, c in enumerate(ctx.palette) if tuple(c) == KEYLINE_DETAIL_RGB), None
+    )
+    if detail_idx is not None:
+        arr4 = np.asarray(img)
+        kmask = (arr4[..., 3] >= 128) & np.all(
+            arr4[..., :3] == np.array(KEYLINE_DETAIL_RGB, np.uint8), axis=-1
+        )
+        traced = _trace_single_colour(
+            kmask, ctx.palette[detail_idx], (px_w, px_h), mode, filter_speckle
+        )
+        if traced:
+            groups[detail_idx] = traced
+
     svg_path = ctx.config.output_dir / f"{ctx.config.name}_pro.svg"
     n_paths = _write_layered_svg(
         svg_path, groups, order, ctx.thread_map, ctx.analysis["size_mm"], (px_w, px_h),
@@ -258,7 +278,13 @@ def _sew_order(img, palette: list[tuple[int, int, int]]) -> list[int]:
             d += 1
         return d
 
-    return sorted(range(n), key=lambda i: (depth(i), -areas[i]))
+    # The keyline-detail layer (thin black linework split off by preprocess) always
+    # sews last: it decorates the fills beneath it (mouth on a skin fill), and its
+    # aggregate enclosure ring is too mixed for the depth heuristic to place it.
+    return sorted(
+        range(n),
+        key=lambda i: (tuple(palette[i]) == KEYLINE_DETAIL_RGB, depth(i), -areas[i]),
+    )
 
 
 def _shade_clusters(img, palette: list[tuple[int, int, int]]) -> list[dict]:
