@@ -44,6 +44,8 @@ scatter, lace) is *normal*; small palette; **size set once** via `--width-mm`/`-
 | a **character / portrait / detailed illustration** with shading | **Anime/portrait** | satin-dominant (outline + shadow satins), `--satin-lean` | [`anime/best-practices.md`](../../../../anime/best-practices.md) |
 | a **bold flat icon / vector shape** (star, heart, arrow, swirl, frame) | **Simple shapes** | one object per shape by width | [`simple-shapes/simple-shapes-embroidery-knowledge.md`](../../../../simple-shapes/simple-shapes-embroidery-knowledge.md) |
 | **ornamental embellishment** (floral, vine, mandala, wreath, frame, lace, border) | **Decoration** | thin satin ornament | [`decoration/decoration-embroidery-knowledge.md`](../../../../decoration/decoration-embroidery-knowledge.md) |
+| a **fur/feather animal** (pet portrait, bird, farm animal — sketchy/fluffy texture) | **Animals** | sketch-stitch: airy layered run strokes, fabric shows through | [`animals/animals-embroidery-knowledge.md`](../../../../animals/animals-embroidery-knowledge.md) |
+| **Palestinian tatreez / counted cross-stitch** (blocky grid motifs, garment panels) | **Falahi** | cross-stitch X's on a fixed grid (own step-5 primitive) | [`falahi/falahi-embroidery-knowledge.md`](../../../../falahi/falahi-embroidery-knowledge.md) |
 | a **flat logo / mixed** artwork | **Hybrid** | decompose & route each part | playbook §3 |
 
 **Tell-tales:** zig-zag satin sheen along strokes ⇒ letters · same colour as two planes at
@@ -156,6 +158,25 @@ Shared defaults unless a row overrides: `--pull-comp-mm 0.2`, `--fill-underlay` 
   trace plain `contour_fill`, and if the cone still lands gray, **stamp it black** in the `.vp3`
   (`pe.read` → `thread.set_color(0,0,0)` → `pe.write_vp3`). Enlarge so strokes clear ~1.6 mm.
 - **Sew:** frame/ground → vines/stems → petals/leaves → beads/dots/keyline last.
+
+### Animals — fur/feather sketch stitch (n=10 pairs, 2026-07-13)
+- **DNA:** the animal is **hundreds of long overlapping run/bean strokes following the
+  fur/feather direction, fabric showing through** — ALL 1,647 registered ground-truth
+  objects are outline-family, ZERO area fills. Stroke width med **1.12 mm** (p10 0.78 /
+  p90 1.64); blocks read "mixed" at 20–25 % reversal, ~2.3 mm segments. Small satin
+  accents only (nose, eye, bow). **Do NOT sew an animal as solid tatami/satin coverage —
+  that's the fox failure this category exists to fix.**
+- **Colours:** median **9** (natural fur tones + black sketch linework + white highlights;
+  cones repeat across stops for layering). **Chart madeira** (muted naturals). Size
+  77–216 mm, median ~130 mm.
+- **Recipe (approximation — the sketch/fur primitive isn't built yet):**
+  `--category animals` (priors: 3 mm ceiling, 0.78–1.64 vwidth clamps) + omit `--colors`
+  (prior 8) + **`--fill-method meander_fill`** on fur regions (scribble texture ≈ sketch
+  fur; keep `auto_fill` only for genuinely solid props) + size ≥ ~120 mm + `--snap-black`
+  on (the keyline-detail layer sews last = production's black-sketch-then-white-highlights
+  order).
+- **Sew order (measured):** base wash strokes → mid/dark fur layers → black sketch
+  outline + face detail → white highlights/whiskers LAST.
 
 ---
 

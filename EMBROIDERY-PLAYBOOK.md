@@ -12,6 +12,8 @@ per-domain knowledge docs:
 - [`anime/best-practices.md`](anime/best-practices.md) — characters / portraits / detailed illustration
 - [`simple-shapes/simple-shapes-embroidery-knowledge.md`](simple-shapes/simple-shapes-embroidery-knowledge.md) — flat icons / vector shapes (stars, hearts, arrows, swirls, frames)
 - [`decoration/decoration-embroidery-knowledge.md`](decoration/decoration-embroidery-knowledge.md) — ornamental embellishment (florals, vines, mandalas, wreaths, frames, lace collars, borders)
+- [`animals/animals-embroidery-knowledge.md`](animals/animals-embroidery-knowledge.md) — fur/feather animal illustrations sewn as **sketch stitch** (airy layered run strokes along the fur, fabric showing through; all-outline, zero fills — NOT anime's solid satin/fill coverage)
+- [`falahi/falahi-embroidery-knowledge.md`](falahi/falahi-embroidery-knowledge.md) — Palestinian tatreez counted cross-stitch garment panels (fixed grid of X's; its own step-5 primitive)
 - [`wilcom-manual-rules.md`](wilcom-manual-rules.md) — **the official Wilcom Reference Manual, distilled**: hard numbers for the width→stitch-type boundary (satin ≤ ~7 mm, density 0.3–0.6 mm), underlay-by-width, pull-comp-by-fabric, colour counts, and why the satin gap is a variable-width-satin problem. Where this file and the manual disagree on a number, prefer the manual's.
 
 > **How to read this file.** §0 is the *one model* under every category. §1 routes a

@@ -40,5 +40,19 @@
   "fill_density_st_mm2": 0.54,
   "row_spacing_mm": 4.76,
   "outline_to_fill": 523.0
+ },
+ "animals": {
+  "n_pairs": 10,
+  "n_objects": 1647,
+  "satin_w_mm": {
+   "p10": 0.78,
+   "med": 1.12,
+   "p90": 1.641,
+   "n": 1060
+  },
+  "crossover_mm": 1.641,
+  "fill_density_st_mm2": 1.44,
+  "row_spacing_mm": 0.985,
+  "outline_to_fill": 1647.0
  }
 }

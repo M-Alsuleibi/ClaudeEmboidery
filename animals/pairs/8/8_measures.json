@@ -1,0 +1,1964 @@
+{
+ "design": "8",
+ "transform": {
+  "scale_mm_per_uu": 0.010565709071004927,
+  "rotation_deg": 0.04029075092583697,
+  "translation_mm": [
+   -111.471881900038,
+   -155.08907479944713
+  ],
+  "trimmed_rms_mm": 0.21081541358988606
+ },
+ "objects": [
+  {
+   "i": 0,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 12.64,
+   "n_stitches": 20,
+   "density_st_mm2": 1.58,
+   "row_spacing_mm": 2.14,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 8
+   },
+   "satin_w_mm": 0.91
+  },
+  {
+   "i": 1,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 426.56,
+   "n_stitches": 465,
+   "density_st_mm2": 1.09,
+   "row_spacing_mm": 0.42,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 381,
+    "satin": 8
+   },
+   "satin_w_mm": 1.9
+  },
+  {
+   "i": 2,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 388.48,
+   "n_stitches": 448,
+   "density_st_mm2": 1.15,
+   "row_spacing_mm": 0.37,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 355,
+    "satin": 75
+   },
+   "satin_w_mm": 1.52
+  },
+  {
+   "i": 3,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 86.08,
+   "n_stitches": 96,
+   "density_st_mm2": 1.12,
+   "row_spacing_mm": 0.45,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "satin": 31,
+    "mixed": 64
+   },
+   "satin_w_mm": 1.2
+  },
+  {
+   "i": 4,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 583.36,
+   "n_stitches": 652,
+   "density_st_mm2": 1.12,
+   "row_spacing_mm": 0.39,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "satin": 183,
+    "mixed": 365,
+    "fill": 89
+   },
+   "satin_w_mm": 1.96
+  },
+  {
+   "i": 5,
+   "family": "outline",
+   "colour": "#D488AA",
+   "outlier": false,
+   "area_mm2": 78.56,
+   "n_stitches": 79,
+   "density_st_mm2": 1.01,
+   "row_spacing_mm": 0.45,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 78
+   }
+  },
+  {
+   "i": 6,
+   "family": "outline",
+   "colour": "#825368",
+   "outlier": false,
+   "area_mm2": 1695.36,
+   "n_stitches": 2210,
+   "density_st_mm2": 1.3,
+   "row_spacing_mm": 0.44,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 1022,
+    "fill": 353,
+    "satin": 435
+   },
+   "satin_w_mm": 1.41
+  },
+  {
+   "i": 7,
+   "family": "outline",
+   "colour": "#825368",
+   "outlier": false,
+   "area_mm2": 98.4,
+   "n_stitches": 115,
+   "density_st_mm2": 1.17
+  },
+  {
+   "i": 8,
+   "family": "outline",
+   "colour": "#FFA632",
+   "outlier": false,
+   "area_mm2": 762.72,
+   "n_stitches": 664,
+   "density_st_mm2": 0.87,
+   "row_spacing_mm": 0.91,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 301,
+    "satin": 23,
+    "fill": 46
+   },
+   "satin_w_mm": 1.21
+  },
+  {
+   "i": 9,
+   "family": "outline",
+   "colour": "#B36B24",
+   "outlier": false,
+   "area_mm2": 796.0,
+   "n_stitches": 675,
+   "density_st_mm2": 0.85,
+   "row_spacing_mm": 1.05,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 171,
+    "satin": 224,
+    "fill": 19
+   },
+   "satin_w_mm": 1.53
+  },
+  {
+   "i": 10,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 203.68,
+   "n_stitches": 136,
+   "density_st_mm2": 0.67,
+   "row_spacing_mm": 1.61,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 29,
+    "satin": 40,
+    "mixed": 8
+   },
+   "satin_w_mm": 0.85
+  },
+  {
+   "i": 11,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 1064.0,
+   "n_stitches": 1378,
+   "density_st_mm2": 1.3,
+   "row_spacing_mm": 0.82,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 434,
+    "mixed": 105,
+    "fill": 256
+   },
+   "satin_w_mm": 1.5
+  },
+  {
+   "i": 12,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 102.24,
+   "n_stitches": 41,
+   "density_st_mm2": 0.4
+  },
+  {
+   "i": 13,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 548.64,
+   "n_stitches": 645,
+   "density_st_mm2": 1.18,
+   "row_spacing_mm": 1.23,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 244,
+    "mixed": 61,
+    "fill": 18
+   },
+   "satin_w_mm": 1.3
+  },
+  {
+   "i": 14,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 1644.32,
+   "n_stitches": 1530,
+   "density_st_mm2": 0.93,
+   "row_spacing_mm": 0.49,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "satin": 285,
+    "fill": 374,
+    "mixed": 726
+   },
+   "satin_w_mm": 2.0
+  },
+  {
+   "i": 15,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 26.4,
+   "n_stitches": 26,
+   "density_st_mm2": 0.98
+  },
+  {
+   "i": 16,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 6.56,
+   "n_stitches": 0
+  },
+  {
+   "i": 17,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 15.68,
+   "n_stitches": 12,
+   "density_st_mm2": 0.77
+  },
+  {
+   "i": 18,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 29.28,
+   "n_stitches": 44,
+   "density_st_mm2": 1.5
+  },
+  {
+   "i": 19,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 209.6,
+   "n_stitches": 202,
+   "density_st_mm2": 0.96,
+   "row_spacing_mm": 1.57,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 23,
+    "satin": 59
+   },
+   "satin_w_mm": 1.4
+  },
+  {
+   "i": 20,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 346.24,
+   "n_stitches": 309,
+   "density_st_mm2": 0.89,
+   "row_spacing_mm": 0.43,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "satin": 106,
+    "mixed": 125,
+    "fill": 76
+   },
+   "satin_w_mm": 1.7
+  },
+  {
+   "i": 21,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 5.92,
+   "n_stitches": 0
+  },
+  {
+   "i": 22,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 27.68,
+   "n_stitches": 24,
+   "density_st_mm2": 0.87
+  },
+  {
+   "i": 23,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 18.56,
+   "n_stitches": 0
+  },
+  {
+   "i": 24,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 35.2,
+   "n_stitches": 4,
+   "density_st_mm2": 0.11
+  },
+  {
+   "i": 25,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 479.68,
+   "n_stitches": 471,
+   "density_st_mm2": 0.98,
+   "row_spacing_mm": 1.37,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 58,
+    "satin": 136,
+    "mixed": 20
+   },
+   "satin_w_mm": 1.44
+  },
+  {
+   "i": 26,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 40.0,
+   "n_stitches": 75,
+   "density_st_mm2": 1.88,
+   "row_spacing_mm": 0.81,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 17,
+    "satin": 16
+   },
+   "satin_w_mm": 1.91
+  },
+  {
+   "i": 27,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 68.48,
+   "n_stitches": 198,
+   "density_st_mm2": 2.89,
+   "row_spacing_mm": 0.32,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 196
+   },
+   "satin_w_mm": 1.12
+  },
+  {
+   "i": 28,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 232.96,
+   "n_stitches": 308,
+   "density_st_mm2": 1.32,
+   "row_spacing_mm": 0.76,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 15,
+    "satin": 167,
+    "fill": 41
+   },
+   "satin_w_mm": 1.06
+  },
+  {
+   "i": 29,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 47.04,
+   "n_stitches": 98,
+   "density_st_mm2": 2.08,
+   "row_spacing_mm": 0.86,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 13,
+    "fill": 10,
+    "satin": 23
+   },
+   "satin_w_mm": 0.9
+  },
+  {
+   "i": 30,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 37.76,
+   "n_stitches": 67,
+   "density_st_mm2": 1.77,
+   "row_spacing_mm": 3.76,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 11
+   },
+   "satin_w_mm": 1.02
+  },
+  {
+   "i": 31,
+   "family": "outline",
+   "colour": "#FFFFFF",
+   "outlier": false,
+   "area_mm2": 41.44,
+   "n_stitches": 70,
+   "density_st_mm2": 1.69,
+   "row_spacing_mm": 0.86,
+   "stitch_kind": "mixed",
+   "kind_votes": {
+    "mixed": 17,
+    "fill": 9,
+    "satin": 9
+   },
+   "satin_w_mm": 1.04
+  },
+  {
+   "i": 32,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": false,
+   "area_mm2": 209.44,
+   "n_stitches": 396,
+   "density_st_mm2": 1.89,
+   "row_spacing_mm": 0.8,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 176,
+    "fill": 30
+   },
+   "satin_w_mm": 1.14
+  },
+  {
+   "i": 33,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": false,
+   "area_mm2": 246.24,
+   "n_stitches": 280,
+   "density_st_mm2": 1.14,
+   "row_spacing_mm": 1.44,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 172
+   },
+   "satin_w_mm": 1.12
+  },
+  {
+   "i": 34,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": true
+  },
+  {
+   "i": 35,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": false,
+   "area_mm2": 628.96,
+   "n_stitches": 943,
+   "density_st_mm2": 1.5,
+   "row_spacing_mm": 0.93,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 426,
+    "mixed": 114,
+    "fill": 18
+   },
+   "satin_w_mm": 0.98
+  },
+  {
+   "i": 36,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": false,
+   "area_mm2": 7576.48,
+   "n_stitches": 8148,
+   "density_st_mm2": 1.08,
+   "row_spacing_mm": 0.5,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 2535,
+    "fill": 1657,
+    "satin": 2679
+   },
+   "satin_w_mm": 1.37
+  },
+  {
+   "i": 37,
+   "family": "outline",
+   "colour": "#A1A1A1",
+   "outlier": false,
+   "area_mm2": 214.56,
+   "n_stitches": 117,
+   "density_st_mm2": 0.55,
+   "row_spacing_mm": 2.37,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 31
+   },
+   "satin_w_mm": 1.03
+  },
+  {
+   "i": 38,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 190.4,
+   "n_stitches": 631,
+   "density_st_mm2": 3.31,
+   "row_spacing_mm": 0.22,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 631
+   },
+   "satin_w_mm": 1.43
+  },
+  {
+   "i": 39,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 326.88,
+   "n_stitches": 1063,
+   "density_st_mm2": 3.25,
+   "row_spacing_mm": 0.28,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 941
+   },
+   "satin_w_mm": 1.27
+  },
+  {
+   "i": 40,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 286.24,
+   "n_stitches": 869,
+   "density_st_mm2": 3.04,
+   "row_spacing_mm": 0.34,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 43,
+    "satin": 629,
+    "mixed": 12
+   },
+   "satin_w_mm": 1.21
+  },
+  {
+   "i": 41,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 88.96,
+   "n_stitches": 357,
+   "density_st_mm2": 4.01,
+   "row_spacing_mm": 0.32,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 248,
+    "mixed": 8
+   },
+   "satin_w_mm": 1.0
+  },
+  {
+   "i": 42,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 280.96,
+   "n_stitches": 887,
+   "density_st_mm2": 3.16,
+   "row_spacing_mm": 0.25,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 60,
+    "satin": 736
+   },
+   "satin_w_mm": 1.51
+  },
+  {
+   "i": 43,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 19.84,
+   "n_stitches": 85,
+   "density_st_mm2": 4.28,
+   "row_spacing_mm": 0.42,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 45
+   },
+   "satin_w_mm": 1.22
+  },
+  {
+   "i": 44,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 40.64,
+   "n_stitches": 124,
+   "density_st_mm2": 3.05,
+   "row_spacing_mm": 0.47,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 65,
+    "mixed": 10
+   },
+   "satin_w_mm": 1.25
+  },
+  {
+   "i": 45,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 184.32,
+   "n_stitches": 196,
+   "density_st_mm2": 1.06,
+   "row_spacing_mm": 1.55,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 66,
+    "mixed": 8
+   },
+   "satin_w_mm": 1.77
+  },
+  {
+   "i": 46,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 26.72,
+   "n_stitches": 53,
+   "density_st_mm2": 1.98,
+   "row_spacing_mm": 0.51,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 9,
+    "satin": 37
+   },
+   "satin_w_mm": 1.14
+  },
+  {
+   "i": 47,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 21.76,
+   "n_stitches": 43,
+   "density_st_mm2": 1.98,
+   "row_spacing_mm": 0.61,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 34
+   },
+   "satin_w_mm": 1.36
+  },
+  {
+   "i": 48,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 237.6,
+   "n_stitches": 739,
+   "density_st_mm2": 3.11,
+   "row_spacing_mm": 0.31,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 32,
+    "satin": 600
+   },
+   "satin_w_mm": 1.19
+  },
+  {
+   "i": 49,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 90.88,
+   "n_stitches": 272,
+   "density_st_mm2": 2.99,
+   "row_spacing_mm": 0.44,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 217
+   },
+   "satin_w_mm": 1.01
+  },
+  {
+   "i": 50,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 391.2,
+   "n_stitches": 953,
+   "density_st_mm2": 2.44,
+   "row_spacing_mm": 0.34,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 48,
+    "satin": 833,
+    "fill": 8
+   },
+   "satin_w_mm": 1.32
+  },
+  {
+   "i": 51,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 407.04,
+   "n_stitches": 1169,
+   "density_st_mm2": 2.87,
+   "row_spacing_mm": 0.42,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 690,
+    "fill": 29,
+    "mixed": 13
+   },
+   "satin_w_mm": 1.22
+  },
+  {
+   "i": 52,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 159.36,
+   "n_stitches": 353,
+   "density_st_mm2": 2.22,
+   "row_spacing_mm": 0.43,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 248,
+    "fill": 16
+   },
+   "satin_w_mm": 1.41
+  },
+  {
+   "i": 53,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 234.72,
+   "n_stitches": 690,
+   "density_st_mm2": 2.94,
+   "row_spacing_mm": 0.35,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 544,
+    "fill": 27
+   },
+   "satin_w_mm": 1.3
+  },
+  {
+   "i": 54,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 172.8,
+   "n_stitches": 442,
+   "density_st_mm2": 2.56,
+   "row_spacing_mm": 0.43,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 319,
+    "fill": 19
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 55,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 300.48,
+   "n_stitches": 619,
+   "density_st_mm2": 2.06,
+   "row_spacing_mm": 0.51,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 469,
+    "fill": 11,
+    "mixed": 11
+   },
+   "satin_w_mm": 1.3
+  },
+  {
+   "i": 56,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 164.0,
+   "n_stitches": 331,
+   "density_st_mm2": 2.02,
+   "row_spacing_mm": 0.69,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 209
+   },
+   "satin_w_mm": 1.2
+  },
+  {
+   "i": 57,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 182.56,
+   "n_stitches": 460,
+   "density_st_mm2": 2.52,
+   "row_spacing_mm": 0.39,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 332,
+    "fill": 9,
+    "mixed": 40
+   },
+   "satin_w_mm": 1.3
+  },
+  {
+   "i": 58,
+   "family": "outline",
+   "colour": "#525252",
+   "outlier": false,
+   "area_mm2": 389.92,
+   "n_stitches": 553,
+   "density_st_mm2": 1.42,
+   "row_spacing_mm": 0.51,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 212,
+    "mixed": 180,
+    "fill": 83
+   },
+   "satin_w_mm": 1.16
+  },
+  {
+   "i": 59,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 60,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 258.88,
+   "n_stitches": 818,
+   "density_st_mm2": 3.16,
+   "row_spacing_mm": 0.52,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 596
+   },
+   "satin_w_mm": 0.82
+  },
+  {
+   "i": 61,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 48.64,
+   "n_stitches": 86,
+   "density_st_mm2": 1.77,
+   "row_spacing_mm": 0.89,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 61
+   },
+   "satin_w_mm": 1.01
+  },
+  {
+   "i": 62,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 13.12,
+   "n_stitches": 33,
+   "density_st_mm2": 2.52,
+   "row_spacing_mm": 0.96,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 19
+   },
+   "satin_w_mm": 0.8
+  },
+  {
+   "i": 63,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 64,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 36.0,
+   "n_stitches": 112,
+   "density_st_mm2": 3.11,
+   "row_spacing_mm": 0.83,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 51
+   },
+   "satin_w_mm": 0.97
+  },
+  {
+   "i": 65,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 44.64,
+   "n_stitches": 97,
+   "density_st_mm2": 2.17,
+   "row_spacing_mm": 0.7,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 47
+   },
+   "satin_w_mm": 1.32
+  },
+  {
+   "i": 66,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 67,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 7.04,
+   "n_stitches": 32,
+   "density_st_mm2": 4.55,
+   "row_spacing_mm": 1.02,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 11
+   },
+   "satin_w_mm": 0.68
+  },
+  {
+   "i": 68,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 109.76,
+   "n_stitches": 262,
+   "density_st_mm2": 2.39,
+   "row_spacing_mm": 0.64,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 10,
+    "satin": 156
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 69,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 11.04,
+   "n_stitches": 0
+  },
+  {
+   "i": 70,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 46.56,
+   "n_stitches": 109,
+   "density_st_mm2": 2.34,
+   "row_spacing_mm": 0.83,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 68
+   },
+   "satin_w_mm": 0.91
+  },
+  {
+   "i": 71,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 52.64,
+   "n_stitches": 201,
+   "density_st_mm2": 3.82,
+   "row_spacing_mm": 0.55,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 124
+   },
+   "satin_w_mm": 0.84
+  },
+  {
+   "i": 72,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 70.08,
+   "n_stitches": 265,
+   "density_st_mm2": 3.78,
+   "row_spacing_mm": 0.46,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 171,
+    "mixed": 11
+   },
+   "satin_w_mm": 0.85
+  },
+  {
+   "i": 73,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 160.48,
+   "n_stitches": 601,
+   "density_st_mm2": 3.75,
+   "row_spacing_mm": 0.4,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 390,
+    "mixed": 19,
+    "fill": 16
+   },
+   "satin_w_mm": 0.95
+  },
+  {
+   "i": 74,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 149.44,
+   "n_stitches": 519,
+   "density_st_mm2": 3.47,
+   "row_spacing_mm": 0.41,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 404
+   },
+   "satin_w_mm": 0.95
+  },
+  {
+   "i": 75,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 202.24,
+   "n_stitches": 912,
+   "density_st_mm2": 4.51,
+   "row_spacing_mm": 0.35,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 616,
+    "mixed": 16,
+    "fill": 9
+   },
+   "satin_w_mm": 0.94
+  },
+  {
+   "i": 76,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 266.72,
+   "n_stitches": 674,
+   "density_st_mm2": 2.53,
+   "row_spacing_mm": 0.52,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 514,
+    "mixed": 15,
+    "fill": 26
+   },
+   "satin_w_mm": 0.91
+  },
+  {
+   "i": 77,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 96.16,
+   "n_stitches": 156,
+   "density_st_mm2": 1.62,
+   "row_spacing_mm": 1.1,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 85
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 78,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 47.04,
+   "n_stitches": 208,
+   "density_st_mm2": 4.42,
+   "row_spacing_mm": 0.42,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 21,
+    "satin": 95
+   },
+   "satin_w_mm": 1.01
+  },
+  {
+   "i": 79,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 64.32,
+   "n_stitches": 102,
+   "density_st_mm2": 1.59,
+   "row_spacing_mm": 1.33,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 50
+   },
+   "satin_w_mm": 1.12
+  },
+  {
+   "i": 80,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 81,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 82,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": true
+  },
+  {
+   "i": 83,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 9.6,
+   "n_stitches": 43,
+   "density_st_mm2": 4.48,
+   "row_spacing_mm": 0.44,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 28
+   },
+   "satin_w_mm": 0.89
+  },
+  {
+   "i": 84,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 64.96,
+   "n_stitches": 195,
+   "density_st_mm2": 3.0,
+   "row_spacing_mm": 0.48,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 140
+   },
+   "satin_w_mm": 0.93
+  },
+  {
+   "i": 85,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 708.96,
+   "n_stitches": 1905,
+   "density_st_mm2": 2.69,
+   "row_spacing_mm": 0.43,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 80,
+    "fill": 61,
+    "satin": 1397
+   },
+   "satin_w_mm": 1.02
+  },
+  {
+   "i": 86,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 49.44,
+   "n_stitches": 183,
+   "density_st_mm2": 3.7,
+   "row_spacing_mm": 0.53,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 98
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 87,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 131.68,
+   "n_stitches": 412,
+   "density_st_mm2": 3.13,
+   "row_spacing_mm": 0.41,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 275,
+    "mixed": 41,
+    "fill": 10
+   },
+   "satin_w_mm": 0.94
+  },
+  {
+   "i": 88,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 28.16,
+   "n_stitches": 40,
+   "density_st_mm2": 1.42,
+   "row_spacing_mm": 3.75,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 8
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 89,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 35.36,
+   "n_stitches": 83,
+   "density_st_mm2": 2.35,
+   "row_spacing_mm": 0.94,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 37
+   },
+   "satin_w_mm": 1.13
+  },
+  {
+   "i": 90,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 253.28,
+   "n_stitches": 517,
+   "density_st_mm2": 2.04,
+   "row_spacing_mm": 1.06,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 272
+   },
+   "satin_w_mm": 0.92
+  },
+  {
+   "i": 91,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 271.68,
+   "n_stitches": 245,
+   "density_st_mm2": 0.9,
+   "row_spacing_mm": 2.29,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 95,
+    "mixed": 15
+   },
+   "satin_w_mm": 0.94
+  },
+  {
+   "i": 92,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 255.84,
+   "n_stitches": 411,
+   "density_st_mm2": 1.61,
+   "row_spacing_mm": 0.83,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 210,
+    "fill": 54
+   },
+   "satin_w_mm": 0.83
+  },
+  {
+   "i": 93,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 4.48,
+   "n_stitches": 7,
+   "density_st_mm2": 1.56
+  },
+  {
+   "i": 94,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 5.76,
+   "n_stitches": 16,
+   "density_st_mm2": 2.78,
+   "row_spacing_mm": 0.76,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 12
+   },
+   "satin_w_mm": 0.51
+  },
+  {
+   "i": 95,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 5.12,
+   "n_stitches": 3,
+   "density_st_mm2": 0.59
+  },
+  {
+   "i": 96,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 14.24,
+   "n_stitches": 43,
+   "density_st_mm2": 3.02,
+   "row_spacing_mm": 1.13,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 19
+   },
+   "satin_w_mm": 0.55
+  },
+  {
+   "i": 97,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 4.64,
+   "n_stitches": 13,
+   "density_st_mm2": 2.8
+  },
+  {
+   "i": 98,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 4.48,
+   "n_stitches": 9,
+   "density_st_mm2": 2.01
+  },
+  {
+   "i": 99,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 8.48,
+   "n_stitches": 14,
+   "density_st_mm2": 1.65
+  },
+  {
+   "i": 100,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 5.12,
+   "n_stitches": 11,
+   "density_st_mm2": 2.15
+  },
+  {
+   "i": 101,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 158.88,
+   "n_stitches": 319,
+   "density_st_mm2": 2.01,
+   "row_spacing_mm": 0.83,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 150,
+    "fill": 46,
+    "mixed": 8
+   },
+   "satin_w_mm": 0.99
+  },
+  {
+   "i": 102,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 614.24,
+   "n_stitches": 1567,
+   "density_st_mm2": 2.55,
+   "row_spacing_mm": 0.51,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 1163,
+    "mixed": 43,
+    "fill": 9
+   },
+   "satin_w_mm": 1.02
+  },
+  {
+   "i": 103,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 269.28,
+   "n_stitches": 570,
+   "density_st_mm2": 2.12,
+   "row_spacing_mm": 0.66,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 365,
+    "mixed": 13,
+    "fill": 9
+   },
+   "satin_w_mm": 0.97
+  },
+  {
+   "i": 104,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 48.16,
+   "n_stitches": 205,
+   "density_st_mm2": 4.26,
+   "row_spacing_mm": 0.33,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 140,
+    "mixed": 19
+   },
+   "satin_w_mm": 0.95
+  },
+  {
+   "i": 105,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 78.24,
+   "n_stitches": 339,
+   "density_st_mm2": 4.33,
+   "row_spacing_mm": 0.27,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 283
+   },
+   "satin_w_mm": 1.0
+  },
+  {
+   "i": 106,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 225.6,
+   "n_stitches": 600,
+   "density_st_mm2": 2.66,
+   "row_spacing_mm": 0.51,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 436,
+    "mixed": 22
+   },
+   "satin_w_mm": 1.0
+  },
+  {
+   "i": 107,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 496.16,
+   "n_stitches": 1374,
+   "density_st_mm2": 2.77,
+   "row_spacing_mm": 0.41,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 1057,
+    "fill": 33,
+    "mixed": 32
+   },
+   "satin_w_mm": 1.0
+  },
+  {
+   "i": 108,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 183.52,
+   "n_stitches": 514,
+   "density_st_mm2": 2.8,
+   "row_spacing_mm": 0.35,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 412,
+    "fill": 15
+   },
+   "satin_w_mm": 1.09
+  },
+  {
+   "i": 109,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 148.8,
+   "n_stitches": 427,
+   "density_st_mm2": 2.87,
+   "row_spacing_mm": 0.37,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "fill": 31,
+    "satin": 308,
+    "mixed": 10
+   },
+   "satin_w_mm": 1.13
+  },
+  {
+   "i": 110,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 97.76,
+   "n_stitches": 363,
+   "density_st_mm2": 3.71,
+   "row_spacing_mm": 0.41,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 258
+   },
+   "satin_w_mm": 0.95
+  },
+  {
+   "i": 111,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 223.36,
+   "n_stitches": 668,
+   "density_st_mm2": 2.99,
+   "row_spacing_mm": 0.36,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 539,
+    "fill": 26,
+    "mixed": 11
+   },
+   "satin_w_mm": 1.02
+  },
+  {
+   "i": 112,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 361.92,
+   "n_stitches": 796,
+   "density_st_mm2": 2.2,
+   "row_spacing_mm": 0.57,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 558,
+    "mixed": 14,
+    "fill": 38
+   },
+   "satin_w_mm": 1.08
+  },
+  {
+   "i": 113,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 141.6,
+   "n_stitches": 345,
+   "density_st_mm2": 2.44,
+   "row_spacing_mm": 0.45,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 75,
+    "satin": 157
+   },
+   "satin_w_mm": 1.13
+  },
+  {
+   "i": 114,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 53.44,
+   "n_stitches": 119,
+   "density_st_mm2": 2.23,
+   "row_spacing_mm": 0.63,
+   "stitch_kind": "fill",
+   "kind_votes": {
+    "fill": 39,
+    "satin": 13
+   },
+   "satin_w_mm": 0.99
+  },
+  {
+   "i": 115,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 47.68,
+   "n_stitches": 118,
+   "density_st_mm2": 2.47,
+   "row_spacing_mm": 0.45,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 83
+   },
+   "satin_w_mm": 1.23
+  },
+  {
+   "i": 116,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 122.4,
+   "n_stitches": 209,
+   "density_st_mm2": 1.71,
+   "row_spacing_mm": 1.52,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 33,
+    "mixed": 31
+   },
+   "satin_w_mm": 0.99
+  },
+  {
+   "i": 117,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 39.68,
+   "n_stitches": 118,
+   "density_st_mm2": 2.97,
+   "row_spacing_mm": 0.31,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 109
+   },
+   "satin_w_mm": 1.04
+  },
+  {
+   "i": 118,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 90.24,
+   "n_stitches": 279,
+   "density_st_mm2": 3.09,
+   "row_spacing_mm": 0.28,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 267
+   },
+   "satin_w_mm": 1.19
+  },
+  {
+   "i": 119,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 216.96,
+   "n_stitches": 721,
+   "density_st_mm2": 3.32,
+   "row_spacing_mm": 0.3,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "mixed": 9,
+    "satin": 560,
+    "fill": 12
+   },
+   "satin_w_mm": 1.12
+  },
+  {
+   "i": 120,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 72.32,
+   "n_stitches": 334,
+   "density_st_mm2": 4.62,
+   "row_spacing_mm": 0.3,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 182
+   },
+   "satin_w_mm": 1.08
+  },
+  {
+   "i": 121,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 94.88,
+   "n_stitches": 391,
+   "density_st_mm2": 4.12,
+   "row_spacing_mm": 0.26,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 229,
+    "fill": 9
+   },
+   "satin_w_mm": 1.5
+  },
+  {
+   "i": 122,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 142.88,
+   "n_stitches": 505,
+   "density_st_mm2": 3.53,
+   "row_spacing_mm": 0.27,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 454
+   },
+   "satin_w_mm": 1.2
+  },
+  {
+   "i": 123,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 89.76,
+   "n_stitches": 113,
+   "density_st_mm2": 1.26,
+   "row_spacing_mm": 1.92,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 61
+   },
+   "satin_w_mm": 0.79
+  },
+  {
+   "i": 124,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 339.68,
+   "n_stitches": 780,
+   "density_st_mm2": 2.3,
+   "row_spacing_mm": 0.56,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 343,
+    "fill": 62,
+    "mixed": 19
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 125,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 680.16,
+   "n_stitches": 962,
+   "density_st_mm2": 1.41,
+   "row_spacing_mm": 0.63,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 518,
+    "mixed": 46,
+    "fill": 145
+   },
+   "satin_w_mm": 1.05
+  },
+  {
+   "i": 126,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 15.68,
+   "n_stitches": 17,
+   "density_st_mm2": 1.08
+  },
+  {
+   "i": 127,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 5.12,
+   "n_stitches": 14,
+   "density_st_mm2": 2.73,
+   "row_spacing_mm": 0.75,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 9
+   },
+   "satin_w_mm": 0.96
+  },
+  {
+   "i": 128,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 6.08,
+   "n_stitches": 9,
+   "density_st_mm2": 1.48,
+   "row_spacing_mm": 1.05,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 9
+   },
+   "satin_w_mm": 0.69
+  },
+  {
+   "i": 129,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 4.8,
+   "n_stitches": 9,
+   "density_st_mm2": 1.87
+  },
+  {
+   "i": 130,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 324.64,
+   "n_stitches": 729,
+   "density_st_mm2": 2.25,
+   "row_spacing_mm": 0.59,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 502,
+    "fill": 9
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 131,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 179.84,
+   "n_stitches": 624,
+   "density_st_mm2": 3.47,
+   "row_spacing_mm": 0.26,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 519,
+    "mixed": 10
+   },
+   "satin_w_mm": 1.35
+  },
+  {
+   "i": 132,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 337.92,
+   "n_stitches": 768,
+   "density_st_mm2": 2.27,
+   "row_spacing_mm": 0.79,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 295,
+    "mixed": 52,
+    "fill": 11
+   },
+   "satin_w_mm": 1.0
+  },
+  {
+   "i": 133,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 462.08,
+   "n_stitches": 814,
+   "density_st_mm2": 1.76,
+   "row_spacing_mm": 0.64,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 380,
+    "mixed": 44,
+    "fill": 76
+   },
+   "satin_w_mm": 1.1
+  },
+  {
+   "i": 134,
+   "family": "outline",
+   "colour": "#000000",
+   "outlier": false,
+   "area_mm2": 357.92,
+   "n_stitches": 1128,
+   "density_st_mm2": 3.15,
+   "row_spacing_mm": 0.36,
+   "stitch_kind": "satin",
+   "kind_votes": {
+    "satin": 721,
+    "mixed": 40,
+    "fill": 65
+   },
+   "satin_w_mm": 1.02
+  }
+ ]
+}

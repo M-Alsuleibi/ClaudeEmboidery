@@ -1,0 +1,90 @@
+# Animals — fur/feather sketch-stitch embroidery
+
+> **Status: REGISTERED + INGESTED** (2026-07-13) — `animals` is a `SUPPORTED_CATEGORIES`
+> class; **10 ground-truth pairs** live in `animals/pairs/1..10/` and feed
+> `data/category_profiles.json` (step-7 drift gate) + `data/pair_priors.json` (step-5
+> numbers). Created to fix the fox failure: solid tatami/satin coverage is the WRONG
+> technique for fur — production animals are airy layered stroke work.
+
+## What the category is
+
+Cute/realistic **animal illustrations rendered as sketch embroidery**: ostrich/emu pair,
+highland cow with a bow, kitten on a rope, and similar fur/feather subjects. The defining
+look is **"sketch stitch" / scribble fur** — the animal is built from **hundreds of long,
+overlapping run/bean strokes that follow the fur or feather direction**, with the fabric
+deliberately showing through between strokes. Solid coverage exists only as small accents
+(a nose, an eye, a bow) sewn as narrow satin.
+
+| pair | Subject | Size (mm) | Colour blocks | Stitches |
+|------|---------|-----------|---------------|----------|
+| 1 | Ostrich + emu heads | 89 × 87 | 9 | 19.4k |
+| 2 | (fur subject) | 114 × 111 | 5 | 33.8k |
+| 3 | (detailed subject) | 122 × 140 | 13 | 61.2k |
+| 4 | (fur subject) | 77 × 115 | 6 | 29.1k |
+| 5 | Highland cow + bow | 78 × 89 | 11 | 21.3k |
+| 6 | (fur subject) | 119 × 165 | 5 | 43.6k |
+| 7 | (fur subject) | 140 × 134 | 14 | 34.9k |
+| 8 | (fur subject) | 139 × 140 | 8 | 67.5k |
+| 9 | Kitten on rope | 216 × 205 | 9 | 109.9k |
+| 10 | (fur subject) | 136 × 191 | 17 | 58.5k |
+
+## Measured DNA (n=10 pairs, 1,647 registered objects)
+
+- **ALL OUTLINE, ZERO FILLS.** Every one of the 1,647 SVG↔VP3-registered objects is an
+  outline-family object — production never uses an area fill on these designs. "Solid"
+  bits are narrow satin columns.
+- **Stroke width:** satin_w p10/med/p90 = **0.78 / 1.12 / 1.64 mm** — much thinner than
+  anime (1.8–2.2). Crossover 1.64 mm (clamps to the 3 mm step-5 ceiling floor).
+- **Block signature:** most colour blocks read **"mixed" at 20–25 % turn-reversal with
+  ~2.3–2.4 mm median segments** = long meandering sketch runs (not satin ≥36 %, not
+  tatami rows ≤15 %). Satin accents run 36–50 % reversal at 0.5–1.1 mm segments.
+- **Colours:** median **9** blocks (IQR 6.5–12.5, up to 17); a natural fur palette
+  (creams, tans, greys, rust) + **black sketch linework** + **white highlight strokes**.
+  The same cone often appears in several stops (layering passes).
+- **Density:** median 2.57 st/mm² over the inked bbox, but the *visual* coverage is airy —
+  strokes overlap in ropes rather than tiling the area. Trims 20–464 (fur strokes chain).
+- **Size:** 77–216 mm, median ~130 mm.
+- **Sew order (consistent across pairs):** base colour wash strokes → mid/dark fur
+  layering strokes → **black sketch outline + face details late** → **white
+  highlights/whiskers very last** (pair 1's final block: tiny white satin accents at
+  84 % reversal; pair 9's whiskers sit on top of everything).
+
+## Fingerprint caveat
+
+`satin_frac` reads ~99 for these files — the same block-granularity artifact as falahi:
+dense overlapping runs reverse often enough to score "satin". The **real discriminator vs
+anime/decoration is the mixed-block signature** (rev 20–25 %, medSeg ≥2 mm) plus
+all-outline object families. The auto-categorizer scored these decoration/anime (0.3–0.9)
+before the profile existed — always sanity-check by eye.
+
+## Recipe (today's pipeline approximation)
+
+The pipeline **lacks a sketch/fur-stroke primitive** (as it lacked cross-stitch before
+falahi): it cannot yet lay directional overlapping runs along the fur. Until that exists,
+the honest approximation:
+
+```bash
+digitize.sh photo.png --width-mm 130 --category animals --thread-chart madeira-polyneon \
+    [--fill-method meander_fill]   # scribble-ish fill = the closest existing texture
+```
+
+- **`--category animals`** — priors steer step 5 (ceiling 3.0 mm, vwidth clamps
+  0.78–1.64, border width ~1.1 mm) and step 7 scores against the sketch profile.
+- **Colours:** omit `--colors` (prior = 8); natural fur tones → **madeira-polyneon**.
+- **Size ≥ ~120 mm** so the thin fur strokes clear the 1.6 mm run/satin boundary as runs.
+- **Feed a clean flat-colour source**; the fox-style failure mode is a photo quantizing
+  into big solid regions that then tatami-fill into a heavy sticker — the opposite of the
+  airy production look. `meander_fill` on broad fur regions gives a scribble texture that
+  reads closer to sketch fur than tatami rows; keep `auto_fill` only for genuinely solid
+  props (a bow, a rope).
+- **Keyline detail split** (black linework sews last) matches this category's production
+  order exactly — leave `--snap-black` on so eyes/whisker linework top the fur.
+
+## The real fix (future work — the fur primitive)
+
+A `sketch_stitch` generator in the falahi mould: quantize → per-colour region → extract a
+**fur-direction field** (medial axis / source gradient) → lay **overlapping bean-run
+strokes** (1.5–4 mm segments, ±jitter) along the field at the measured ~1 mm spacing,
+leaving fabric visible; small high-reversal satin accents for nose/eyes. Ground truth to
+calibrate against is in `animals/pairs/*/_measures.json` (per-object density 1.6–2.3
+st/mm², row spacing ~0.9–1.0 mm).

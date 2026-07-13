@@ -19,7 +19,7 @@ SUPPORTED_THREAD_CHARTS = ("madeira-polyneon", "isacord")
 # to compare a run against the ground-truth profile for its category (data/category_profiles.json).
 SUPPORTED_CATEGORIES = (
     "letters", "arabic", "3D", "anime", "simple-shapes", "decoration", "numbers",
-    "falahi",
+    "falahi", "animals",
 )
 
 # Ink-Stitch fill methods for solid regions (step 5). `auto_fill` routes one
@@ -54,6 +54,7 @@ CATEGORY_COLORS = {
     "letters": 2, "arabic": 1, "3D": 8, "anime": 8,
     "simple-shapes": 1, "decoration": 1, "numbers": 4,
     "falahi": 4,  # tatreez cross-stitch: median of the first 11 pairs (mono banners 1 → qabbeh 3-7)
+    "animals": 8,  # fur/feather sketch-stitch: median ~9 colour blocks over the first 10 pairs
 }
 # NB anime = 8 (was 12) and anime is now satin-dominant, from the first real anime ground-truth
 # pair (pink-goku: 7 colours, 82.9% satin). See svg-and-geometry-approach/FINDINGS.md. n=1 —
