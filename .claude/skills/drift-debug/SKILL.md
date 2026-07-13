@@ -68,6 +68,11 @@ re-writing the same lxml/cairosvg/pyembroidery code every time.
 
 ## Known mechanisms (check these hypotheses first)
 
+**Also grep `INCIDENTS.md` at the repo root** — the append-only incident log (category,
+symptom, stage, mechanism, fix commit, guarding test). When this skill closes a NEW
+incident, append an entry there in the same template, and name the regression test that
+guards it — an entry without a test is an open risk.
+
 - **Border flood eats cut-off subject regions** — white garment exiting the frame ⇒
   background. Fixed by corner rule + 25 % border-contact in `imaging.py`; a white
   subject *connected* to the white page still needs an RGBA alpha cutout upstream.

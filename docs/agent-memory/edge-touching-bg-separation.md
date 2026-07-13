@@ -1,0 +1,22 @@
+---
+name: edge-touching-bg-separation
+description: Subject touching the frame edge breaks white-bg separation → whole background stitched as grey; fix by padding a white margin
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 01baac75-2d27-481c-a139-dbb285ac8c4f
+---
+
+When the foreground subject **touches the image border** (a fist/arm/hat cropped at the frame edge), step-1 analyze reports `bg=border-dominant (NOT separable)` and step-2 drops **0.0%** of pixels — so the entire white background gets quantised + stitched (typically matched to a **grey** cone like Isacord Sterling, which also swallows the white eyes/teeth). Coverage reads misleadingly ~99.9% because it stitched everything including background.
+
+**Why:** `analyze._background` marks separable only when `border_bg_frac >= _BG_BORDER_FRAC` — i.e. most of the border ring is background-coloured. A subject touching the edge fills the border ring with character pixels, so the fraction drops below threshold and separation is abandoned.
+
+**Fix:** pad the normalized PNG with a **white margin** (~10% each side) so the subject no longer touches the true border and the background fully surrounds it; then feed the padded image. Interior white enclosed by black outline (eyes/teeth) stays foreground; the outer white floods from the new edge and is dropped. **Scale `--width-mm` up** by `(new_width/old_width)` to keep the subject at the intended physical size (e.g. lufi-enhanced: 10% pad → width-mm 130→156, dropped 57.6% bg, density back in-band 2.33).
+
+Seen on `lufi-enhanced` (One Piece Luffy, arm+fist cropped at frame). Related: [[orchestrator-skill]], [[compare-output-to-original-iterate]].
+
+**Second, distinct edge-touching failure (FIXED IN CODE 2026-07-13):** when the background IS separable but a *white subject region exits the frame* (anime-enhanced: white shirt runs off the bottom edge), the old `imaging.border_connected_background` flooded it away as background → shirt never stitched. Fixed in `imaging.py`: a border-touching bg-like component is background only if it holds an image **corner**, or its border contact ≥ 25% of its own perimeter (`BORDER_CONTACT_FRAC`, edge slivers); no-corner-components fall back to old behaviour when no component holds any corner. So the white-margin pad workaround is only needed for the *separability* failure above, not for cut-off subject regions any more.
+
+**Third failure — white-on-white subject CONNECTED to the page (anime girl portrait, 2026-07-13):** near-white hair (240,230,230) merges into the white page (253,253,252) with no outline between them → one connected near-white component spans page + hair, so no connectivity rule (not even BORDER_CONTACT_FRAC) can split it; padding doesn't help, and a chroma-key recolour of the bg leaks fringe colours after the work-size downsample (two green cones got stitched). **Fix: hand the pipeline an RGBA alpha cutout** — the pipeline is fully alpha-aware (`bg=alpha`, mask = alpha ≥ 128): pad, flood border-connected near-page pixels with a **TIGHT threshold** (channel-diff < 12, not the ~28 that swallows off-white hair), dilate 2–3 px for the AA halo, set alpha 0. Coverage went 94.7 → 99.5 %. Do the cutout at full res *before* the pipeline downsamples.
+
+**Fourth mode — frame-hugging design: border median = INK (tatreez-enhanced, 2026-07-13):** a design whose navy frame runs near the image edge makes the border-ring MEDIAN the frame colour, so analyze keys the whole background pipeline on (0,14,55) navy — separability stays TRUE, but the white ground is never background-like, so it quantizes and STITCHES (152k stitches vs 40k expected; on the tatreez path the AA speckle then OOM-killed vtracer at ~5GB before the trace-skip fix). Diagnose with one line: rebuild the border median (`np.median` over the ring) — if it isn't the page colour, pad. Same cure as mode 1: pad ~6% white margin + scale the size (`400mm → 448` for a 6% pad), and for digital mock-ups also snap the near-white ground (mean>225, chroma<25) to pure 255 first, else it sits just past the ΔE 12 tolerance.
