@@ -60,6 +60,15 @@ def run(ctx: PipelineContext) -> None:
     if not ctx.thread_map:
         raise RuntimeError("trace requires ctx.thread_map; run thread-match first.")
 
+    # Cross-stitch categories build their stitches directly from the quantized image
+    # (steps/crossstitch.py) and never read the traced SVG — and vtracer on a counted-grid
+    # mock-up (thousands of AA speck regions) allocates unboundedly (measured: OOM-killed
+    # at ~5GB on a 400mm falahi panel). Skip the whole trace.
+    if ctx.config.resolved_cross_stitch:
+        print("      cross-stitch category: skipping trace "
+              "(stitches are built directly from the quantized grid)")
+        return
+
     img = ctx.preprocessed_image
     px_w, px_h = img.size
 

@@ -207,15 +207,18 @@ def _locate_binary() -> Path:
 
 
 def run(ctx: PipelineContext) -> None:
-    if ctx.svg_path is None:
-        raise RuntimeError("stitches requires ctx.svg_path; run trace first.")
-
     # Cross-stitch categories (falahi tatreez): counted cross-stitch is a distinct stitch
     # primitive (a fixed grid of X motifs), not the run/satin/tatami tiers. It's built
-    # directly as stitches (no Ink-Stitch), so it short-circuits the whole SVG/digitize path.
+    # directly as stitches (no Ink-Stitch) from the quantized image — no traced SVG needed
+    # (step 4 skips itself for these categories: vtracer on a pixel-grid mock-up with AA
+    # speckle allocates gigabytes for paths nothing would read — it OOM-killed a 400mm
+    # tatreez panel at ~5GB RSS).
     if ctx.config.resolved_cross_stitch:
         _run_cross_stitch(ctx)
         return
+
+    if ctx.svg_path is None:
+        raise RuntimeError("stitches requires ctx.svg_path; run trace first.")
 
     binary = _locate_binary()
     # The stitch-ready ("working") SVG: every path carries its inkstitch:* object type + params.

@@ -146,7 +146,10 @@ def run(ctx: PipelineContext) -> None:
     # pull-comp closes a sub-mm hole right over linework that sewed earlier). Thick
     # black regions (hair, a base panel) keep their enclosure-depth position, so a
     # white-on-black-panel design is unaffected. See config.KEYLINE_DETAIL_RGB.
-    if (0, 0, 0) in palette and KEYLINE_DETAIL_RGB not in palette:
+    # Not for counted cross-stitch: a fixed grid of X's has no sew-last keyline layer,
+    # and a pixel-grid mock-up's AA outlines shatter into thousands of bogus components.
+    if (0, 0, 0) in palette and KEYLINE_DETAIL_RGB not in palette \
+            and not cfg.resolved_cross_stitch:
         idx_map, n_detail = _split_keyline_detail(idx_map, palette, mm_per_px)
         if n_detail:
             palette.append(KEYLINE_DETAIL_RGB)
