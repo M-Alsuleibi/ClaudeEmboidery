@@ -1,4 +1,32 @@
 {
+ "arabic": {
+  "n_pairs": 1,
+  "n_objects": 407,
+  "satin_w_mm": {
+   "p10": 1.212,
+   "med": 2.04,
+   "p90": 3.16,
+   "n": 103
+  },
+  "crossover_mm": 3.02,
+  "fill_density_st_mm2": 3.03,
+  "row_spacing_mm": 0.34,
+  "outline_to_fill": 1.713,
+  "authored": {
+   "n_designs": 1,
+   "n_objects": 4,
+   "fill_spacing_mm": {
+    "med": 0.65,
+    "n": 4
+   },
+   "fill_length_mm": {
+    "med": 6.2,
+    "n": 4
+   },
+   "pull_comp_disabled_frac": 1.0,
+   "underlay_disabled_frac": 1.0
+  }
+ },
  "anime": {
   "n_pairs": 19,
   "n_objects": 1087,

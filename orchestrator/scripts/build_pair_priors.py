@@ -98,17 +98,123 @@ def aggregate_measures(measure_dicts: list[dict]) -> dict | None:
     }
 
 
+import re as _re
+
+
+def _mm(v) -> float | None:
+    """Parse an authored value like '0.65 mm', '6.20', 45 -> float, else None."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        m = _re.match(r"\s*(-?\d+(?:\.\d+)?)", v)
+        return float(m.group(1)) if m else None
+    return None
+
+
+def _norm(k: str) -> str:
+    return k.lower().strip().rstrip(":")
+
+
+def aggregate_props(props_dicts: list[dict]) -> dict | None:
+    """Roll the AUTHORED Object Properties (transcribed from Wilcom screenshots —
+    the trio's third element, `<design>_props.json`) into an `authored` block.
+    These are the digitizer's chosen SETTINGS, not stitch-inferred estimates, so
+    where both exist the authored value is the truer prior. Parsed tolerantly:
+    screenshot entries are keyed by their active tab; enabled/disabled checkbox
+    states are respected (a greyed default is never counted as a value)."""
+    fill_spacing: list[float] = []
+    fill_length: list[float] = []
+    pull_comp_on: list[float] = []
+    pc_states: list[bool] = []
+    underlay_states: list[bool] = []
+    n_objects = 0
+    for pj in props_dicts:
+        n_objects += len(pj.get("objects", []))
+        for s in pj.get("screenshots", []):
+            tab = _norm(str(s.get("active_tab", "")))
+            settings = s.get("settings") or {}
+            flat = {}
+
+            def _walk(d, path=""):
+                if isinstance(d, dict):
+                    for k, v in d.items():
+                        _walk(v, path + "/" + _norm(str(k)))
+                else:
+                    flat[path] = d
+
+            _walk(settings)
+            if tab == "fills":
+                for p, v in flat.items():
+                    if "underlay" in p:
+                        continue
+                    if p.endswith("/spacing") and (x := _mm(v)) is not None:
+                        fill_spacing.append(x)
+                    if p.endswith("/length") and "min" not in p and (x := _mm(v)) is not None:
+                        fill_length.append(x)
+            elif tab == "pull comp":
+                enabled = None
+                value = None
+                for p, v in flat.items():
+                    if "pull compensation" in p:
+                        if p.endswith("/enabled") or p.endswith("/selected"):
+                            enabled = bool(v)
+                        elif (x := _mm(v)) is not None:
+                            value = x
+                if enabled is not None:
+                    pc_states.append(enabled)
+                    if enabled and value is not None:
+                        pull_comp_on.append(value)
+            elif tab == "underlay":
+                for p, v in flat.items():
+                    if "first underlay" in p and (p.endswith("/enabled") or p.endswith("/selected")):
+                        underlay_states.append(bool(v))
+    if not (fill_spacing or fill_length or pc_states or underlay_states):
+        return None
+    out: dict = {"n_designs": len(props_dicts), "n_objects": n_objects}
+    if fill_spacing:
+        out["fill_spacing_mm"] = {"med": _pct(fill_spacing, 50), "n": len(fill_spacing)}
+    if fill_length:
+        out["fill_length_mm"] = {"med": _pct(fill_length, 50), "n": len(fill_length)}
+    if pc_states:
+        out["pull_comp_disabled_frac"] = round(
+            1.0 - sum(pc_states) / len(pc_states), 3)
+    if pull_comp_on:
+        out["pull_comp_mm"] = {"med": _pct(pull_comp_on, 50), "n": len(pull_comp_on)}
+    if underlay_states:
+        out["underlay_disabled_frac"] = round(
+            1.0 - sum(underlay_states) / len(underlay_states), 3)
+    return out
+
+
 def build() -> dict:
     priors: dict = {}
     for cat in CATEGORIES:
-        mds = []
+        mds, pds = [], []
         for path in sorted(glob.glob(str(REPO / cat / "pairs" / "*" / "*_measures.json"))):
             try:
                 mds.append(json.loads(Path(path).read_text()))
             except Exception:
                 print(f"! skipping unreadable {path}")
+        for path in sorted(glob.glob(str(REPO / cat / "pairs" / "*" / "*_props.json"))):
+            try:
+                pds.append(json.loads(Path(path).read_text()))
+            except Exception:
+                print(f"! skipping unreadable {path}")
         rec = aggregate_measures(mds) if mds else None
         if rec:
+            authored = aggregate_props(pds) if pds else None
+            if authored:
+                rec["authored"] = authored
+                # authored vs inferred disagreement: the same physical quantity read
+                # two ways — a big gap calibrates how much to trust inference on
+                # screenshot-less pairs
+                a_sp = (authored.get("fill_spacing_mm") or {}).get("med")
+                m_sp = rec.get("row_spacing_mm")
+                if a_sp and m_sp and abs(a_sp - m_sp) / max(a_sp, m_sp) > 0.25:
+                    print(f"~ {cat}: authored fill spacing {a_sp}mm vs stitch-inferred "
+                          f"row spacing {m_sp}mm (Δ{abs(a_sp - m_sp) / max(a_sp, m_sp):.0%})"
+                          f" — trust the authored value; inference includes underlay/"
+                          f"travel rows")
             priors[cat] = rec
     return priors
 

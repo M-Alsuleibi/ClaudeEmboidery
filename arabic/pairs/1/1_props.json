@@ -1,0 +1,647 @@
+{
+  "software": "Ultimate Special Edition",
+  "machine_format": "Tajima",
+  "design": {
+    "tabs_captured": []
+  },
+  "screenshots": [
+    {
+      "file": "image_c26cd1.jpg",
+      "selected_object": {
+        "index": 50,
+        "type": "Complex Fill",
+        "stitches": 442
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Fill type": "Tatami",
+        "Stitch values": {
+          "Spacing": "0.65 mm",
+          "Length": "6.20 mm",
+          "Min length": "0.90 mm"
+        },
+        "Offsets": {
+          "Offset fraction": {
+            "selected": true,
+            "A": "0.46",
+            "B": "0.41"
+          },
+          "Partition line": {
+            "selected": false,
+            "Sequence": "01",
+            "Angle": "90.00 °"
+          }
+        },
+        "Backstitch": "Option 1 selected",
+        "Random": "0 %"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "lower left area of the calligraphy pattern",
+      "object_list_visible_rows": [
+        { "index": 41, "stitches": 6 },
+        { "index": 42, "stitches": 50 },
+        { "index": 43, "stitches": 13 },
+        { "index": 44, "stitches": 127 },
+        { "index": 45, "stitches": 16 },
+        { "index": 46, "stitches": 7 },
+        { "index": 47, "stitches": 125 },
+        { "index": 48, "stitches": 4 },
+        { "index": 49, "stitches": 26 },
+        { "index": 50, "stitches": 442 },
+        { "index": 51, "stitches": 33 },
+        { "index": 52, "stitches": 141 }
+      ]
+    },
+    {
+      "file": "image_c26cf1.jpg",
+      "selected_object": {
+        "index": 50,
+        "type": "Complex Fill",
+        "stitches": 442
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Fill type": "Tatami",
+        "Stitch values": {
+          "Spacing": "0.65 mm",
+          "Length": "6.20 mm",
+          "Min length": "0.90 mm"
+        },
+        "Offsets": {
+          "Offset fraction": {
+            "selected": true,
+            "A": "0.46",
+            "B": "0.41"
+          },
+          "Partition line": {
+            "selected": false,
+            "Sequence": "01",
+            "Angle": "90.00 °"
+          }
+        },
+        "Backstitch": "Option 1 selected",
+        "Random": "0 %"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "lower left area of the calligraphy pattern",
+      "object_list_visible_rows": [
+        { "index": 41, "stitches": 6 },
+        { "index": 42, "stitches": 50 },
+        { "index": 43, "stitches": 13 },
+        { "index": 44, "stitches": 127 },
+        { "index": 45, "stitches": 16 },
+        { "index": 46, "stitches": 7 },
+        { "index": 47, "stitches": 125 },
+        { "index": 48, "stitches": 4 },
+        { "index": 49, "stitches": 26 },
+        { "index": 50, "stitches": 442 },
+        { "index": 51, "stitches": 33 },
+        { "index": 52, "stitches": 141 }
+      ]
+    },
+    {
+      "file": "image_c26d28.jpg",
+      "selected_object": {
+        "index": 50,
+        "type": "Complex Fill",
+        "stitches": 442
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Fill type": "Tatami",
+        "Stitch values": {
+          "Spacing": "0.65 mm",
+          "Length": "6.20 mm",
+          "Min length": "0.90 mm"
+        },
+        "Offsets": {
+          "Offset fraction": {
+            "selected": true,
+            "A": "0.46",
+            "B": "0.41"
+          },
+          "Partition line": {
+            "selected": false,
+            "Sequence": "01",
+            "Angle": "90.00 °"
+          }
+        },
+        "Backstitch": "Option 1 selected",
+        "Random": "0 %"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "lower left area of the calligraphy pattern",
+      "object_list_visible_rows": [
+        { "index": 41, "stitches": 6 },
+        { "index": 42, "stitches": 50 },
+        { "index": 43, "stitches": 13 },
+        { "index": 44, "stitches": 127 },
+        { "index": 45, "stitches": 16 },
+        { "index": 46, "stitches": 7 },
+        { "index": 47, "stitches": 125 },
+        { "index": 48, "stitches": 4 },
+        { "index": 49, "stitches": 26 },
+        { "index": 50, "stitches": 442 },
+        { "index": 51, "stitches": 33 },
+        { "index": 52, "stitches": 141 }
+      ]
+    },
+    {
+      "file": "image_c26d4a.jpg",
+      "selected_object": {
+        "index": 50,
+        "type": "Complex Fill",
+        "stitches": 442
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Fill type": "Tatami",
+        "Stitch values": {
+          "Spacing": "0.65 mm",
+          "Length": "6.20 mm",
+          "Min length": "0.90 mm"
+        },
+        "Offsets": {
+          "Offset fraction": {
+            "selected": true,
+            "A": "0.46",
+            "B": "0.41"
+          },
+          "Partition line": {
+            "selected": false,
+            "Sequence": "01",
+            "Angle": "90.00 °"
+          }
+        },
+        "Backstitch": "Option 1 selected",
+        "Random": "0 %"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "lower left area of the calligraphy pattern",
+      "object_list_visible_rows": [
+        { "index": 41, "stitches": 6 },
+        { "index": 42, "stitches": 50 },
+        { "index": 43, "stitches": 13 },
+        { "index": 44, "stitches": 127 },
+        { "index": 45, "stitches": 16 },
+        { "index": 46, "stitches": 7 },
+        { "index": 47, "stitches": 125 },
+        { "index": 48, "stitches": 4 },
+        { "index": 49, "stitches": 26 },
+        { "index": 50, "stitches": 442 },
+        { "index": 51, "stitches": 33 },
+        { "index": 52, "stitches": 141 }
+      ]
+    },
+    {
+      "file": "1-9.png",
+      "selected_object": {
+        "index": 231,
+        "type": "Complex Fill",
+        "stitches": 1278
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "upper middle area of the calligraphy pattern",
+      "object_list_visible_rows": [
+        { "index": 223, "stitches": 108 },
+        { "index": 224, "stitches": 3 },
+        { "index": 225, "stitches": 43 },
+        { "index": 226, "stitches": 16 },
+        { "index": 227, "stitches": 504 },
+        { "index": 228, "stitches": 11 },
+        { "index": 229, "stitches": 394 },
+        { "index": 230, "stitches": 29 },
+        { "index": 231, "stitches": 1278 },
+        { "index": 232, "stitches": 17 },
+        { "index": 233, "stitches": 76 },
+        { "index": 234, "stitches": 9 },
+        { "index": 235, "stitches": 83 },
+        { "index": 236, "stitches": 14 },
+        { "index": 237, "stitches": 29 },
+        { "index": 238, "stitches": 6 }
+      ]
+    },
+    {
+      "file": "1-1.png",
+      "selected_object": {
+        "index": 346,
+        "type": "Column A",
+        "stitches": 389
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": {
+        "Width": "21.23 mm",
+        "Height": "35.18 mm"
+      },
+      "canvas_location": "bottom right edge of the calligraphy block",
+      "object_list_visible_rows": [
+        { "index": 337, "stitches": 138 },
+        { "index": 338, "stitches": 9 },
+        { "index": 339, "stitches": 98 },
+        { "index": 340, "stitches": 14 },
+        { "index": 341, "stitches": 28 },
+        { "index": 342, "stitches": 6 },
+        { "index": 343, "stitches": 16 },
+        { "index": 344, "stitches": 512 },
+        { "index": 345, "stitches": 12 },
+        { "index": 346, "stitches": 389 },
+        { "index": 347, "stitches": 29 },
+        { "index": 348, "stitches": 402 },
+        { "index": 349, "stitches": 8 },
+        { "index": 350, "stitches": 26 },
+        { "index": 351, "stitches": 190 },
+        { "index": 352, "stitches": 6 }
+      ]
+    },
+    {
+      "file": "1-2.png",
+      "selected_object": {
+        "index": 346,
+        "type": "Column A",
+        "stitches": 389
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "bottom right edge of the calligraphy block",
+      "object_list_visible_rows": [
+        { "index": 341, "stitches": 28 },
+        { "index": 342, "stitches": 6 },
+        { "index": 343, "stitches": 16 },
+        { "index": 344, "stitches": 512 },
+        { "index": 345, "stitches": 12 },
+        { "index": 346, "stitches": 389 },
+        { "index": 347, "stitches": 29 },
+        { "index": 348, "stitches": 402 },
+        { "index": 349, "stitches": 8 },
+        { "index": 350, "stitches": 26 },
+        { "index": 351, "stitches": 190 },
+        { "index": 352, "stitches": 6 },
+        { "index": 353, "stitches": 618 },
+        { "index": 354, "stitches": 19 },
+        { "index": 355, "stitches": 70 },
+        { "index": 356, "stitches": 13 },
+        { "index": 357, "stitches": 81 }
+      ]
+    },
+    {
+      "file": "1-3.png",
+      "selected_object": {
+        "index": 346,
+        "type": "Column A",
+        "stitches": 389
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "bottom right edge of the calligraphy block",
+      "object_list_visible_rows": [
+        { "index": 341, "stitches": 28 },
+        { "index": 342, "stitches": 6 },
+        { "index": 343, "stitches": 16 },
+        { "index": 344, "stitches": 512 },
+        { "index": 345, "stitches": 12 },
+        { "index": 346, "stitches": 389 },
+        { "index": 347, "stitches": 29 },
+        { "index": 348, "stitches": 402 },
+        { "index": 349, "stitches": 8 },
+        { "index": 350, "stitches": 26 },
+        { "index": 351, "stitches": 190 },
+        { "index": 352, "stitches": 6 },
+        { "index": 353, "stitches": 618 },
+        { "index": 354, "stitches": 19 },
+        { "index": 355, "stitches": 70 },
+        { "index": 356, "stitches": 13 },
+        { "index": 357, "stitches": 81 }
+      ]
+    },
+    {
+      "file": "1-4.png",
+      "selected_object": {
+        "index": 315,
+        "type": "Complex Fill",
+        "stitches": 1047
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "top part of the calligraphy block",
+      "object_list_visible_rows": [
+        { "index": 313, "stitches": 6 },
+        { "index": 314, "stitches": 8 },
+        { "index": 315, "stitches": 1047 },
+        { "index": 316, "stitches": 31 },
+        { "index": 317, "stitches": 185 },
+        { "index": 318, "stitches": 32 },
+        { "index": 319, "stitches": 3 },
+        { "index": 320, "stitches": 1 },
+        { "index": 321, "stitches": 5 },
+        { "index": 322, "stitches": 23 },
+        { "index": 323, "stitches": 163 },
+        { "index": 324, "stitches": 24 },
+        { "index": 325, "stitches": 8 },
+        { "index": 326, "stitches": 55 },
+        { "index": 327, "stitches": 5 },
+        { "index": 328, "stitches": 220 }
+      ]
+    },
+    {
+      "file": "1-5.png",
+      "selected_object": {
+        "index": 315,
+        "type": "Complex Fill",
+        "stitches": 1047
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "top part of the calligraphy block",
+      "object_list_visible_rows": [
+        { "index": 313, "stitches": 6 },
+        { "index": 314, "stitches": 8 },
+        { "index": 315, "stitches": 1047 },
+        { "index": 316, "stitches": 31 },
+        { "index": 317, "stitches": 185 },
+        { "index": 318, "stitches": 32 },
+        { "index": 319, "stitches": 3 },
+        { "index": 320, "stitches": 1 },
+        { "index": 321, "stitches": 5 },
+        { "index": 322, "stitches": 23 },
+        { "index": 323, "stitches": 163 },
+        { "index": 324, "stitches": 24 },
+        { "index": 325, "stitches": 8 },
+        { "index": 326, "stitches": 55 },
+        { "index": 327, "stitches": 5 },
+        { "index": 328, "stitches": 220 }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "index": 50,
+      "type": "Complex Fill",
+      "stitches": 442,
+      "tabs_captured": [
+        "Fills"
+      ],
+      "settings": {
+        "Fills": {
+          "Fill type": "Tatami",
+          "Stitch values": {
+            "Spacing": "0.65 mm",
+            "Length": "6.20 mm",
+            "Min length": "0.90 mm"
+          },
+          "Offsets": {
+            "Offset fraction": {
+              "selected": true,
+              "A": "0.46",
+              "B": "0.41"
+            },
+            "Partition line": {
+              "selected": false,
+              "Sequence": "01",
+              "Angle": "90.00 °"
+            }
+          },
+          "Backstitch": "Option 1 selected",
+          "Random": "0 %"
+        }
+      }
+    },
+    {
+      "index": 231,
+      "type": "Complex Fill",
+      "stitches": 1278,
+      "tabs_captured": [
+        "Pull Comp"
+      ],
+      "settings": {
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": 315,
+      "type": "Complex Fill",
+      "stitches": 1047,
+      "tabs_captured": [
+        "Pull Comp",
+        "Underlay"
+      ],
+      "settings": {
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": false,
+            "displayed_value": {
+              "selection": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          },
+          "Second Underlay": {
+            "enabled": false,
+            "displayed_value": {
+              "selection": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °"
+            }
+          }
+        }
+      }
+    },
+    {
+      "index": 346,
+      "type": "Column A",
+      "stitches": 389,
+      "tabs_captured": [
+        "Pull Comp",
+        "Underlay"
+      ],
+      "settings": {
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": false,
+            "displayed_value": {
+              "selection": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          },
+          "Second Underlay": {
+            "enabled": false,
+            "displayed_value": {
+              "selection": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "uncertainties": [
+    "Images c26cd1.jpg, c26cf1.jpg, c26d28.jpg, and c26d4a.jpg appear to be identical duplicates capturing the same exact state.",
+    "Width and Height measurements in the top toolbar are mostly truncated or completely unreadable, except for image 1-1.png.",
+    "The 'Backstitch' section under the Underlay tab displays icons without text labels; their exact state could not be explicitly named beyond 'unreadable'."
+  ]
+}

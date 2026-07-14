@@ -104,9 +104,11 @@ def classify(vp3: Path) -> tuple[str | None, list[tuple[str, float]]]:
     return best_cat, scores
 
 
-def find_pairs(inbox: Path) -> tuple[list[tuple[Path, Path]], list[Path]]:
-    """Match svg+vp3 by stem (case-insensitive). Returns (pairs, unmatched files)."""
-    svgs, vp3s = {}, {}
+def find_pairs(inbox: Path) -> tuple[list[tuple[Path, Path, Path | None]], list[Path]]:
+    """Match svg+vp3 by stem (case-insensitive); a `<stem>-props.json` (authored Object
+    Properties transcribed from Wilcom screenshots — the TRIO's third element) rides
+    along when present. Returns (trios, unmatched files)."""
+    svgs, vp3s, props = {}, {}, {}
     for f in sorted(inbox.iterdir()):
         if not f.is_file():
             continue
@@ -115,7 +117,9 @@ def find_pairs(inbox: Path) -> tuple[list[tuple[Path, Path]], list[Path]]:
             svgs[f.stem.lower()] = f
         elif ext == ".vp3":
             vp3s[f.stem.lower()] = f
-    pairs = [(svgs[k], vp3s[k]) for k in sorted(svgs.keys() & vp3s.keys())]
+        elif ext == ".json" and f.stem.lower().endswith("-props"):
+            props[f.stem.lower()[:-len("-props")]] = f
+    pairs = [(svgs[k], vp3s[k], props.get(k)) for k in sorted(svgs.keys() & vp3s.keys())]
     loners = [f for k, f in sorted((svgs | vp3s).items()) if (k in svgs) != (k in vp3s)]
     return pairs, loners
 
@@ -154,7 +158,7 @@ def ingest(args) -> int:
         return 0 if not loners else 1
 
     rows = []
-    for svg, vp3 in pairs:
+    for svg, vp3, props in pairs:
         design = svg.stem
         print(f"\n== {design} ==")
         cat, scores = (args.category, category_scores(vp3_features(vp3))) \
@@ -183,6 +187,17 @@ def ingest(args) -> int:
         vp3_d = dest / (design + vp3.suffix)
         shutil.move(str(svg), svg_d)
         shutil.move(str(vp3), vp3_d)
+        if props is not None:
+            props_d = dest / f"{design}_props.json"
+            shutil.move(str(props), props_d)
+            try:
+                pj = json.loads(props_d.read_text())
+                objs = pj.get("objects", [])
+                tabs = sorted({t for o in objs for t in o.get("tabs_captured", [])})
+                print(f"    props: authored settings for {len(objs)} object(s), "
+                      f"tabs {'/'.join(tabs) or '-'}")
+            except Exception as exc:
+                print(f"    ! props file unreadable ({exc}) — kept as-is")
         label_pair(svg_d, vp3_d)
         git_track(dest)  # -f: VP3s are gitignored by default, ground truth is tracked
         if cat is not None:
