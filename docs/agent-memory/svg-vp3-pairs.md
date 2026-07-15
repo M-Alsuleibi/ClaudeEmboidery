@@ -1,6 +1,6 @@
 ---
 name: svg-vp3-pairs
-description: "(CorelDRAW-SVG, VP3) pairs give object-level ground truth the vp3 hides; first pair pink-goku overturns anime = satin-dominant + outline-heavy + 7 colours (not fill/12-colour)"
+description: "(CorelDRAW-SVG, VP3) pairs/trios give object-level ground truth the vp3 hides; pink-goku overturned anime; 2026-07-15 trio drop moved arabic to crossover 3.6mm with real fills"
 metadata: 
   node_type: memory
   type: project
@@ -73,3 +73,17 @@ branch centerline extends past a shared junction by the local half-width, clamp 
 = dense hub skipped); wavy-Y fixture junction ~100% covered (2.6% bare in the ±0.5mm disc). Travel
 cover masks now fill the satin column area (polygon between rails) — thin rail-line masks
 under-measured cover and blocked the ring-chain trim drops.
+
+**TRIO ingest (2026-07-15):** pairs can carry a third file `<stem>-props.json` = authored Wilcom
+Object Properties transcribed from screenshots (`pairs-inbox/GEMINI-PROPS-PROMPT.md`);
+ingest_pairs.py files it, build_pair_priors.py aggregates + flags authored-vs-inferred
+disagreements — rule learned: **trust authored over stitch-inferred spacing** (arabic authored
+fill spacing 0.475mm vs inferred 0.79mm; inference counts underlay/travel rows). First 4 trios =
+Arabic calligraphy (`arabic/pairs/1b,2,6,7`, reg RMS 0.12–0.17mm — tightest yet): arabic priors
+now n=5, **crossover 3.6mm, satin-w 1.04/2.45/6.4, o:f 0.90 — arabic ground truth now CONTAINS
+fill objects** (1b/2 fill-heavy), not the old all-satin picture. Fingerprint mis-called 1/2 as
+"numbers" → always eyeball ambiguous calls, use `--category` override. Stem collisions: inbox "1"
+≠ existing arabic/pairs/1 → renamed 1b (script skips, never overwrites). **Trios 3/4/5 parked in
+`pairs-inbox/needs-reexport/`** (SVG exports incomplete: 10/3/1 stroke-only paths, design missing)
+— awaiting user re-export from CorelDRAW; ingest scans inbox TOP LEVEL only, so subfolders are
+safe parking.
