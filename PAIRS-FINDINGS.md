@@ -146,6 +146,10 @@ pipeline can safely default from.
 | falahi-09 | falahi | 0 | 18 | — | 6 | 396.0 | 99.98 | 2.24 |
 | falahi-10 | falahi | 0 | 11 | — | 2 | 558.9 | 100.0 | 2.24 |
 | falahi-11 | falahi | 0 | 136 | — | 7 | 273.4 | 100.0 | 1.41 |
+| 1b | arabic | 258 | 48 | 0.19 | 1 | 592.5 | 100.0 | 5.73 |
+| 2 | arabic | 68 | 62 | 0.91 | 0 | 207.3 | 100.0 | 5.1 |
+| 6 | arabic | 59 | 80 | 1.36 | 1 | 165.4 | 100.0 | 2.4 |
+| 7 | arabic | 81 | 109 | 1.35 | 1 | 140.0 | 100.0 | 2.02 |
 
 ### Falahi — new category (n = 11), Palestinian tatreez cross-stitch
 
@@ -183,3 +187,22 @@ pitch med 1.45 (dropped from 2.1 as the fine #20 joined). The borderline anime�
 left as-filed are low-harm (both satin-dominant multicolour). `register_pair.py` `_rgb` now
 resolves **any** CSS colour name (via PIL `ImageColor`) and fails soft — CorelDRAW uses the full
 extended set (`antiquewhite` crashed the old hex parser).
+
+### Trio drop — 4 Arabic calligraphy trios ingested (1b, 2, 6, 7); 3/4/5 held for re-export
+
+First real **trio** ingest (SVG + VP3 + authored `-props.json` Object Properties per
+`GEMINI-PROPS-PROMPT.md`). All four are Arabic calligraphy (1b "أكثروا من الصلاة على النبي",
+2 "صلى الله عليه وسلم" roundel, 6 "رمضان مبارك", 7 "السلام عليكم"); the fingerprint wanted
+1/2 under numbers — overridden with `--category arabic` after visual check. Inbox "1"
+collided with the existing (different) `arabic/pairs/1/` band design → renamed **1b**.
+Registrations are the tightest yet: trimmed RMS **0.12–0.17 mm** on all four.
+
+- **Arabic now has fill objects** — 1b/2 are fill-heavy (out:fill 0.19/0.91), unlike the
+  older all-satin arabic ground truth; arabic priors now: satin-w 1.04/2.45/6.4 mm,
+  **crossover 3.6 mm** (was ~2), o:f 0.90 (n = 5).
+- **Authored props vs stitch inference**: authored fill spacing **0.475 mm** vs inferred row
+  spacing 0.79 mm (Δ40 %) — trust the authored value; inference counts underlay/travel rows.
+- **Trios 3, 4, 5 NOT ingested** — their SVGs are incomplete CorelDRAW exports (3: 10
+  unfilled paths; 4: 3 paths; 5: one stroke on an empty A4 page, roundel missing vs its
+  VP3). Parked in `pairs-inbox/needs-reexport/` awaiting re-export; their props.json and
+  VP3s are there too, ready to re-drop.

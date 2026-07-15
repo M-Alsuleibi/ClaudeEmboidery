@@ -1,0 +1,639 @@
+{
+  "software": "(Ultimate Special Edition) (Ultimate Special Edition) - [Design1]",
+  "machine_format": "Tajima",
+  "design": {
+    "tabs_captured": ["Thread Colors"],
+    "Filename": "[current filename]",
+    "Title": "[current title]",
+    "Height": "58.9 mm",
+    "Width": "140.0 mm",
+    "Stitches": "6,221",
+    "Colors": "1",
+    "Stops": "1",
+    "Colorways": "1",
+    "Stop sequence": "",
+    "Auto fabric": "[current fabric]",
+    "Required stabilizers": "",
+    "Design area": "8,246.0 mm²",
+    "Total thread": "29.00 m",
+    "Total bobbin": "9.75 m",
+    "From start point ...": {
+      "Left": "70.0 mm",
+      "Right": "70.0 mm",
+      "Up": "29.5 mm",
+      "Down": "29.4 mm",
+      "End X": "-11.8 mm",
+      "End Y": "-8.6 mm"
+    },
+    "Maximum stitch": "12.6 mm",
+    "Minimum stitch": "0.2 mm",
+    "Jump length": "10.9 mm",
+    "Colorway": "Colorway 1"
+  },
+  "screenshots": [
+    {
+      "file": "image_21c465.png",
+      "selected_object": {
+        "index": 7,
+        "type": "Manual",
+        "stitches": 167
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": {
+          "enabled": false,
+          "displayed_value": "Satin"
+        },
+        "Stitch values": {
+          "Spacing": {
+            "enabled": false,
+            "displayed_value": "0.24 mm"
+          }
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "checked": true,
+          "Adjust": {
+            "enabled": false,
+            "displayed_value": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": {
+            "enabled": false,
+            "displayed_value": "7"
+          }
+        },
+        "Auto split": {
+          "enabled": false,
+          "checked": true,
+          "Length": {
+            "enabled": false,
+            "displayed_value": "7.00 mm"
+          },
+          "Min length": {
+            "enabled": false,
+            "displayed_value": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "small dot diacritic above the letter Seen",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c4c8.jpg",
+      "selected_object": {
+        "index": 7,
+        "type": "Manual",
+        "stitches": 167
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "small dot diacritic above the letter Seen",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c51c.png",
+      "selected_object": {
+        "index": 7,
+        "type": "Manual",
+        "stitches": 167
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "small dot diacritic above the letter Seen",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c7ea.png",
+      "selected_object": {
+        "index": 7,
+        "type": "Manual",
+        "stitches": 167
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "checked": true,
+          "value": {"enabled": false, "displayed_value": "0.17 mm"}
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "checked": false,
+          "value": {"enabled": false, "displayed_value": "1.00 mm"}
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "small dot diacritic above the letter Seen",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c842.jpg",
+      "selected_object": {
+        "index": 16,
+        "type": "Manual",
+        "stitches": 324
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "tail of the letter Meem at the bottom right",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c866.png",
+      "selected_object": {
+        "index": 16,
+        "type": "Manual",
+        "stitches": 324
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "tail of the letter Meem at the bottom right",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21c8a2.png",
+      "selected_object": {
+        "index": 16,
+        "type": "Manual",
+        "stitches": 324
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "checked": true,
+          "value": {"enabled": false, "displayed_value": "0.17 mm"}
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "checked": false,
+          "value": {"enabled": false, "displayed_value": "1.00 mm"}
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "tail of the letter Meem at the bottom right",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21cbea.jpg",
+      "selected_object": {
+        "index": 13,
+        "type": "Manual",
+        "stitches": 153
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "vertical stroke of the letter Kaaf",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21cc41.png",
+      "selected_object": {
+        "index": 13,
+        "type": "Manual",
+        "stitches": 153
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "checked": true,
+          "By segment": {"enabled": false, "checked": true},
+          "By shape": {"enabled": false, "checked": false},
+          "Type": {"enabled": false, "displayed_value": "Double Tatami"},
+          "Spacing": {"enabled": false, "displayed_value": "3.00 mm"},
+          "Length": {"enabled": false, "displayed_value": "4.00 mm"},
+          "Angle": {"enabled": false, "displayed_value": "45 °"},
+          "Backstitch": {"enabled": false, "selected_icon": "first"},
+          "Margins": {
+            "1": {"enabled": false, "displayed_value": "0.20 mm"},
+            "2": {"enabled": false, "displayed_value": "0.20 mm"},
+            "3": {"enabled": false, "displayed_value": "0.20 mm"}
+          }
+        }
+      },
+      "selection_size_mm": "blank",
+      "canvas_location": "vertical stroke of the letter Kaaf",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 1},
+        {"index": 2, "stitches": 318},
+        {"index": 3, "stitches": 323},
+        {"index": 4, "stitches": 186},
+        {"index": 5, "stitches": 114},
+        {"index": 6, "stitches": 154},
+        {"index": 7, "stitches": 167},
+        {"index": 8, "stitches": 709},
+        {"index": 9, "stitches": 80},
+        {"index": 10, "stitches": 121},
+        {"index": 11, "stitches": 166},
+        {"index": 12, "stitches": 327},
+        {"index": 13, "stitches": 153},
+        {"index": 14, "stitches": 67},
+        {"index": 15, "stitches": 69},
+        {"index": 16, "stitches": 324}
+      ]
+    },
+    {
+      "file": "image_21d064.jpg",
+      "active_tab": "Thread Colors"
+    }
+  ],
+  "objects": [
+    {
+      "index": 7,
+      "type": "Manual",
+      "stitches": 167,
+      "tabs_captured": ["Fills", "Underlay", "Pull Comp"],
+      "settings": {
+        "Fills": {
+          "Dropdown": {"enabled": false, "displayed_value": "Satin"},
+          "Stitch values": {
+            "Spacing": {"enabled": false, "displayed_value": "0.24 mm"}
+          },
+          "Auto spacing": {"enabled": false, "checked": true, "Adjust": {"enabled": false, "displayed_value": "90 %"}},
+          "Satin count": {"Adjust": {"enabled": false, "displayed_value": "7"}},
+          "Auto split": {"enabled": false, "checked": true, "Length": {"enabled": false, "displayed_value": "7.00 mm"}, "Min length": {"enabled": false, "displayed_value": "0.40 mm"}}
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          },
+          "Second Underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {"enabled": false, "checked": true, "value": {"enabled": false, "displayed_value": "0.17 mm"}},
+          "Adjust column width": {"enabled": false, "checked": false, "value": {"enabled": false, "displayed_value": "1.00 mm"}}
+        }
+      }
+    },
+    {
+      "index": 13,
+      "type": "Manual",
+      "stitches": 153,
+      "tabs_captured": ["Underlay"],
+      "settings": {
+        "Underlay": {
+          "First underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          },
+          "Second Underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          }
+        }
+      }
+    },
+    {
+      "index": 16,
+      "type": "Manual",
+      "stitches": 324,
+      "tabs_captured": ["Underlay", "Pull Comp"],
+      "settings": {
+        "Underlay": {
+          "First underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          },
+          "Second Underlay": {
+            "enabled": false, "checked": true, "By segment": {"enabled": false, "checked": true}, "By shape": {"enabled": false, "checked": false}, "Type": {"enabled": false, "displayed_value": "Double Tatami"}, "Spacing": {"enabled": false, "displayed_value": "3.00 mm"}, "Length": {"enabled": false, "displayed_value": "4.00 mm"}, "Angle": {"enabled": false, "displayed_value": "45 °"}, "Backstitch": {"enabled": false, "selected_icon": "first"}, "Margins": {"1": {"enabled": false, "displayed_value": "0.20 mm"}, "2": {"enabled": false, "displayed_value": "0.20 mm"}, "3": {"enabled": false, "displayed_value": "0.20 mm"}}
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {"enabled": false, "checked": true, "value": {"enabled": false, "displayed_value": "0.17 mm"}},
+          "Adjust column width": {"enabled": false, "checked": false, "value": {"enabled": false, "displayed_value": "1.00 mm"}}
+        }
+      }
+    }
+  ],
+  "uncertainties": [
+    "Width/Height dimension fields in the top properties toolbar are blank across all object-level screenshots, thus marked as 'blank'.",
+    "All captured object-level settings (Fills, Underlay, Pull Comp) appear universally greyed-out (disabled) because the objects are typed as 'Manual' runs, causing the UI to merely display inactive default/legacy values.",
+    "For the inactive Underlay and Fills parameters, checkboxes contain visible checkmarks despite the entirely disabled state, which is reflected via `\"enabled\": false, \"checked\": true` to honor the exact visual state."
+  ]
+}
+

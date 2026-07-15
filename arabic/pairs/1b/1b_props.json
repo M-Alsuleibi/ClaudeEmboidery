@@ -1,0 +1,595 @@
+{
+  "software": "Ultimate Special Edition",
+  "machine_format": "Tajima",
+  "design": {
+    "tabs_captured": [
+      "DESIGN INFORMATION",
+      "THREAD SEQUENCE",
+      "COLOR-OBJECT LIST"
+    ],
+    "Height": "380.3 mm",
+    "Width": "592.5 mm",
+    "Stitches": "38,225",
+    "Colors": "2",
+    "Trims": "50",
+    "Color changes": "1",
+    "Objects": "331",
+    "Thread Sequence": [
+      {"Stop": 1, "Color": "1", "Element": "Green", "Stitches": "22,...", "Length": "238....", "Color changes": 1, "Name": "Dark Green", "Chart": "Defa...", "Thickness": "A"},
+      {"Stop": 2, "Color": "2", "Element": "Blue", "Stitches": "15,...", "Length": "116....", "Color changes": 2, "Name": "Blue", "Chart": "Defa...", "Thickness": "A"}
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "image_ed97f0.png",
+      "selected_object": {
+        "index": 5,
+        "type": "Column A",
+        "stitches": 1095
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Type": "Satin",
+        "Stitch values": {
+          "Spacing": "0.40 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "green curved mark on the right side of the top line of text",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 39},
+        {"index": 2, "stitches": 11},
+        {"index": 3, "stitches": 520},
+        {"index": 4, "stitches": 11},
+        {"index": 5, "stitches": 1095},
+        {"index": 6, "stitches": 123},
+        {"index": 7, "stitches": 528},
+        {"index": 8, "stitches": 9},
+        {"index": 9, "stitches": 64},
+        {"index": 10, "stitches": 9},
+        {"index": 11, "stitches": 111},
+        {"index": 12, "stitches": 5},
+        {"index": 13, "stitches": 36},
+        {"index": 14, "stitches": 8},
+        {"index": 15, "stitches": 2013},
+        {"index": 16, "stitches": 4}
+      ]
+    },
+    {
+      "file": "image_ed98ab.png",
+      "selected_object": {
+        "index": 5,
+        "type": "Column A",
+        "stitches": 4380
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        },
+        "Second Underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "green curved mark on the right side of the top line of text",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 39},
+        {"index": 2, "stitches": 11},
+        {"index": 3, "stitches": 520},
+        {"index": 4, "stitches": 11},
+        {"index": 5, "stitches": 4380},
+        {"index": 6, "stitches": 123},
+        {"index": 7, "stitches": 528},
+        {"index": 8, "stitches": 9},
+        {"index": 9, "stitches": 64},
+        {"index": 10, "stitches": 9},
+        {"index": 11, "stitches": 111},
+        {"index": 12, "stitches": 5},
+        {"index": 13, "stitches": 36},
+        {"index": 14, "stitches": 8},
+        {"index": 15, "stitches": 2013},
+        {"index": 16, "stitches": 4}
+      ]
+    },
+    {
+      "file": "image_ed98e5.png",
+      "selected_object": {
+        "index": 5,
+        "type": "Column A",
+        "stitches": 4380
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "Second Underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "green curved mark on the right side of the top line of text",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 39},
+        {"index": 2, "stitches": 11},
+        {"index": 3, "stitches": 520},
+        {"index": 4, "stitches": 11},
+        {"index": 5, "stitches": 4380},
+        {"index": 6, "stitches": 123},
+        {"index": 7, "stitches": 528},
+        {"index": 8, "stitches": 9},
+        {"index": 9, "stitches": 64},
+        {"index": 10, "stitches": 9},
+        {"index": 11, "stitches": 111},
+        {"index": 12, "stitches": 5},
+        {"index": 13, "stitches": 36},
+        {"index": 14, "stitches": 8},
+        {"index": 15, "stitches": 2013},
+        {"index": 16, "stitches": 4}
+      ]
+    },
+    {
+      "file": "image_ed9bcd.png",
+      "selected_object": {
+        "index": 5,
+        "type": "Column A",
+        "stitches": 5188
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": true,
+          "value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": true,
+          "value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "green curved mark on the right side of the top line of text",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 39},
+        {"index": 2, "stitches": 11},
+        {"index": 3, "stitches": 520},
+        {"index": 4, "stitches": 11},
+        {"index": 5, "stitches": 5188},
+        {"index": 6, "stitches": 123},
+        {"index": 7, "stitches": 528},
+        {"index": 8, "stitches": 9},
+        {"index": 9, "stitches": 64},
+        {"index": 10, "stitches": 9},
+        {"index": 11, "stitches": 111},
+        {"index": 12, "stitches": 5},
+        {"index": 13, "stitches": 36},
+        {"index": 14, "stitches": 8},
+        {"index": 15, "stitches": 2013},
+        {"index": 16, "stitches": 4}
+      ]
+    },
+    {
+      "file": "image_ed9c6e.png",
+      "selected_object": {
+        "index": 316,
+        "type": "Column A",
+        "stitches": 210
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Type": "Satin",
+        "Stitch values": {
+          "Spacing": "0.50 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "blue vertical stroke on the left side of the bottom text",
+      "object_list_visible_rows": [
+        {"index": 304, "stitches": 32},
+        {"index": 305, "stitches": 204},
+        {"index": 306, "stitches": 5},
+        {"index": 307, "stitches": 36},
+        {"index": 308, "stitches": 3},
+        {"index": 309, "stitches": 1},
+        {"index": 310, "stitches": 53},
+        {"index": 311, "stitches": 12},
+        {"index": 312, "stitches": 101},
+        {"index": 313, "stitches": 12},
+        {"index": 314, "stitches": 199},
+        {"index": 315, "stitches": 20},
+        {"index": 316, "stitches": 210},
+        {"index": 317, "stitches": 2},
+        {"index": 318, "stitches": 10},
+        {"index": 319, "stitches": 2}
+      ]
+    },
+    {
+      "file": "image_edef23.png",
+      "selected_object": {
+        "index": 316,
+        "type": "Column A",
+        "stitches": 813
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        },
+        "Second Underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "blue vertical stroke on the left side of the bottom text",
+      "object_list_visible_rows": [
+        {"index": 304, "stitches": 32},
+        {"index": 305, "stitches": 204},
+        {"index": 306, "stitches": 5},
+        {"index": 307, "stitches": 36},
+        {"index": 308, "stitches": 3},
+        {"index": 309, "stitches": 1},
+        {"index": 310, "stitches": 53},
+        {"index": 311, "stitches": 12},
+        {"index": 312, "stitches": 101},
+        {"index": 313, "stitches": 12},
+        {"index": 314, "stitches": 764},
+        {"index": 315, "stitches": 20},
+        {"index": 316, "stitches": 813},
+        {"index": 317, "stitches": 2},
+        {"index": 318, "stitches": 10}
+      ]
+    },
+    {
+      "file": "image_edef44.png",
+      "selected_object": {
+        "index": 316,
+        "type": "Column A",
+        "stitches": 813
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "Second Underlay": {
+          "enabled": true,
+          "radio": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "blue vertical stroke on the left side of the bottom text",
+      "object_list_visible_rows": [
+        {"index": 304, "stitches": 32},
+        {"index": 305, "stitches": 204},
+        {"index": 306, "stitches": 5},
+        {"index": 307, "stitches": 36},
+        {"index": 308, "stitches": 3},
+        {"index": 309, "stitches": 1},
+        {"index": 310, "stitches": 53},
+        {"index": 311, "stitches": 12},
+        {"index": 312, "stitches": 101},
+        {"index": 313, "stitches": 12},
+        {"index": 314, "stitches": 764},
+        {"index": 315, "stitches": 20},
+        {"index": 316, "stitches": 813},
+        {"index": 317, "stitches": 2},
+        {"index": 318, "stitches": 10},
+        {"index": 319, "stitches": 2}
+      ]
+    },
+    {
+      "file": "image_edf20c.png",
+      "selected_object": {
+        "index": 316,
+        "type": "Column A",
+        "stitches": 813
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": true,
+          "value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": true,
+          "value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "blue vertical stroke on the left side of the bottom text",
+      "object_list_visible_rows": [
+        {"index": 304, "stitches": 32},
+        {"index": 305, "stitches": 204},
+        {"index": 306, "stitches": 5},
+        {"index": 307, "stitches": 36},
+        {"index": 308, "stitches": 3},
+        {"index": 309, "stitches": 1},
+        {"index": 310, "stitches": 53},
+        {"index": 311, "stitches": 12},
+        {"index": 312, "stitches": 101},
+        {"index": 313, "stitches": 12},
+        {"index": 314, "stitches": 764},
+        {"index": 315, "stitches": 20},
+        {"index": 316, "stitches": 813},
+        {"index": 317, "stitches": 2},
+        {"index": 318, "stitches": 10},
+        {"index": 319, "stitches": 2}
+      ]
+    },
+    {
+      "file": "image_edf2a0.png",
+      "selected_object": {
+        "index": 315,
+        "type": "Manual",
+        "stitches": 20
+      },
+      "active_tab": "Special",
+      "settings": {
+        "Type": "Travel run",
+        "Length": "1.00 mm"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "faint blue manual stitch near the left side of the bottom text",
+      "object_list_visible_rows": [
+        {"index": 304, "stitches": 32},
+        {"index": 305, "stitches": 204},
+        {"index": 306, "stitches": 5},
+        {"index": 307, "stitches": 36},
+        {"index": 308, "stitches": 3},
+        {"index": 309, "stitches": 1},
+        {"index": 310, "stitches": 53},
+        {"index": 311, "stitches": 12},
+        {"index": 312, "stitches": 101},
+        {"index": 313, "stitches": 12},
+        {"index": 314, "stitches": 764},
+        {"index": 315, "stitches": 20},
+        {"index": 316, "stitches": 813},
+        {"index": 317, "stitches": 2},
+        {"index": 318, "stitches": 10},
+        {"index": 319, "stitches": 2}
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "index": 5,
+      "type": "Column A",
+      "stitches": 5188,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Type": "Satin",
+          "Stitch values": {
+            "Spacing": "0.40 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": true,
+            "value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": true,
+            "value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": 316,
+      "type": "Column A",
+      "stitches": 813,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Type": "Satin",
+          "Stitch values": {
+            "Spacing": "0.50 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": true,
+            "value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": true,
+            "value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": 315,
+      "type": "Manual",
+      "stitches": 20,
+      "tabs_captured": [
+        "Special"
+      ],
+      "settings": {
+        "Special": {
+          "Type": "Travel run",
+          "Length": "1.00 mm"
+        }
+      }
+    }
+  ],
+  "uncertainties": [
+    "The stitch counts for Objects 5 and 316 dynamically increase across the sequential screenshots, directly correlating with the activation of heavy underlay (Double Tatami) and pull compensation settings.",
+    "Selection size (Width/Height) in the top toolbar was unreadable across all object-level screenshots due to the fields displaying \"100.0%\" scale instead of absolute dimensions in millimeters.",
+    "The total stitch count at the very top of the Color-Object list is partially cut off or obscured in some of the later screenshots, but the final Design Information panel confirms the total stitch count as 38,225.",
+    "Object 314's stitch count jumps dynamically in the background between images (from 199 to 764 stitches) without being the selected object, indicating bulk edits or cascading property application."
+  ]
+}
+

@@ -1,0 +1,581 @@
+{
+  "software": "(Ultimate Special Edition) - [Design1    Tajima]",
+  "machine_format": "Tajima",
+  "design": {},
+  "screenshots": [
+    {
+      "file": "image_ee6e66.png",
+      "selected_object": {
+        "index": null,
+        "type": "141 objects selected",
+        "stitches": null
+      },
+      "active_tab": "Connectors",
+      "settings": {
+        "Dropdown": "After object",
+        "Jump": {
+          "enabled": true,
+          "displayed_value": "7.0 mm"
+        },
+        "Run": {
+          "enabled": false,
+          "displayed_value": "12.1 mm"
+        },
+        "Trim after": {
+          "Off": true,
+          "Always": false,
+          "If next connector >": {
+            "enabled": false,
+            "displayed_value": "6.00 mm"
+          }
+        },
+        "Tie in": {
+          "Dropdown": "Off",
+          "Off": {
+            "enabled": true,
+            "displayed_value": null
+          },
+          "Always tie in": {
+            "enabled": false,
+            "displayed_value": null
+          },
+          "After trim / CC": {
+            "enabled": false,
+            "displayed_value": null
+          },
+          "Previous connector >": {
+            "enabled": false,
+            "displayed_value": "3.00 mm"
+          }
+        },
+        "Length": "1.00 mm",
+        "Number": "2"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "entire design selected",
+      "object_list_visible_rows": [
+        {"index": 126, "stitches": 9},
+        {"index": 127, "stitches": 37},
+        {"index": 128, "stitches": 6},
+        {"index": 129, "stitches": 171},
+        {"index": 130, "stitches": 9},
+        {"index": 131, "stitches": 46},
+        {"index": 132, "stitches": 57},
+        {"index": 133, "stitches": 746},
+        {"index": 134, "stitches": 2},
+        {"index": 135, "stitches": 1},
+        {"index": 136, "stitches": 3},
+        {"index": 137, "stitches": 2},
+        {"index": 138, "stitches": 87},
+        {"index": 139, "stitches": 18},
+        {"index": 140, "stitches": 129},
+        {"index": 141, "stitches": 2}
+      ]
+    },
+    {
+      "file": "image_ee6ee7.png",
+      "selected_object": {
+        "index": 12,
+        "type": "Manual",
+        "stitches": 66
+      },
+      "active_tab": "Special",
+      "settings": {
+        "Dropdown": "Travel run",
+        "Length": "1.00 mm"
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "rightmost vertical stroke of the central calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 153},
+        {"index": 2, "stitches": 4},
+        {"index": 3, "stitches": 194},
+        {"index": 4, "stitches": 1},
+        {"index": 5, "stitches": 1},
+        {"index": 6, "stitches": 4},
+        {"index": 7, "stitches": 199},
+        {"index": 8, "stitches": 5},
+        {"index": 9, "stitches": 25},
+        {"index": 10, "stitches": 2},
+        {"index": 11, "stitches": 15},
+        {"index": 12, "stitches": 66},
+        {"index": 13, "stitches": 514},
+        {"index": 14, "stitches": 4},
+        {"index": 15, "stitches": 1},
+        {"index": 16, "stitches": 144}
+      ]
+    },
+    {
+      "file": "image_ee71ae.png",
+      "selected_object": {
+        "index": 13,
+        "type": "Column A",
+        "stitches": 514
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": "Satin",
+        "Stitch values": {
+          "Spacing": "0.40 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curved stroke on the right side of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 12, "stitches": 66},
+        {"index": 13, "stitches": 514},
+        {"index": 14, "stitches": 4},
+        {"index": 15, "stitches": 1},
+        {"index": 16, "stitches": 144}
+      ]
+    },
+    {
+      "file": "image_ee7204.png",
+      "selected_object": {
+        "index": 13,
+        "type": "Column A",
+        "stitches": 1753
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Second Underlay": {
+          "enabled": true,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curved stroke on the right side of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 12, "stitches": 66},
+        {"index": 13, "stitches": 1753},
+        {"index": 14, "stitches": 4},
+        {"index": 15, "stitches": 1},
+        {"index": 16, "stitches": 144}
+      ]
+    },
+    {
+      "file": "image_ee7226.png",
+      "selected_object": {
+        "index": 13,
+        "type": "Column A",
+        "stitches": 1753
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "Second Underlay": {
+          "enabled": true,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curved stroke on the right side of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 12, "stitches": 66},
+        {"index": 13, "stitches": 1753},
+        {"index": 14, "stitches": 4},
+        {"index": 15, "stitches": 1},
+        {"index": 16, "stitches": 144}
+      ]
+    },
+    {
+      "file": "image_ee7280.png",
+      "selected_object": {
+        "index": 13,
+        "type": "Column A",
+        "stitches": 1753
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curved stroke on the right side of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 12, "stitches": 66},
+        {"index": 13, "stitches": 1753},
+        {"index": 14, "stitches": 4},
+        {"index": 15, "stitches": 1},
+        {"index": 16, "stitches": 144}
+      ]
+    },
+    {
+      "file": "image_ee72c6.png",
+      "selected_object": {
+        "index": 119,
+        "type": "Column A",
+        "stitches": 436
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": "Satin",
+        "Stitch values": {
+          "Spacing": "0.45 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "short wavy stroke at the bottom left of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 117, "stitches": 210},
+        {"index": 118, "stitches": 119},
+        {"index": 119, "stitches": 436},
+        {"index": 120, "stitches": 18},
+        {"index": 121, "stitches": 114},
+        {"index": 122, "stitches": 5},
+        {"index": 123, "stitches": 362}
+      ]
+    },
+    {
+      "file": "image_ee7590.png",
+      "selected_object": {
+        "index": 119,
+        "type": "Column A",
+        "stitches": 989
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "short wavy stroke at the bottom left of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 117, "stitches": 210},
+        {"index": 118, "stitches": 119},
+        {"index": 119, "stitches": 989},
+        {"index": 120, "stitches": 18},
+        {"index": 121, "stitches": 114}
+      ]
+    },
+    {
+      "file": "image_ee75ca.png",
+      "selected_object": {
+        "index": 119,
+        "type": "Column A",
+        "stitches": 1447
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "Second Underlay": {
+          "enabled": true,
+          "displayed_value": {
+            "radio": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "short wavy stroke at the bottom left of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 117, "stitches": 210},
+        {"index": 118, "stitches": 119},
+        {"index": 119, "stitches": 1447},
+        {"index": 120, "stitches": 18},
+        {"index": 121, "stitches": 114}
+      ]
+    },
+    {
+      "file": "image_ee7605.png",
+      "selected_object": {
+        "index": 119,
+        "type": "Column A",
+        "stitches": 1447
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": false,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "short wavy stroke at the bottom left of the calligraphy cluster",
+      "object_list_visible_rows": [
+        {"index": 117, "stitches": 210},
+        {"index": 118, "stitches": 119},
+        {"index": 119, "stitches": 1447},
+        {"index": 120, "stitches": 18},
+        {"index": 121, "stitches": 114}
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "index": 12,
+      "type": "Manual",
+      "stitches": 66,
+      "tabs_captured": [
+        "Special"
+      ],
+      "settings": {
+        "Special": {
+          "Dropdown": "Travel run",
+          "Length": "1.00 mm"
+        }
+      }
+    },
+    {
+      "index": 13,
+      "type": "Column A",
+      "stitches": 1753,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Dropdown": "Satin",
+          "Stitch values": {
+            "Spacing": "0.40 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "displayed_value": {
+              "radio": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "displayed_value": {
+              "radio": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": 119,
+      "type": "Column A",
+      "stitches": 1447,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Dropdown": "Satin",
+          "Stitch values": {
+            "Spacing": "0.45 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "displayed_value": {
+              "radio": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "displayed_value": {
+              "radio": "By segment",
+              "Type": "Double Tatami",
+              "Spacing": "3.00 mm",
+              "Length": "4.00 mm",
+              "Angle": "45 °",
+              "Margins": {
+                "1": "0.20 mm",
+                "2": "0.20 mm",
+                "3": "0.20 mm"
+              }
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    }
+  ],
+  "uncertainties": [
+    "The stitch counts for Object 13 and Object 119 change across the screenshot sequence, reflecting active editing. The final, highest stitch count recorded is used in the merged objects view.",
+    "The 'Connectors' screenshot does not have a single object selected; it has 141 objects selected. Consequently, it could not be merged into the single-object list.",
+    "Dimensions for the selected items (X/Y position and Width/Height) were not clearly populated in the application toolbar, returning 'unreadable'."
+  ]
+}
+
