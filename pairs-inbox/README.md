@@ -42,3 +42,13 @@ Notes:
   printed scores and move the folder if the call is wrong.
 - A lone `.svg` or `.vp3` without its partner is skipped with a warning — a pair
   needs both.
+
+## Trios — authored Object Properties (optional third element)
+
+A pair can become a **trio** by adding `<design>-props.json`: the digitizer's actual
+Wilcom Object Properties settings, transcribed from screenshots via the fixed prompt
+in [`GEMINI-PROPS-PROMPT.md`](GEMINI-PROPS-PROMPT.md) (screenshot protocol included
+there). `ingest_pairs.py` files it into the pair folder automatically and
+`build_pair_priors.py` aggregates the authored values, flagging disagreements with
+the stitch-inferred numbers. Name files by style when known (e.g.
+`thuluth-basmala-1.svg`) so per-style priors can split later.
