@@ -1,5 +1,6 @@
 # Memory index
 
+- [Arabic: --no-outline-objects](arabic-no-outline-objects.md) — Arabic runs MUST pass --no-outline-objects; the auto-on satin border wraps contour_fills = the "outline-satin + fill" hybrid the user rejects; forcing full satin fragments cursive (coverage 90→70%)
 - [AI digitizer repo](ai-digitizer-repo.md) — sibling repo ~/Projects/wilcom-ai-digitizer (photo→.vp3 AI); hybrid learn-the-decisions + variable-width satin; blocked on paired (artwork,.vp3) data; new-wilcom-v1 = its renderer/eval harness
 
 - [Orchestrator skill](orchestrator-skill.md) — single front-door skill (supersedes photo-to-vp3): any-format normalize + iterate-to-faithful; venv has pillow-heif/cairosvg

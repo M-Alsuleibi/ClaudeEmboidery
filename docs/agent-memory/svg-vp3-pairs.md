@@ -83,7 +83,18 @@ Arabic calligraphy (`arabic/pairs/1b,2,6,7`, reg RMS 0.12–0.17mm — tightest 
 now n=5, **crossover 3.6mm, satin-w 1.04/2.45/6.4, o:f 0.90 — arabic ground truth now CONTAINS
 fill objects** (1b/2 fill-heavy), not the old all-satin picture. Fingerprint mis-called 1/2 as
 "numbers" → always eyeball ambiguous calls, use `--category` override. Stem collisions: inbox "1"
-≠ existing arabic/pairs/1 → renamed 1b (script skips, never overwrites). **Trios 3/4/5 parked in
-`pairs-inbox/needs-reexport/`** (SVG exports incomplete: 10/3/1 stroke-only paths, design missing)
-— awaiting user re-export from CorelDRAW; ingest scans inbox TOP LEVEL only, so subfolders are
-safe parking.
+≠ existing arabic/pairs/1 → renamed 1b (script skips, never overwrites). Ingest scans inbox TOP
+LEVEL only, so subfolders (`pairs-inbox/needs-reexport/`) are safe parking.
+
+**Trios 3/4 ingested 2026-07-16; 5 KEPT PARKED** (user refined all three props JSONs; SVGs
+unchanged = CorelDRAW **stitch-wireframe** exports, stroke-only `fill:none` polylines of the
+stitch path itself, not filled artwork). Rule learned: **wireframe SVGs register fine** — the
+SVG *is* the stitch trace (ICP RMS 0.51–0.52mm on 3/4) and satin_w/stitch_kind come from real
+VP3 stitches in the object masks = genuine but COARSE truth (few giant compound paths, zero
+fill-family objects). BUT a wireframe that's only a FRAGMENT of the design (5: bottom rosette
+only, roundel missing) yields measures from a wrong mask → NOT ground truth; user re-exports
+5's artwork SVG later — its refined `5-props.json` + VP3 wait in `pairs-inbox/needs-reexport/`
+to re-drop as a full trio. Arabic after 3/4: measures n=7, satin-w 1.03/2.45/6.4, crossover 3.6
+(stable); authored n=7, fill spacing 0.45, pull-comp 0.17 (n=7). Oddity: 3-props Design tab
+says 8,618 stitches vs 5,545 in 3.VP3 (dims match) — a props screenshot can predate the VP3
+export state.
