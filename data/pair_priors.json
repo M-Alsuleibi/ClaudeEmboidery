@@ -1,34 +1,34 @@
 {
  "arabic": {
-  "n_pairs": 5,
-  "n_objects": 1171,
+  "n_pairs": 7,
+  "n_objects": 1184,
   "satin_w_mm": {
-   "p10": 1.038,
-   "med": 2.45,
+   "p10": 1.025,
+   "med": 2.445,
    "p90": 6.4,
-   "n": 543
+   "n": 556
   },
   "crossover_mm": 3.6,
   "fill_density_st_mm2": 2.73,
   "row_spacing_mm": 0.79,
-  "outline_to_fill": 0.901,
+  "outline_to_fill": 0.922,
   "authored": {
-   "n_designs": 5,
-   "n_objects": 15,
+   "n_designs": 7,
+   "n_objects": 19,
    "fill_spacing_mm": {
-    "med": 0.475,
-    "n": 10
+    "med": 0.45,
+    "n": 14
    },
    "fill_length_mm": {
-    "med": 6.6,
-    "n": 10
+    "med": 7.0,
+    "n": 14
    },
-   "pull_comp_disabled_frac": 0.727,
+   "pull_comp_disabled_frac": 0.533,
    "pull_comp_mm": {
     "med": 0.17,
-    "n": 3
+    "n": 7
    },
-   "underlay_disabled_frac": 0.92
+   "underlay_disabled_frac": 0.887
   }
  },
  "anime": {

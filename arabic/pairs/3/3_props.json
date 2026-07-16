@@ -1,0 +1,592 @@
+{
+  "software": "(Ultimate Special Edition)",
+  "machine_format": "Tajima",
+  "design": {
+    "tabs_captured": [
+      "Design"
+    ],
+    "settings": {
+      "SECTION A: GENERAL DESIGN INFORMATION": {
+        "Title": "",
+        "Height": "109.3 mm",
+        "Width": "144.6 mm",
+        "Stitches": "8,618",
+        "Colors": "1",
+        "Stops": "1"
+      },
+      "SECTION B: THREAD COLOR DETAILS": {
+        "Filename": "",
+        "Stitches": "8,616 Stitches",
+        "Color chart list": "Stop: 1, Color: 1, Element: [unreadable], Stitches: 8,616, Name: Dark Green, Chart: Default"
+      },
+      "SECTION C: STITCHING PARAMETERS": {
+        "Design area": "15,806.4 mm²",
+        "Total thread": "44.63 m",
+        "Total bobbin": "16.17 m",
+        "From start point ...": {
+          "Left": "124.8 mm",
+          "Right": "19.8 mm",
+          "Maximum stitch": "11.2 mm",
+          "Down": "477.6 mm",
+          "Minimum stitch": "0.1 mm",
+          "End X": "-80.2 mm",
+          "Jump length": "6.9 mm",
+          "End Y": "10.9 mm"
+        }
+      }
+    }
+  },
+  "screenshots": [
+    {
+      "file": "image_959c23.png",
+      "selected_object": {
+        "index": 32,
+        "type": "Column A",
+        "stitches": 193
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": "Satin",
+        "Stitch values": {
+          "Spacing": "0.50 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Settings...": "disabled",
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "small mark in upper middle-right",
+      "object_list_visible_rows": [
+        {"index": 28, "stitches": 37},
+        {"index": 29, "stitches": 8},
+        {"index": 30, "stitches": 3},
+        {"index": 31, "stitches": 9},
+        {"index": 32, "stitches": 193},
+        {"index": 33, "stitches": 6},
+        {"index": 34, "stitches": 42},
+        {"index": 35, "stitches": 2},
+        {"index": 36, "stitches": 3},
+        {"index": 37, "stitches": 2},
+        {"index": 38, "stitches": 12},
+        {"index": 39, "stitches": 35},
+        {"index": 40, "stitches": 2},
+        {"index": 41, "stitches": 3},
+        {"index": 42, "stitches": 3}
+      ]
+    },
+    {
+      "file": "image_959c80.jpg",
+      "selected_object": {
+        "index": 32,
+        "type": "Column A",
+        "stitches": 574
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "radio_selection": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Backstitch": "icon 1 selected",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        },
+        "Second Underlay": {
+          "enabled": true,
+          "radio_selection": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "small mark in upper middle-right",
+      "object_list_visible_rows": [
+        {"index": 28, "stitches": 37},
+        {"index": 29, "stitches": 8},
+        {"index": 30, "stitches": 3},
+        {"index": 31, "stitches": 9},
+        {"index": 32, "stitches": 574},
+        {"index": 33, "stitches": 6},
+        {"index": 34, "stitches": 42},
+        {"index": 35, "stitches": 2},
+        {"index": 36, "stitches": 3},
+        {"index": 37, "stitches": 2},
+        {"index": 38, "stitches": 12},
+        {"index": 39, "stitches": 35},
+        {"index": 40, "stitches": 2},
+        {"index": 41, "stitches": 3},
+        {"index": 42, "stitches": 3}
+      ]
+    },
+    {
+      "file": "image_959cbc.jpg",
+      "selected_object": {
+        "index": 32,
+        "type": "Column A",
+        "stitches": 574
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "Second Underlay": {
+          "enabled": true,
+          "radio_selection": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Backstitch": "icon 1 selected",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "small mark in upper middle-right",
+      "object_list_visible_rows": [
+        {"index": 28, "stitches": 37},
+        {"index": 29, "stitches": 8},
+        {"index": 30, "stitches": 3},
+        {"index": 31, "stitches": 9},
+        {"index": 32, "stitches": 574},
+        {"index": 33, "stitches": 6},
+        {"index": 34, "stitches": 42},
+        {"index": 35, "stitches": 2},
+        {"index": 36, "stitches": 3},
+        {"index": 37, "stitches": 2},
+        {"index": 38, "stitches": 12},
+        {"index": 39, "stitches": 35},
+        {"index": 40, "stitches": 2},
+        {"index": 41, "stitches": 3},
+        {"index": 42, "stitches": 3}
+      ]
+    },
+    {
+      "file": "image_959cf9.png",
+      "selected_object": {
+        "index": 32,
+        "type": "Column A",
+        "stitches": 528
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": true,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "small mark in upper middle-right",
+      "object_list_visible_rows": [
+        {"index": 28, "stitches": 37},
+        {"index": 29, "stitches": 8},
+        {"index": 30, "stitches": 3},
+        {"index": 31, "stitches": 9},
+        {"index": 32, "stitches": 528},
+        {"index": 33, "stitches": 6},
+        {"index": 34, "stitches": 42},
+        {"index": 35, "stitches": 2},
+        {"index": 36, "stitches": 3},
+        {"index": 37, "stitches": 2},
+        {"index": 38, "stitches": 12},
+        {"index": 39, "stitches": 35},
+        {"index": 40, "stitches": 2},
+        {"index": 41, "stitches": 3},
+        {"index": 42, "stitches": 3}
+      ]
+    },
+    {
+      "file": "image_959fc4.png",
+      "selected_object": {
+        "index": 74,
+        "type": "Column A",
+        "stitches": 1318
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": "Satin",
+        "Stitch values": {
+          "Spacing": "0.45 mm"
+        },
+        "Auto spacing": {
+          "enabled": false,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Settings...": "disabled",
+        "Satin count": {
+          "Adjust": "1"
+        },
+        "Auto split": {
+          "enabled": false,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curving letter on the right",
+      "object_list_visible_rows": [
+        {"index": 63, "stitches": 10},
+        {"index": 64, "stitches": 110},
+        {"index": 65, "stitches": 6},
+        {"index": 66, "stitches": 91},
+        {"index": 67, "stitches": 5},
+        {"index": 68, "stitches": 108},
+        {"index": 69, "stitches": 104},
+        {"index": 70, "stitches": 380},
+        {"index": 71, "stitches": 7},
+        {"index": 72, "stitches": 7},
+        {"index": 73, "stitches": 3},
+        {"index": 74, "stitches": 1318},
+        {"index": 75, "stitches": 13},
+        {"index": 76, "stitches": 7},
+        {"index": 77, "stitches": 3},
+        {"index": 78, "stitches": 120}
+      ]
+    },
+    {
+      "file": "image_95a006.jpg",
+      "selected_object": {
+        "index": 74,
+        "type": "Column A",
+        "stitches": 2712
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "radio_selection": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Backstitch": "icon 1 selected",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        },
+        "Second Underlay": {
+          "enabled": false,
+          "displayed_value": {
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curving letter on the right",
+      "object_list_visible_rows": [
+        {"index": 63, "stitches": 10},
+        {"index": 64, "stitches": 110},
+        {"index": 65, "stitches": 6},
+        {"index": 66, "stitches": 91},
+        {"index": 67, "stitches": 5},
+        {"index": 68, "stitches": 108},
+        {"index": 69, "stitches": 104},
+        {"index": 70, "stitches": 380},
+        {"index": 71, "stitches": 7},
+        {"index": 72, "stitches": 7},
+        {"index": 73, "stitches": 3},
+        {"index": 74, "stitches": 2712},
+        {"index": 75, "stitches": 13},
+        {"index": 76, "stitches": 7},
+        {"index": 77, "stitches": 3},
+        {"index": 78, "stitches": 120}
+      ]
+    },
+    {
+      "file": "image_95a081.jpg",
+      "selected_object": {
+        "index": 74,
+        "type": "Column A",
+        "stitches": 3995
+      },
+      "active_tab": "Underlay",
+      "settings": {
+        "First underlay": {
+          "enabled": true,
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        },
+        "Second Underlay": {
+          "enabled": true,
+          "radio_selection": "By segment",
+          "Type": "Double Tatami",
+          "Spacing": "3.00 mm",
+          "Length": "4.00 mm",
+          "Angle": "45 °",
+          "Backstitch": "icon 1 selected",
+          "Margins": {
+            "1": "0.20 mm",
+            "2": "0.20 mm",
+            "3": "0.20 mm"
+          }
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curving letter on the right",
+      "object_list_visible_rows": [
+        {"index": 63, "stitches": 10},
+        {"index": 64, "stitches": 110},
+        {"index": 65, "stitches": 6},
+        {"index": 66, "stitches": 91},
+        {"index": 67, "stitches": 5},
+        {"index": 68, "stitches": 108},
+        {"index": 69, "stitches": 104},
+        {"index": 70, "stitches": 380},
+        {"index": 71, "stitches": 7},
+        {"index": 72, "stitches": 7},
+        {"index": 73, "stitches": 3},
+        {"index": 74, "stitches": 3995},
+        {"index": 75, "stitches": 13},
+        {"index": 76, "stitches": 7},
+        {"index": 77, "stitches": 3},
+        {"index": 78, "stitches": 120}
+      ]
+    },
+    {
+      "file": "image_95a0bd.png",
+      "selected_object": {
+        "index": 74,
+        "type": "Column A",
+        "stitches": 4002
+      },
+      "active_tab": "Pull Comp",
+      "settings": {
+        "Pull compensation": {
+          "enabled": true,
+          "displayed_value": "0.17 mm"
+        },
+        "Adjust column width": {
+          "enabled": false,
+          "displayed_value": "1.00 mm"
+        }
+      },
+      "selection_size_mm": "unreadable",
+      "canvas_location": "large curving letter on the right",
+      "object_list_visible_rows": [
+        {"index": 63, "stitches": 10},
+        {"index": 64, "stitches": 110},
+        {"index": 65, "stitches": 6},
+        {"index": 66, "stitches": 91},
+        {"index": 67, "stitches": 5},
+        {"index": 68, "stitches": 108},
+        {"index": 69, "stitches": 104},
+        {"index": 70, "stitches": 380},
+        {"index": 71, "stitches": 7},
+        {"index": 72, "stitches": 7},
+        {"index": 73, "stitches": 3},
+        {"index": 74, "stitches": 4002},
+        {"index": 75, "stitches": 13},
+        {"index": 76, "stitches": 7},
+        {"index": 77, "stitches": 3},
+        {"index": 78, "stitches": 120}
+      ]
+    },
+    {
+      "file": "image_95a7fe.jpg",
+      "design": {
+        "tabs_captured": [
+          "Design"
+        ]
+      }
+    }
+  ],
+  "objects": [
+    {
+      "index": 32,
+      "type": "Column A",
+      "stitches": 528,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Dropdown": "Satin",
+          "Stitch values": {
+            "Spacing": "0.50 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Settings...": "disabled",
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": true,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": 74,
+      "type": "Column A",
+      "stitches": 4002,
+      "tabs_captured": [
+        "Fills",
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Fills": {
+          "Dropdown": "Satin",
+          "Stitch values": {
+            "Spacing": "0.45 mm"
+          },
+          "Auto spacing": {
+            "enabled": false,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Settings...": "disabled",
+          "Satin count": {
+            "Adjust": "1"
+          },
+          "Auto split": {
+            "enabled": false,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": true,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    }
+  ],
+  "uncertainties": [
+    "Stitch counts for Object 32 fluctuate across its screenshots (193, 574, 528 stitches), indicating active digitizing parameter adjustments were occurring during capture.",
+    "Stitch counts for Object 74 also fluctuate drastically (1318, 2712, 3995, 4002 stitches) as underlying settings are toggled.",
+    "For Object 74, Image 6 shows 'Second Underlay' unchecked, while Image 7 shows it checked. The merged object view prioritizes the enabled settings from Image 7.",
+    "Selection size fields (Width/Height mm) in the top toolbar are visually truncated or unreadable across all object-level screenshots."
+  ]
+}
+

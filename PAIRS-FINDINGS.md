@@ -150,6 +150,8 @@ pipeline can safely default from.
 | 2 | arabic | 68 | 62 | 0.91 | 0 | 207.3 | 100.0 | 5.1 |
 | 6 | arabic | 59 | 80 | 1.36 | 1 | 165.4 | 100.0 | 2.4 |
 | 7 | arabic | 81 | 109 | 1.35 | 1 | 140.0 | 100.0 | 2.02 |
+| 3 | arabic | 0 | 10 | 10.0 | 1 | 144.6 | 100.0 | 2.55 |
+| 4 | arabic | 0 | 3 | 3.0 | 1 | 147.7 | 100.0 | 4.7 |
 
 ### Falahi — new category (n = 11), Palestinian tatreez cross-stitch
 
@@ -206,3 +208,26 @@ Registrations are the tightest yet: trimmed RMS **0.12–0.17 mm** on all four.
   unfilled paths; 4: 3 paths; 5: one stroke on an empty A4 page, roundel missing vs its
   VP3). Parked in `pairs-inbox/needs-reexport/` awaiting re-export; their props.json and
   VP3s are there too, ready to re-drop.
+
+### Trios 3 and 4 ingested (refined props; wireframe SVGs accepted); 5 stays parked
+
+The user refined the three `-props.json` transcriptions; the SVGs are unchanged — they are
+**stitch-wireframe exports** (the CorelDRAW page holds the stitch polylines, stroke-only
+`fill:none`, not the filled artwork). Rendered against their VP3s: 3 and 4 carry the FULL
+design as wireframe; 5's SVG holds only the bottom rosette/signature fragment of its roundel.
+
+- **Wireframe SVGs register fine** — the SVG *is* the stitch trace, so trimmed-ICP locks on
+  (RMS 0.51–0.52 mm for 3/4) and `stitch_kind`/`satin_w_mm` come from the real VP3 stitches
+  inside each object mask: genuine ground truth, just COARSE (3 → 10 giant compound paths,
+  4 → 3), with no fill-family objects (everything parses as outline, o:f rows above read 0
+  fills). All-satin verdicts, satin-w medians 0.36–3.56 mm (3) and 3.24–4.89 mm (4).
+- **Trio 5 stays in `pairs-inbox/needs-reexport/`** — its fragment SVG registered (RMS 0.60)
+  but the single object mask mixes the rosette with cross-design connector lines, so the
+  registration measures aren't trustworthy. The user will re-export 5's real artwork SVG;
+  its refined `5-props.json` + VP3 are parked beside it, ready to re-drop as a full trio.
+- Arabic priors after: measures n_pairs 5 → **7**, satin-w 1.03/2.45/6.4 (unchanged shape),
+  crossover stays **3.6 mm**; authored n_designs 5 → **7**, fill spacing med 0.475 → 0.45 mm,
+  pull-comp med 0.17 mm (n 3 → 7), pull-comp-disabled 0.73 → 0.53, underlay-disabled 0.92 → 0.89.
+- Oddity: 3's props Design tab claims **8,618 stitches** but 3.VP3 holds 5,545 commands
+  (4 and 5 match within ~3 %) — the screenshot may predate the exported VP3 state; the
+  per-object settings still correspond (dims match 144.6 × 109.3 mm).
