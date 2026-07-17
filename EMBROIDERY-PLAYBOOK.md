@@ -210,23 +210,35 @@ disjoint piece trims. Drop these only when a recipe says so.
   (77–79 % turn-angle reversals in every reference). Decoration above/under/around is *the
   same black satin* — just more pieces.
 - **Palette:** 1 (`--colors 1`). **Size:** horizontal phrase 140–165 mm; stacked/round
-  composition (Basmala) ~117 mm tall. **Satin band:** 1.8–2.5 mm. **Areal density to
-  match:** 0.4–0.8 st/mm² (satin script is *sparse*).
+  composition (Basmala) ~117 mm tall. **Satin band:** 0.8–3.5 mm, median 1.75 (the arb
+  pair prior; the older screenshot estimate was 1.8–2.5). **Areal density to
+  match:** 0.4–0.8 st/mm² (satin script is *sparse*; the arb reference sews 0.68).
 - **Sew order:** enclosing **frame / cartouche first** (it's the background) → main word
   strokes → connecting strokes → **tashkeel / dots / florets last**.
-- **Flags — the Arabic levers:**
-  - **`--fill-method contour_fill`** — *mandatory.* Arabic is thin and sprawling;
-    auto_fill over-stitches and **hangs** on it. contour_fill follows the stroke, landing
-    density almost exactly on the reference.
+- **Flags — the Arabic levers (post-arb-trio, 2026-07):**
+  - **All-satin is AUTOMATIC.** The arb trio (`arabic/pairs/arb/`) proved production
+    Arabic is 100 % satin columns with zero fills, and the `satin_only` pair prior now
+    drives step 5 by itself: every region — dots, letter heads, broad merged bands —
+    becomes vwidth / turning-satin columns at the authored auto-spacing (0.24 mm @ 90 %,
+    opening to the manual median on wide columns), with the authored underlay/pull-comp/
+    trim-after settings applied. **Do NOT pass `--fill-method contour_fill`** — that was
+    the pre-trio recipe; a contour_fill core reads as fill structure production never
+    sews (and the old "auto_fill hangs on calligraphy" problem is gone because nothing
+    fills any more). No `--satin-lean` needed either.
+  - **`--no-outline-objects`** — still required: the auto-on satin border is double
+    structure production never uses on script.
   - **`--purify-colors`** — snaps the near-black ink to pure `(0,0,0)` (else trace edges
     average to a poor off-black ~`(37,37,37)`).
   - **Input must be crisp pure-black-on-white** — a soft scan / JPEG ringing spawns a
     phantom gray cone. Threshold first.
-  - For **fine tashkeel**, lower `--pull-comp-mm 0.05` (and/or `--no-fill-underlay`) so
-    thin marks don't read heavier than the art.
-- **Honest limit:** connected cursive **cannot** be made all-satin by a tracer without
-  fragmenting; contour_fill gets the *look* and *density*, not the master's variable-width
-  hand satin. Tips clip ~1 mm (coverage ~85–90 % at extremities, ~98 % in the bulk).
+  - Trims land at **colour changes only** (authored Connectors: Jump / Trim after Off /
+    Tie in Off — the reference sews 46k stitches with 2 trims; long connectors stay
+    draped threads the operator scissors, encoded as plain long stitch movements
+    exactly like the reference VP3's 275 mm connector).
+- **Honest limit:** the tracer still can't reproduce the master's per-stroke dissection —
+  merged strokes sweep as one column (fatter than the hand-digitized 1.75 mm median), so
+  local thread stacking runs above the reference even though the fingerprint matches.
+  Tips clip ~1 mm (coverage ~85–90 % at extremities, ~98 % in the bulk).
 
 ### 2.3 3D geometric solids ⭐
 
@@ -377,7 +389,7 @@ editable intermediate; the final licensed `.emb` / tidy pass is Phase B.
 | `--width-mm` / `--height-mm` | — (one **required**) | Target size; the other dimension follows the aspect ratio. Sets stroke widths → pick so satins land in band (§0c). |
 | `--colors N` | 8 | Threads to quantize to. Letters/Arabic/shapes **1–4**; anime **8–12**. |
 | `--thread-chart` | `madeira-polyneon` | `madeira-polyneon` for muted art / calligraphy; **`isacord` for bright clean primaries** (shapes — Madeira lacks pure blue). |
-| `--fill-method` | `auto_fill` | `auto_fill` for compact shapes; **`contour_fill` for thin sprawling regions** (calligraphy, swirls, long borders — auto_fill over-stitches / hangs); `meander_fill`/`guided_fill`/`circular_fill` special. |
+| `--fill-method` | `auto_fill` | `auto_fill` for compact shapes; **`contour_fill` for thin sprawling regions** (swirls, long borders — auto_fill over-stitches / hangs); `meander_fill`/`guided_fill`/`circular_fill` special. **Not for a satin_only-prior category (Arabic):** those sew zero fills, so the flag is moot — never pass `contour_fill` there. |
 | `--lettering` | off | Block/typeset glyphs: satin the strokes (dissect glyphs), raise satin ceiling, **snap inks to pure**. **Shatters cursive — don't.** Implies `--purify-colors`. |
 | `--purify-colors` | off | Colour snap only (near-pure → pure, custom kept verbatim), **no dissection**. Use for mixed caps+cursive and Arabic. |
 | `--open-counters` / `--no-open-counters` | auto (on for letter modes) | Drop ink-*enclosed* page-coloured regions (hole in e/B/g/0) to background so they read through. |
@@ -499,7 +511,7 @@ shading trick creates the illusion"** (§0). A new category is just a new answer
 |---|---|---|---|---|---|---|---|---|
 | **Letters (block)** | satin (filled-face) | keyline/3-D edge first | 1–4 | strokes ~2–4 mm (word 90–120, phrase 140–165) | madeira / isacord | auto | **`--lettering`** | keyline → faces → script → outline last |
 | **Letters (cursive/ornate/mixed)** | satin / fills | — | 1–4 | 90–165 | madeira | auto (or **contour** for brush) | **`--purify-colors`** (NOT `--lettering`) | back-to-front |
-| **Arabic** | satin script | sparse pen satin | **1 (black)** | phrase 140–165 / round ~117 | madeira | **`contour_fill`** | **`--purify-colors`** | frame → words → diacritics last |
+| **Arabic** | **100 % satin columns** (satin_only prior drives it) | sparse pen satin | **1 (black)** | phrase 140–165 / round ~117 | madeira | **auto** (all-satin — never `contour_fill`, pre-trio recipe) | **`--purify-colors --no-outline-objects`** | frame → words → diacritics last; trims at colour changes only |
 | **3D solid** | tatami facets | **distinct angle/facet** + shade | small | facets fill cleanly | — | tatami (author SVG) | **build, don't trace** | ground → back → front → wireframe last |
 | **Anime/portrait** | tatami fills + **shadow satins** | directional shadow/highlight satins | **8–12** | ≥ ~120 mm | default | auto | default, high `--colors` | fills → shadows → outlines → hair → eyes last |
 | **Simple shapes** | fill (body) + satin (ribbon) + run | clean flat silhouette | 1–4 | icon 25–40 / set 120–165 | **isacord** | auto (**contour** for swirls) | purify **only** pure primaries | frame → bodies → highlights/connectors last |

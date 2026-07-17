@@ -18,6 +18,49 @@ Template:
 
 ---
 
+## 2026-07-17 — arabic — rebuild drifted from the arb trio (93% satin, 33 trims, 37k stitches vs 100%/2/46k)
+- **Stage:** step 5 (tiering gates + travel planner) and step 7 (drift bands)
+- **Mechanism:** five generic gates blocked convergence on the trio truth: ① the
+  satin-lean path needed the `--satin-lean` flag, so the recipe's default run kept
+  broad regions as fills; ② `_MAX_SATIN_COLUMNS = 80` demoted all satin candidates
+  back to fills on a design production digitizes as 1,618 columns; ③ the travel
+  planner's 12 mm cap + cover law kept trims the authored Connectors (Jump /
+  Trim-after Off / Tie-in Off) never sew; ④ satin density/underlay/pull-comp used
+  Ink-Stitch defaults, not the authored 0.24 mm @ 90 % auto-spacing / underlay-off /
+  pull-comp-0; ⑤ step 7's drift bands were p25–p75, so the reference VP3 *itself*
+  flagged DRIFT (n_colors 3 vs the [1,1] band). Two secondary geometry defects
+  surfaced once everything satined: sub-π·strip turning rings and hairpin-folded
+  vwidth rails both sunburst-fan (16–29 thread layers on a spot vs reference max 3.6).
+- **Fix:** all prior-driven, never category-named — `satin_only` in pair_priors
+  auto-enables the lean path + lifts the column/run caps; `authored` block gained
+  satin (auto-)spacing, parsed per Fills-tab type + auto-checkbox state; authored
+  underlay/pull-comp/trim-after read from the props; `_plan_travel` drops
+  within-colour trims unconditionally for trim_after_off categories (connectors stay
+  plain long STITCH movements — a STITCH→JUMP thresholding pass was tried and
+  REVERTED: the reference VP3 itself encodes its 275.7 mm connector as a stitch, 2
+  jump commands total; converting bloated the file with 7k writer-split jumps).
+  Calibration findings, each measured against the reference: ① Wilcom's authored
+  "Spacing" is per-penetration advance while Ink-Stitch's zigzag_spacing_mm is
+  peak-to-peak (one full cycle = 2 stitches) — the authored value must be DOUBLED or
+  density sews exactly 2× (82k vs 46k); ② turning rings must TOUCH (depths at full
+  strip pitch): the old equalise-down step made rings overlap up to ~50 % (92k
+  stitches); ③ ring/strip arcs and snaking centerlines are split at hairpins (>75°
+  chord turn over 0.75 mm steps) — stroke_to_satin's rail-split pairs a tiny rail
+  with the whole outline on a folded arc and sews sunburst fans (16–29 thread layers
+  vs reference max 3.6); ④ rings shorter than 1.6π·strip "urchin" (inner rail
+  inverts) and are dropped to the straight-strip fallback; ⑤ strip width comes from
+  the reference fingerprint's stitch-length median (arabic 2.4 mm — the register
+  pass's column-width median 1.75 under-shoots the band and over-stitches);
+  ⑥ fingerprint profiles now carry lo/hi (observed range) and drift_check bounds on
+  them, so a reference file can never drift against its own category.
+  Converged rebuild: satin 100 / fill 0 / 3 trims / 50,359 stitches (reference
+  46,081) / stacking worst 7.0 layers / production_fit all ok / coverage 90.8 %.
+- **Guard:** tests/test_pair_priors.py (satin-only law, ceiling precedence, authored
+  spacing aggregation), tests/test_travel_plan.py (trim-after-off drops the 60 mm
+  uncovered travel; cover law intact without the prior), tests/test_vwidth_satin.py
+  (hairpin split), plus the arb rebuild acceptance (satin 100/fill 0/trims 3/
+  stitches in band, production_fit all ok)
+
 ## 2026-07-17 — arabic — middle calligraphy arc largely unstitched (region demoted to bean runs)
 - **Stage:** step 5 `_linework_prepass` run tier (per-region width tiering)
 - **Mechanism:** the middle arc traced as ONE 1,090 mm² connected region whose

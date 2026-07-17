@@ -133,6 +133,8 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
     states are respected (a greyed default is never counted as a value)."""
     fill_spacing: list[float] = []
     fill_length: list[float] = []
+    satin_spacing: list[float] = []        # Fills-tab Spacing on SATIN-type screenshots…
+    satin_auto_spacing: list[float] = []   # …split by whether Auto spacing owns the value
     pull_comp_on: list[float] = []
     pc_states: list[bool] = []
     underlay_states: list[bool] = []
@@ -154,11 +156,29 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
 
             _walk(settings)
             if tab == "fills":
+                # The screenshot's stitch type (Satin / Tatami — the tab's type selector
+                # may be keyed "Type", "Fill type" or "Dropdown", possibly greyed under a
+                # displayed_value) decides which spacing bucket the value lands in; the
+                # Auto-spacing checkbox state ("checked" when greyed, else "enabled")
+                # decides whether it is the auto-spacing displayed value (what production
+                # actually sews — arb: 0.24 mm @ 90 %) or a manual setting.
+                stype = ""
                 for p, v in flat.items():
-                    if "underlay" in p:
+                    if isinstance(v, str) and p.endswith(
+                            ("/type", "/fill type", "/dropdown",
+                             "/type/displayed_value", "/dropdown/displayed_value")):
+                        stype = _norm(v) or stype
+                auto_on = any(
+                    bool(v) for p, v in flat.items()
+                    if p.endswith(("/auto spacing/enabled", "/auto spacing/checked")))
+                for p, v in flat.items():
+                    if "underlay" in p or "auto spacing" in p:
                         continue
-                    if p.endswith("/spacing") and (x := _mm(v)) is not None:
+                    if (p.endswith(("/spacing", "/spacing/displayed_value"))
+                            and (x := _mm(v)) is not None):
                         fill_spacing.append(x)
+                        if "satin" in stype:
+                            (satin_auto_spacing if auto_on else satin_spacing).append(x)
                     if p.endswith("/length") and "min" not in p and (x := _mm(v)) is not None:
                         fill_length.append(x)
             elif tab == "pull comp":
@@ -190,6 +210,12 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
         out["fill_spacing_mm"] = {"med": _pct(fill_spacing, 50), "n": len(fill_spacing)}
     if fill_length:
         out["fill_length_mm"] = {"med": _pct(fill_length, 50), "n": len(fill_length)}
+    if satin_spacing:
+        out["satin_spacing_mm"] = {"med": _pct(satin_spacing, 50),
+                                   "n": len(satin_spacing)}
+    if satin_auto_spacing:
+        out["satin_auto_spacing_mm"] = {"med": _pct(satin_auto_spacing, 50),
+                                        "n": len(satin_auto_spacing)}
     if pc_states:
         out["pull_comp_disabled_frac"] = round(
             1.0 - sum(pc_states) / len(pc_states), 3)

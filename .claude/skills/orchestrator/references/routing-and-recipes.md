@@ -87,17 +87,22 @@ Shared defaults unless a row overrides: `--pull-comp-mm 0.2`, `--fill-underlay` 
 
 ### Arabic
 - **DNA:** single-colour **100 % satin script**, pure **Black (0,0,0)**; strokes, diacritics,
-  dots, ornament and frame are all the same black satin.
-- **Colours `1`.** Size: phrase 140–165 mm; round/stacked (Basmala) ~117 mm tall. Satin band
-  1.8–2.5 mm; target areal density **0.4–0.8 st/mm²** (script is sparse).
-- **Flags — mandatory:** `--fill-method contour_fill` (auto_fill over-stitches and *hangs* on
-  thin sprawling script) + `--purify-colors` (else the near-black averages to a muddy off-black
-  and spawns a phantom gray cone). Input must be **crisp pure-black-on-white** — threshold a
-  soft scan first. Fine tashkeel → `--pull-comp-mm 0.05` (± `--no-fill-underlay`).
-  - **Exception — BOLD display calligraphy** (thick chunky strokes, not thin pen script): those
-    strokes are *broad-solid*, so use plain **`auto_fill`**; `contour_fill` hatches a thick
-    stroke **hollow** (concentric rings). `contour_fill` is for *thin* script only.
+  dots, ornament and frame are all the same black satin. **Zero fills** — the arb trio
+  (`arabic/pairs/arb/`) is the absolute source of truth: 1,618 satin objects, 46k stitches,
+  2 trims, auto-spacing 0.24 mm @ 90 %, Connectors Jump / Trim-after Off / Tie-in Off.
+- **Colours `1`** (2–3 when the art genuinely has more — arb itself is blue + red). Size:
+  phrase 140–165 mm; round/stacked (Basmala) ~117 mm tall. Satin band 0.8–3.5 mm (med 1.75);
+  target areal density **0.4–0.8 st/mm²** (arb reference 0.68).
+- **Flags:** `--purify-colors` (else the near-black averages to a muddy off-black and spawns a
+  phantom gray cone) + `--no-outline-objects` (a satin border over script is double structure
+  production never sews). **Do NOT pass `--fill-method contour_fill`** — pre-trio recipe: the
+  `satin_only` pair prior now makes step 5 digitize EVERYTHING as satin automatically (vwidth
+  columns + turning-satin for broad bands and dots, authored spacing/underlay/pull-comp,
+  trims at colour changes only), so no region fills at all and the flag is moot-to-harmful.
+  Input must be **crisp pure-black-on-white** — threshold a soft scan first.
 - **Sew:** frame/cartouche first → main word → connecting strokes → tashkeel/dots last.
+- **Verify:** step 7 production_fit must read **satin_frac ≈ 100, fill_frac ≈ 0**, trims ≤ 5,
+  stitch count inside the profile band — the arb trio numbers define correct.
 
 ### 3D geometric solids
 - **DNA:** not one object — a set of **flat facets**, each its own **tatami fill**, illusion =

@@ -1,7 +1,8 @@
 # Memory index
 
+- [Arabic satin-only law](arabic-satin-only-law.md) — CONVERGED on the arb trio: satin_only prior auto-drives all-satin (no flags, no contour_fill), authored 0.24 spacing/underlay-off/pull-comp-0, trims at colour changes (connectors stay long STITCHes — jumpify DISPROVEN), hairpin-split columns; rebuild = 100/0/3 trims/in-band
 - [arb trio video ground truth](arb-trio-video-ground-truth.md) — arabic process truth from screen recording: all-satin columns, auto-split 7mm ceiling, trim-after OFF; 3 prior-driven fixes (verdict-mask dilation, satin-only ceiling, trim policy)
-- [Arabic: --no-outline-objects](arabic-no-outline-objects.md) — Arabic runs MUST pass --no-outline-objects; the auto-on satin border wraps contour_fills = the "outline-satin + fill" hybrid the user rejects; forcing full satin fragments cursive (coverage 90→70%)
+- [Arabic: --no-outline-objects](arabic-no-outline-objects.md) — Arabic runs MUST pass --no-outline-objects; the auto-on satin border = double structure production never sews on script (the historical "satin-lean fragments cursive" claim is superseded by the satin-only law's vwidth+hairpin path)
 - [AI digitizer repo](ai-digitizer-repo.md) — sibling repo ~/Projects/wilcom-ai-digitizer (photo→.vp3 AI); hybrid learn-the-decisions + variable-width satin; blocked on paired (artwork,.vp3) data; new-wilcom-v1 = its renderer/eval harness
 
 - [Orchestrator skill](orchestrator-skill.md) — single front-door skill (supersedes photo-to-vp3): any-format normalize + iterate-to-faithful; venv has pillow-heif/cairosvg

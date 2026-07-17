@@ -77,3 +77,38 @@ def test_broad_region_tiles_into_satin_strips():
 
 def test_tiny_region_yields_no_strips():
     assert stitches._satin_strip_lines(_rect(1, 1), mm_per_uu=1.0, strip_mm=3.0) == []
+
+
+# --- hairpin splitting (stitches._split_centerline_at_hairpins) ---
+def _in_group(d: str):
+    g = etree.Element(f"{{{_SVG}}}g")
+    p = etree.SubElement(g, f"{{{_SVG}}}path")
+    p.set("d", d)
+    p.set("id", "cl")
+    return p
+
+
+def test_hairpin_centerline_splits_into_pieces():
+    # a 20mm out-and-back U (1mm apart): the 180deg turn at x=20 must cut the
+    # centerline in two, or the offset rails fold and the column fans
+    fwd = " ".join(f"{x},0" for x in range(0, 21))
+    back = " ".join(f"{x},1" for x in range(20, -1, -1))
+    p = _in_group("M " + fwd + " " + back)
+    pieces = stitches._split_centerline_at_hairpins(p, mm_per_uu=1.0)
+    assert len(pieces) == 2
+    assert pieces[0] is p and pieces[1].get("id") == "cl_hp1"
+    assert pieces[1].getparent() is p.getparent()
+
+
+def test_straight_centerline_stays_whole():
+    p = _in_group(_straight_center())
+    assert stitches._split_centerline_at_hairpins(p, mm_per_uu=1.0) == [p]
+
+
+def test_gentle_curve_stays_whole():
+    # a quarter circle r=20mm turns 90deg total but never sharply per chord
+    import numpy as np
+    ts = np.linspace(0, np.pi / 2, 60)
+    d = "M " + " ".join(f"{20*np.cos(t):.2f},{20*np.sin(t):.2f}" for t in ts)
+    p = _in_group(d)
+    assert stitches._split_centerline_at_hairpins(p, mm_per_uu=1.0) == [p]

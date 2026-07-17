@@ -98,23 +98,25 @@ Per object:
 | Diamond / floret ornament | **short satin** | trim after |
 | A hairline flourish < ~1.6 mm at final size | **run / triple-run** | will not satin — bold it or accept a run |
 
-This maps onto the pipeline's existing classifier: the black colour's median width
-(~2 mm) is well under the 3.0 mm "linework" ceiling (`steps/stitches.py
-_SATIN_MAX_WIDTH_MM`), so the **whole design routes to the satin/linework path** with
-no flags needed. Clean separable strokes become real satin columns; the connected,
-branch-heavy body stays a **continuous contour-fill** (see §3 — the honest limit).
+This maps onto the pipeline's classifier via the **`satin_only` pair prior** (the arb
+trio, `arabic/pairs/arb/`): with ≥1 ingested arabic pair measuring zero production
+fills, step 5 **automatically** takes the satin-lean path for every colour and every
+region — vwidth columns for strokes, turning-satin rings for broad merged bands and
+dots, the authored auto-spacing (0.24 mm @ 90 %, opening to the manual 0.425 median on
+wide columns), authored underlay/pull-comp (off), and trims at colour changes only.
+No flags needed; nothing routes to tatami or contour_fill.
 
 ---
 
-## 3. The fill method is the Arabic-specific lever — use `contour_fill` ⭐⭐
+## 3. ~~Use `contour_fill`~~ — SUPERSEDED by the satin-only law (2026-07, arb trio) ⭐⭐
 
-Arabic script is **thin and sprawling**: long, narrow, curved strokes that branch and
-weave. This is the worst case for Ink-Stitch's default **`auto_fill`**, which routes
-one serpentine path across a whole colour with a travel-graph — on sprawling
-calligraphy it **over-stitches and can hang for minutes** (it stalled outright on the
-Basmala). **`contour_fill` follows each stroke's contour inward**, so the stitches run
-*along* the pen stroke like a satin would — fast, natural, and far closer to the
-reference satin density.
+**Do not pass `--fill-method contour_fill` on Arabic any more.** The arb trio proved
+production Arabic digitizes **zero fills** — every stroke, dot and broad band is a
+satin column — and the `satin_only` prior now makes step 5 build exactly that (§2).
+With no fills in the design, the fill method is moot, and a contour_fill core is
+fill *structure* the reference never sews. The measurements below are kept as the
+**historical record** of the pre-trio recipe (when broad regions still filled, and
+`auto_fill`'s travel routing over-stitched / hung on sprawling script):
 
 **Measured, both methods, same input:**
 
@@ -125,10 +127,11 @@ reference satin density.
 | Ink-mask coverage of ref | — | 90.2 % | 85.3 % | — | — | **98.5 %** |
 | Speed | — | slow | **fast** | — | **hung** | **fast** |
 
-`contour_fill` lands the **areal density almost exactly on the reference** (0.77 vs
-0.74; 0.56 vs 0.57) — `auto_fill` over-stitches. **Always pass
-`--fill-method contour_fill` for Arabic calligraphy.** (See the
-[contour-fill-for-calligraphy] memory.)
+`contour_fill` landed the areal density on the reference back when regions filled —
+but the satin-only law replaced fills entirely; the flag is now a no-op at best and a
+production-structure violation at worst. (The [contour-fill-for-calligraphy] memory
+still applies to *other* thin sprawling categories with real fills, e.g. swirl
+decoration.)
 
 ---
 
@@ -174,14 +177,17 @@ that many `--colors`, and the back-to-front order still holds (frame colour firs
 4. **`--purify-colors`** so the near-black ink snaps to **pure `(0,0,0)`** and matches
    the reference's pure-black cone. Without it the trace edges average the ink to
    ~`(37,37,37)` (a poor, off-black match).
-5. **`--fill-method contour_fill`** (§3) and `--thread-chart madeira-polyneon`.
+5. **`--no-outline-objects`** (borders are double structure production never sews on
+   script) and `--thread-chart madeira-polyneon` (isacord for bright multi-colour
+   pieces). **No fill-method flag** — the satin-only prior (§2, §3) digitizes
+   everything as satin automatically.
 
-**The calibrated production command:**
+**The calibrated production command (post-arb-trio):**
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m wilcom_pipeline arabic/<photo>.png \
-    --width-mm 140 --colors 1 --purify-colors \
-    --fill-method contour_fill --thread-chart madeira-polyneon \
+    --width-mm 140 --colors 1 --purify-colors --no-outline-objects \
+    --thread-chart madeira-polyneon \
     --name <name> --output-dir arabic/output
 ```
 
@@ -220,10 +226,13 @@ slightly or bold the source. If a phantom colour appears, the input wasn't crisp
 
 - [ ] Palette **1 colour**, pure Black `(0,0,0)`; background separable & dropped.
 - [ ] Strokes **≥ 1.6 mm**, in the **1.8–2.5 mm** satin band (§1).
-- [ ] `--purify-colors` (pure black) + `--fill-method contour_fill` (§3, §5).
+- [ ] `--purify-colors` (pure black) + `--no-outline-objects`; **no fill-method flag**
+      (the satin-only prior digitizes all-satin automatically, §2/§3).
+- [ ] **satin_frac ≈ 100 / fill_frac ≈ 0** in step 7's production_fit (the arb law).
 - [ ] Sew order **frame → words → diacritics/ornaments last** (§4).
-- [ ] Trims modest (dots/diacritics excepted); fragmentation gate < 5 %.
-- [ ] **Areal density ≈ reference 0.4–0.8 st/mm²** (contour, not over-stitched auto).
+- [ ] Trims at **colour changes only** (authored Trim-after-Off; the arb reference is
+      2 trims in 46k stitches — long connectors stay draped jumps).
+- [ ] **Areal density ≈ reference 0.4–0.8 st/mm²** (arb reference 0.68).
 - [ ] **Thread metadata stamped** — `1800 Black` cone in the VP3 (letters §8).
 - [ ] **`compare_vp3.py` run**, coverage ≥ ~85 %, drift explained, preview legible.
 - [ ] Size set once via `--width-mm`; don't rescale the `.vp3` afterward.
@@ -232,16 +241,17 @@ slightly or bold the source. If a phantom colour appears, the input wasn't crisp
 
 ## 7. Honest boundary — tracer vs hand-digitized satin ⭐
 
-The references are **100 % satin** (77–79 % reversals); a raster tracer makes them
-**mostly contour-fills with a few clean satins** (Design8: 5 satin columns + contour;
-3–7 satins on the others). So two true, documented drifts remain — both inherent to
-tracing a raster, neither a bug:
+The references are **100 % satin** (77–79 % reversals); since the arb trio closed the
+loop (2026-07) the pipeline **matches that structurally** — satin_frac 100, fill_frac
+0, trims at colour changes, stitch count in the reference band (arb rebuild: 42k vs
+46k reference). Two true, documented drifts remain — both inherent to tracing a
+raster, neither a bug:
 
-1. **Technique** — fills/contour vs all-satin. `contour_fill` gets the *look* and the
-   *density* very close (stitches run along the stroke), but it is not the reference's
-   variable-width hand satin. Connected cursive **cannot** be made all-satin by a
-   tracer without fragmenting (the letters §8a lesson — never use `--lettering` on
-   Arabic; it shatters cursive into illegible pieces).
+1. **Per-stroke dissection** — production hand-digitizes ~1,600 Column A/C objects,
+   one per pen stroke (med width 1.75 mm); the tracer sees MERGED regions and sweeps
+   each with one vwidth column or turning-satin rings (med ~3 mm, fatter), so local
+   thread stacking runs above the reference even though the fingerprint matches.
+   Never use `--lettering` on Arabic; it shatters cursive into illegible pieces.
 2. **Thin extremities** — pen strokes taper to a point; the trace clips the last
    ~1 mm, so coverage at the very tips runs ~85–90 % (the bulk and the frame reach
    98 %).

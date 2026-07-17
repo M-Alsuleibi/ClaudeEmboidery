@@ -114,11 +114,14 @@ ruined:**
   right for plain separable block caps, *fatal* for cursive/ornate/cropped glyphs (it shatters
   them). For anything cursive, use the default path + `--purify-colors`.
 - **HARD RULE: large/broad regions = TATAMI (`auto_fill`), never `contour_fill`.** `contour_fill`
-  is for **thin sprawling stroke-ornament *only*** (thin calligraphy/script, swirls, vines, long
-  borders) — it follows a *stroke*; tatami packs an *area*. Contour on a broad region is concentric
-  rings that read **hollow / cross-hatched**, and rings ≠ the production tatami rows. Rule of thumb:
-  contour follows a *stroke*; `auto_fill` (tatami) packs an *area*. **Do NOT ship `contour_fill` on
-  a broad region as if it were tatami** just because `auto_fill` was slow.
+  is for **thin sprawling stroke-ornament *only*** (swirls, vines, long borders) — it follows a
+  *stroke*; tatami packs an *area*. Contour on a broad region is concentric rings that read
+  **hollow / cross-hatched**, and rings ≠ the production tatami rows. Rule of thumb: contour
+  follows a *stroke*; `auto_fill` (tatami) packs an *area*. **Do NOT ship `contour_fill` on a
+  broad region as if it were tatami** just because `auto_fill` was slow.
+  **Exception on top of the rule: a `satin_only`-prior category (arabic per the arb trio) sews
+  ZERO fills** — step 5 automatically builds all-satin (vwidth columns + turning satin), so
+  neither `auto_fill` nor `contour_fill` ever applies there; never pass `--fill-method` at all.
 - **`auto_fill` can HANG on a broad region with wispy/feathered geometry** (hair, fur, torn edges) —
   its fill-router infinite-loops on the many concavities (`underpath` off, median-smoothing, and
   downscaling all fail to unblock it; **pull-comp is the measured trigger** — joker's hair hangs

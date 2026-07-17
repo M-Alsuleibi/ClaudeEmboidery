@@ -87,13 +87,19 @@ def _fill_params(pull_comp_mm: float, fill_underlay: bool) -> dict[str, str]:
     }
 
 
-def _satin_params(pull_comp_mm: float, satin_underlay: bool) -> dict[str, str]:
+def _satin_params(pull_comp_mm: float, satin_underlay: bool,
+                  satin_spacing_mm: float | None = None) -> dict[str, str]:
     # Satins get pull-comp + trim_after (so they aren't joined by long travels).
     # Underlay is the "always underlay your satins" rule: a center-walk run down
     # the spine + a contour run inset from each long edge stabilise the column so
     # its edges don't tunnel or pucker. Ink-Stitch's own defaults size the insets/
-    # stitch-length; we just switch the two passes on.
+    # stitch-length; we just switch the two passes on. `satin_spacing_mm` is the
+    # AUTHORED zigzag density from the pair-trio props (a satin-only category sews
+    # at the digitizer's own spacing — arb: auto spacing 0.24mm @ 90%); None keeps
+    # Ink-Stitch's default.
     params = {"pull_compensation_mm": f"{pull_comp_mm:g}", "trim_after": "True"}
+    if satin_spacing_mm:
+        params["zigzag_spacing_mm"] = f"{satin_spacing_mm:g}"
     if satin_underlay:
         params["center_walk_underlay"] = "True"
         params["contour_underlay"] = "True"
@@ -185,10 +191,19 @@ def _satin_ceiling(lettering: bool, satin_lean: bool, satin_dominant: bool,
     category with ingested PAIRS uses its MEASURED satin/fill width crossover (pair prior,
     clamped 3-9mm — the loop the pairs exist to close); else a satin-DOMINANT category takes the
     manual's ~7mm and everything else (3D/unknown, whose shaded solids are tatami fills) keeps
-    the conservative 3mm so a raised ceiling can't over-satin them."""
+    the conservative 3mm so a raised ceiling can't over-satin them. A SATIN-ONLY category's
+    prior (the authored Auto-Split length — the width beyond which production splits the long
+    stitches rather than switching to fill) outranks even the lettering/satin-lean blanket:
+    the trio's authored settings define correct, not the regime constant."""
+    pri = priors.satin_ceiling_mm(category)
+    if pri is not None and priors.satin_only(category):
+        ceiling, n_pairs = pri
+        if log:
+            print(f"      pair prior: satin ceiling {ceiling:.1f}mm, satin-only "
+                  f"(n={n_pairs} pair{'s' if n_pairs != 1 else ''})", flush=True)
+        return ceiling
     if lettering or satin_lean:
         return _LETTERING_SATIN_MAX_WIDTH_MM
-    pri = priors.satin_ceiling_mm(category)
     if pri is not None:
         ceiling, n_pairs = pri
         if log:
@@ -269,6 +284,15 @@ def run(ctx: PipelineContext) -> None:
     ctx.stitch_pattern = pattern
     ctx.per_group_svgs = group_svgs
     _print_summary(pattern, n_satin, n_run)
+
+
+# NOTE on connectors: a STITCH->JUMP distance-thresholding pass (reclassify >8mm
+# movements as jumps) was implemented and REVERTED — measured against the reference
+# VP3, Wilcom encodes the untrimmed connectors as plain long STITCH movements (max
+# 275.7mm, 2 jump commands in the whole 46k-stitch file); the machine drapes an
+# overlong stitch by itself. Converting them bloated the file with writer-split jump
+# chains (7k jumps) and masked genuine fan-throw defects. Leave connectors as the
+# digitizer emits them.
 
 
 def _run_cross_stitch(ctx: PipelineContext) -> None:
@@ -448,16 +472,17 @@ def _build_stitch_svg(ctx: PipelineContext, binary: Path, dst: Path) -> tuple[in
     except Exception:  # classification is best-effort
         line_idx = set()
 
-    pc, ul = ctx.config.resolved_pull_comp_mm, ctx.config.fill_underlay
-    su = ctx.config.satin_underlay
+    pc, ul = _resolved_pull_comp(ctx), ctx.config.fill_underlay
+    su = _resolved_satin_underlay(ctx)
+    sp = _authored_satin_spacing(ctx)
     if not line_idx:
-        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su)
+        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su, sp)
         return 0, 0
     try:
         return _linework_prepass(ctx, binary, line_idx, dst, src_svg)
     except Exception as exc:
         print(f"      linework pre-pass failed ({type(exc).__name__}: {exc}); using fills")
-        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su)
+        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su, sp)
         return 0, 0
 
 
@@ -547,8 +572,11 @@ def _linework_indices(ctx: PipelineContext) -> set[int]:
     # satin-lean: when the declared category's ground truth is satin-dominant (arabic,
     # decoration, letters, …), raise the ceiling so bold strokes enter the linework pass and
     # become satin columns instead of tatami — moving toward the truth's ~100% satin.
+    # A SATIN-ONLY pair prior (production digitizes zero fills — the arb trio) takes this
+    # path AUTOMATICALLY, no flag needed: the trio defines the category's law.
     satin_dominant = category_satin_dominant(ctx.config.category)
-    satin_lean = ctx.config.satin_lean and satin_dominant and not lettering
+    satin_only = priors.satin_only(ctx.config.category)
+    satin_lean = ((ctx.config.satin_lean and satin_dominant) or satin_only) and not lettering
     width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant,
                                    ctx.config.category, log=True)
 
@@ -556,6 +584,11 @@ def _linework_indices(ctx: PipelineContext) -> set[int]:
     for i, rgb in enumerate(ctx.palette):
         mask = opaque & np.all(img[..., :3] == np.array(rgb, np.uint8), axis=-1)
         if mask.sum() < 20:
+            continue
+        if satin_only:
+            # satin-only production: every colour is linework by definition (no colour may
+            # stay plain fills), so all of them enter the pre-pass.
+            line.add(i)
             continue
         regions = _region_widths(mask, mm_per_px)
         if not regions:
@@ -571,8 +604,9 @@ def _linework_prepass(
     ctx: PipelineContext, binary: Path, line_idx: set[int],
     dst: Path, src_svg: Path | None = None,
 ) -> tuple[int, int]:
-    pc, ul = ctx.config.resolved_pull_comp_mm, ctx.config.fill_underlay
-    su = ctx.config.satin_underlay
+    pc, ul = _resolved_pull_comp(ctx), ctx.config.fill_underlay
+    su = _resolved_satin_underlay(ctx)
+    sp = _authored_satin_spacing(ctx)
     src_svg = src_svg or ctx.svg_path
     root = etree.parse(str(src_svg)).getroot()
     line_path_ids: list[str] = []
@@ -581,7 +615,7 @@ def _linework_prepass(
         if m and int(m.group(1)) in line_idx:
             line_path_ids += [p.get("id") for p in g.findall(f"{{{_SVG_NS}}}path")]
     if not line_path_ids:
-        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su)
+        _inject_params(src_svg, dst, ctx.config.fill_method, pc, ul, su, sp)
         return 0, 0
 
     # Pass A: fill -> centerline strokes, keeping the original fills. Both satin
@@ -629,14 +663,34 @@ def _linework_prepass(
     # satin-lean (see _linework_indices): a satin-dominant category raises the ceiling AND
     # turns on branch dissection, so a bold/branchy stroke becomes per-branch satins rather
     # than one tatami fill — pushing the output toward the ground truth's ~100% satin.
+    # A SATIN-ONLY pair prior (the arb trio: production digitizes zero fills) enables the
+    # path automatically and lifts the overflow demotions below — the trio defines correct.
     satin_dominant = category_satin_dominant(ctx.config.category)
-    satin_lean = ctx.config.satin_lean and satin_dominant and not lettering
+    satin_only = priors.satin_only(ctx.config.category)
+    satin_lean = ((ctx.config.satin_lean and satin_dominant) or satin_only) and not lettering
     run_enabled = ctx.config.thin_line_run and not lettering
     branch_satin = (ctx.config.branch_satin or satin_lean) and not lettering
     # Spine-guided fill: a region that stays a fill keeps its longest centerline as a
     # guided_fill guide (rows follow the medial axis) instead of dropping all centerlines.
     spine_fill = ctx.config.spine_fill
     spine_cands: list[tuple[str, object, int]] = []  # (orig id, guide centerline, colour idx)
+
+    # Strip/ring width for broad-region satin cover under satin-only: calibrated from
+    # the reference VP3s' own STITCH-LENGTH median (fingerprint profile satin_w_mm —
+    # a strip's throw length IS its width, so this is the quantity the reference
+    # defines; arabic profile med 2.4 vs the register-pass column-width med 1.75,
+    # which under-shot: strips at 1.75 measured satin_w 1.73 vs the reference band
+    # floor 1.94 AND cost 66k stitches vs the 41-51k band). Register med is the
+    # fallback; other categories keep the historical 3mm band. Narrower than 3mm also
+    # matters structurally: a 3mm ring folds its 1.5mm inner offset on tight
+    # curvature into sunburst fans.
+    strip_mm = _STRIP_MM
+    if satin_only:
+        med = ((load_profiles().get(ctx.config.category or "", {})
+                .get("satin_w_mm") or {}).get("med")
+               or priors.border_width_mm(ctx.config.category))
+        if med:
+            strip_mm = float(np.clip(med, 1.5, _STRIP_MM))
 
     def _keep_as_fill(orig, lines, idx):
         # Under --satin-lean (satin-dominant category), cover a broad region with satin
@@ -646,10 +700,13 @@ def _linework_prepass(
         # fallback (stepped edges); one plain fill if both are degenerate.
         if satin_lean:
             poly = originals.get(orig)
-            strips = _turning_satin_lines(poly, mm_per_uu)
+            strips = _turning_satin_lines(poly, mm_per_uu, strip_mm)
             if not strips:
-                straight = _satin_strip_lines(poly, mm_per_uu)
-                if len(straight) >= 2:
+                straight = _satin_strip_lines(poly, mm_per_uu, strip_mm)
+                # >=2 strips = a real tiling; under satin-ONLY even a single strip is
+                # accepted (it only happens on a dot-sized region, where one 3mm column
+                # IS the production cover — a fill is forbidden there)
+                if len(straight) >= (1 if satin_only else 2):
                     strips = [np.asarray(seg, float) for seg in straight]
             if strips:
                 strip_lines.extend((pts, idx) for pts in strips)
@@ -669,8 +726,12 @@ def _linework_prepass(
     satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
     satin_min_mm = _SATIN_MIN_W_MM
     band = priors.satin_width_band_mm(ctx.config.category)
-    if band is not None and not (lettering or satin_lean):
-        # vwidth clamps from the category's MEASURED satin width band (pair prior)
+    if band is not None and (satin_only or not (lettering or satin_lean)):
+        # vwidth clamps from the category's MEASURED satin width band (pair prior).
+        # A satin-only category applies them even on its automatic lean path:
+        # production's own column widths (arb p10-p90 0.8-3.5mm) beat the lean
+        # blanket's 6mm cap — a merged calligraphy band swept at 6mm reads blobby
+        # and stacks thread where the fat column self-overlaps on tight curves.
         satin_min_mm = max(band[0], 0.5)
         satin_max_mm = min(max(band[1], satin_min_mm + 0.5), _SATIN_MAX_W_MM)
     run_strokes: list[tuple[object, int]] = []          # (centerline, colour idx)
@@ -727,16 +788,28 @@ def _linework_prepass(
         else:
             _keep_as_fill(orig, lines, idx)  # broad -> tatami fill, or satin strips under --satin-lean
 
+    # Satin-lean sweep: an original that yielded NO centerline at all (a round dot, a
+    # letter head — fill_to_stroke culls a skeleton shorter than its threshold) never
+    # enters the loop above and would silently stay a plain fill. Under satin-lean every
+    # region must satin, so route those through the same broad-region strip path
+    # (turning rings; the single-strip fallback covers the smallest dots).
+    if satin_lean:
+        for orig in list(originals):
+            if orig not in centerlines and orig not in drop_originals:
+                _keep_as_fill(orig, [], int(re.match(r"c(\d+)_", orig).group(1)))
+
     # Satin-overflow guard (pathological stroke_to_satin slowness): demote the
-    # satin candidates back to fills but keep the runs.
+    # satin candidates back to fills but keep the runs. LIFTED for a satin-only
+    # category — production digitizes however many columns the design needs (the
+    # arb trio: 1,618 objects), so no count may push regions back to tatami.
     max_columns = _LETTERING_MAX_SATIN_COLUMNS if lettering else _MAX_SATIN_COLUMNS
-    if len(satin_cands) > max_columns:
+    if len(satin_cands) > max_columns and not satin_only:
         for c, _idx, _w in satin_cands:
             drop_centerlines.append(c)
             drop_originals.discard(c.get("id").rsplit("_", 1)[0])
         satin_cands = []
-    if len(run_strokes) > _MAX_RUN_STROKES:
-        _inject_params(ctx.svg_path, dst, ctx.config.fill_method, pc, ul, su)
+    if len(run_strokes) > _MAX_RUN_STROKES and not satin_only:
+        _inject_params(ctx.svg_path, dst, ctx.config.fill_method, pc, ul, su, sp)
         return 0, 0
 
     # Apply the decisions to the tree — each satin at its own region width.
@@ -760,13 +833,26 @@ def _linework_prepass(
         color = thread_hex.get(idx, "#000000")
         if vwidth_all or w_mm > _SATIN_FIXED_MAX_MM:
             poly = originals.get((c.get("id") or "").rsplit("_", 1)[0])
-            try:
-                if poly is not None and _build_vwidth_satin(
-                        c, poly, color, mm_per_uu, satin_max_mm, satin_min_mm):
-                    n_vwidth += 1
-                    continue
-            except Exception:
-                pass  # degenerate geometry -> fixed-width fallback below
+            if poly is not None:
+                # split snaking centerlines at hairpins first (see the splitter):
+                # each short piece builds its own well-behaved column, like
+                # production's one-column-per-stroke dissection
+                try:
+                    pieces = _split_centerline_at_hairpins(c, mm_per_uu)
+                except Exception:
+                    pieces = [c]
+                for pc_el in pieces:
+                    try:
+                        if _build_vwidth_satin(pc_el, poly, color, mm_per_uu,
+                                               satin_max_mm, satin_min_mm):
+                            n_vwidth += 1
+                            continue
+                    except Exception:
+                        pass  # degenerate geometry -> fixed-width fallback below
+                    w_uu = float(np.clip(w_mm, satin_min_mm, satin_max_mm)) / mm_per_uu
+                    _set_stroke_style(pc_el, w_uu, color)
+                    satin_ids.append(pc_el.get("id"))
+                continue
         w_uu = float(np.clip(w_mm, satin_min_mm, satin_max_mm)) / mm_per_uu
         _set_stroke_style(c, w_uu, color)
         satin_ids.append(c.get("id"))
@@ -779,13 +865,23 @@ def _linework_prepass(
     # multi-turn throws — median stitch 13.7mm vs the 3.3mm width — and a direct
     # rails+rungs build leaves pinholes where tight inner curvature folds the inner
     # rail between 4mm rungs.)
-    strip_w_uu = _STRIP_MM / mm_per_uu
-    for i, (pts, idx) in enumerate(strip_lines):
-        el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
-        el.set("id", f"strip{i}")
-        el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts))
-        _set_stroke_style(el, strip_w_uu, thread_hex.get(idx, "#000000"))
-        satin_ids.append(f"strip{i}")
+    strip_w_uu = strip_mm / mm_per_uu
+    n_strip_el = 0
+    for pts, idx in strip_lines:
+        # Split each strip/ring arc at hairpins BEFORE stroke_to_satin: on a folded
+        # arc its rail-split heuristic pairs a tiny rail with the whole outline and
+        # the column sews a sunburst fan across the shape (measured: single-subpath
+        # satin columns spanning ~20mm at the arb stacking hotspots).
+        arr = np.asarray(pts, float)
+        for a, b in _hairpin_bounds(arr, mm_per_uu):
+            if b - a < 1:
+                continue
+            el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
+            el.set("id", f"strip{n_strip_el}")
+            el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in arr[a:b + 1]))
+            _set_stroke_style(el, strip_w_uu, thread_hex.get(idx, "#000000"))
+            satin_ids.append(f"strip{n_strip_el}")
+            n_strip_el += 1
     for c in drop_centerlines:
         if c.getparent() is not None:
             c.getparent().remove(c)
@@ -806,7 +902,7 @@ def _linework_prepass(
         # no stroke_to_satin needed (runs only, or every satin was built variable-width) ->
         # finalize directly; regroup still picks up any vwidth satin_column paths.
         _regroup_linework_by_colour(root_a, thread_hex)
-        _apply_fill_params(root_a, ctx.config.fill_method, pc, ul, su)
+        _apply_fill_params(root_a, ctx.config.fill_method, pc, ul, su, sp)
         tree_a.write(str(dst), xml_declaration=True, encoding="UTF-8")
         return n_vwidth, n_run
 
@@ -819,7 +915,7 @@ def _linework_prepass(
 
     tree_b = etree.parse(str(tmp_b))
     _regroup_linework_by_colour(tree_b.getroot(), thread_hex)
-    _apply_fill_params(tree_b.getroot(), ctx.config.fill_method, pc, ul, su)
+    _apply_fill_params(tree_b.getroot(), ctx.config.fill_method, pc, ul, su, sp)
     tree_b.write(str(dst), xml_declaration=True, encoding="UTF-8")
     return len(satin_ids) + n_vwidth, n_run
 
@@ -1085,7 +1181,9 @@ _GUIDE_MARKER_XML = (
 # the region boundary (the medial-axis inscribed radius — PEmbroider hatchSpineVF's distance
 # field), so the satin fattens over the belly and tapers at the ends like a hand digitize.
 _VWIDTH_MIN_PTS = 6
-_VWIDTH_N_RUNGS = 14
+_VWIDTH_N_RUNGS = 14    # floor for short columns; long ones get one rung per _VWIDTH_RUNG_MM
+_VWIDTH_RUNG_MM = 4.0   # arc-length between rungs — keeps Ink-Stitch's fractional rail
+                        # pairing LOCAL on long snaking centerlines (sparse rungs fan)
 
 
 def _parse_transform(s: str) -> np.ndarray:
@@ -1161,6 +1259,79 @@ def _min_dist_to_segments(P: np.ndarray, A: np.ndarray, B: np.ndarray) -> np.nda
     return out
 
 
+_HAIRPIN_TURN_DEG = 75.0      # chord-direction change (over ~0.75mm steps) that marks a hairpin
+_HAIRPIN_MIN_PIECE_MM = 3.0   # don't cut pieces shorter than this
+_HAIRPIN_STEP_MM = 0.75       # chord sampling step for the turn measurement
+
+
+def _hairpin_bounds(R: np.ndarray, mm_per_unit: float) -> list[tuple[int, int]]:
+    """Index bounds [(a,b), ...] splitting the polyline R (N,2; units where
+    mm = units * mm_per_unit) at hairpin turns. [(0, N-1)] when there is none."""
+    n = len(R)
+    if n < 8:
+        return [(0, n - 1)]
+    seg = np.hypot(*np.diff(R, axis=0).T)
+    pos_mm = np.concatenate(([0.0], np.cumsum(seg))) * mm_per_unit
+    total = float(pos_mm[-1])
+    if total < 2 * _HAIRPIN_MIN_PIECE_MM:
+        return [(0, n - 1)]
+    samples = [0]
+    for i in range(1, n):
+        if pos_mm[i] - pos_mm[samples[-1]] >= _HAIRPIN_STEP_MM:
+            samples.append(i)
+    if len(samples) < 4:
+        return [(0, n - 1)]
+    S = np.asarray(samples)
+    D = R[S[1:]] - R[S[:-1]]
+    ang = np.arctan2(D[:, 1], D[:, 0])
+    turn = np.abs(np.degrees((np.diff(ang) + np.pi) % (2 * np.pi) - np.pi))
+    cuts = []
+    last_mm = 0.0
+    for j in np.nonzero(turn > _HAIRPIN_TURN_DEG)[0]:
+        k = int(S[j + 1])
+        if (pos_mm[k] - last_mm >= _HAIRPIN_MIN_PIECE_MM
+                and total - pos_mm[k] >= _HAIRPIN_MIN_PIECE_MM):
+            cuts.append(k)
+            last_mm = float(pos_mm[k])
+    bounds = [0] + cuts + [n - 1]
+    return [(bounds[j], bounds[j + 1]) for j in range(len(bounds) - 1)]
+
+
+def _split_centerline_at_hairpins(c, mm_per_uu: float) -> list:
+    """Split a snaking centerline element at hairpin turns into several short elements
+    (clones inserted after it, same transform/style). A satin column built along a
+    centerline whose local curvature radius is under the rail offset gets a FOLDED inner
+    rail, and Ink-Stitch's fractional rail pairing then throws sunburst fans across the
+    shape (measured on the arb merged-calligraphy clusters: 16-29 thread layers on one
+    spot). Production digitizes one short column per pen stroke — splitting at hairpins
+    is the tracer's approximation of that. Returns [c] when there is no hairpin."""
+    verts = [(float(x), float(y)) for x, y in _COORD_RE.findall(c.get("d") or "")]
+    if len(verts) < 8:
+        return [c]
+    P = np.asarray(verts, float)
+    # chord directions measured in the ROOT frame (~0.75mm spacing — per-vertex angles
+    # on a dense polyline are noise); the d is split on the LOCAL points at the same
+    # indices, keeping the element's transform.
+    pieces = _hairpin_bounds(_xf(P, _ctm(c)), mm_per_uu)
+    if len(pieces) == 1:
+        return [c]
+    parent = c.getparent()
+    base_id = c.get("id") or "hp"
+    out = []
+    for j, (a, b) in enumerate(pieces):
+        dd = "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in P[a:b + 1])
+        if j == 0:
+            c.set("d", dd)
+            out.append(c)
+        else:
+            el = etree.fromstring(etree.tostring(c))
+            el.set("d", dd)
+            el.set("id", f"{base_id}_hp{j}")
+            parent.insert(parent.index(c) + j, el)
+            out.append(el)
+    return out
+
+
 def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
                         satin_max_mm: float,
                         satin_min_mm: float = _SATIN_MIN_W_MM) -> bool:
@@ -1196,22 +1367,38 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
     def _sub(pts):
         return "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts)
 
-    # rails first (longest subpaths), then interior rungs pairing them left<->right
+    # rails first (longest subpaths), then interior rungs pairing them left<->right.
+    # Rungs are placed by ARC LENGTH (~every _VWIDTH_RUNG_MM), with _VWIDTH_N_RUNGS as
+    # the floor for short columns: Ink-Stitch pairs the rails FRACTIONALLY between
+    # rungs, so sparse rungs on a long snaking centerline let the pairing skew at
+    # hairpins and throw giant fan stitches across the shape (measured on the arb
+    # top arc: a 297mm-vs-200mm rail pair with 14 rungs fanned 15mm sunbursts).
     parts = [_sub(left), _sub(right)]
     n = len(center)
-    step = max(1, n // _VWIDTH_N_RUNGS)
-    for k in range(step, n - 1, step):
+    seg = np.hypot(*np.diff(center, axis=0).T)
+    pos = np.concatenate(([0.0], np.cumsum(seg)))
+    total_mm = float(pos[-1]) * mm_per_uu
+    n_rungs = max(_VWIDTH_N_RUNGS, int(total_mm / _VWIDTH_RUNG_MM))
+    seen: set[int] = set()
+    for t in np.linspace(0.0, pos[-1], n_rungs + 2)[1:-1]:
+        k = min(max(int(np.searchsorted(pos, t)), 1), n - 2)
+        if k in seen:
+            continue
+        seen.add(k)
         parts.append(f"M {left[k,0]:.3f},{left[k,1]:.3f} {right[k,0]:.3f},{right[k,1]:.3f}")
 
     center_el.set("d", " ".join(parts))
     center_el.attrib.pop("transform", None)  # rails are already baked into the root frame
     center_el.set(f"{{{_INKSTITCH_NS}}}satin_column", "true")
-    # Underlay by width (manual p412, wilcom-manual-rules.md §3): a WIDE satin column needs a
-    # zigzag underlay to support the long throws, on top of the center-walk + contour every satin
-    # gets in _satin_params; a narrow column relies on the center-walk (Center Run) alone.
+    # Underlay by width (manual p412; arb video: Double-Tatami underlay ONLY on wide
+    # Column-A pieces, narrow Column-C bare): a WIDE column gets zigzag + center-walk —
+    # the closest Ink-Stitch analogue of the authored Double Tatami support — set on the
+    # ELEMENT so it survives even when the category-level satin underlay is authored off.
+    # A narrow column carries nothing extra.
     median_w_mm = float(np.median(hw)) * 2 * mm_per_uu
     if median_w_mm > _SATIN_FIXED_MAX_MM:
         center_el.set(f"{{{_INKSTITCH_NS}}}zigzag_underlay", "true")
+        center_el.set(f"{{{_INKSTITCH_NS}}}center_walk_underlay", "true")
     center_el.set("style", f"fill:none;stroke:{color};stroke-width:1")
     return True
 
@@ -1650,14 +1837,32 @@ def _turning_satin_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM,
     strip_px = max(strip_mm / (res * mm_per_uu), 3.0)
     if dmax < strip_px / 2:
         return []                                  # thinner than one strip everywhere
-    min_len_px = max(_STRIP_MIN_RUN_MM / (res * mm_per_uu), 3.0)
-    n = int(np.ceil(dmax / strip_px))
-    step = dmax / n
+    # A closed ring shorter than ~1.6*pi*strip encloses a radius under ~0.8*strip:
+    # the inner rail sits within ~0.3*strip of the center, stroke_to_satin's offset
+    # inverts through it, and the column sews a SUNBURST "urchin" fan (measured on
+    # the arb dots: 25+ thread layers piled on one spot; plain pi*strip still let
+    # radius~strip rings urchin). Such rings are dropped — a dot then falls through
+    # to the straight-strip fallback (one clean fixed-width column across it).
+    min_len_px = max(_STRIP_MIN_RUN_MM / (res * mm_per_uu), 3.0,
+                     1.6 * float(np.pi) * strip_px)
+    # Ring depths at FULL strip pitch, so adjacent rings TOUCH instead of overlapping.
+    # (The historical `step = dmax/ceil(dmax/strip)` equalisation made every ring pair
+    # overlap by (strip-step) — up to ~50% on shallow bands, exactly doubling the sewn
+    # thread when the strip narrowed to the production 1.75mm: measured 92k stitches
+    # vs the 46k reference. Production columns sit side-by-side; reference stacking
+    # peaks at 3.6 layers.) A leftover core deeper than ~15% of a strip gets one final
+    # half-inset ring — the only place two rings may overlap.
+    depths = list(np.arange(strip_px / 2, dmax - strip_px / 2 + 1e-6, strip_px))
+    if not depths:
+        depths = [dmax / 2]
+    elif dmax - (depths[-1] + strip_px / 2) > 0.15 * strip_px:
+        depths.append(dmax - strip_px / 2)
+    step = strip_px
     levels: list[list[np.ndarray]] = []
     total = 0
-    for k in range(n):
+    for depth in depths:
         rings_k: list[np.ndarray] = []
-        for line in _iso_contours(D, (k + 0.5) * step):
+        for line in _iso_contours(D, depth):
             line = _rdp(line, _RDP_EPS_PX)
             if _ring_length(line) < min_len_px:
                 continue
@@ -1796,7 +2001,9 @@ def _add_outline_objects(ctx: PipelineContext, binary: Path, ready_svg: Path) ->
         # the new columns need the standard satin params (underlay, pull-comp, trim_after);
         # pre-existing satins already carry trim_after, so stamp only the unstamped ones.
         tree = etree.parse(str(ready_svg))
-        satin_params = _satin_params(cfg.resolved_pull_comp_mm, cfg.satin_underlay)
+        satin_params = _satin_params(_resolved_pull_comp(ctx),
+                                     _resolved_satin_underlay(ctx),
+                                     _authored_satin_spacing(ctx))
         for p in tree.getroot().iter(f"{{{_SVG_NS}}}path"):
             if (p.get(f"{{{_INKSTITCH_NS}}}satin_column") is not None
                     and p.get(f"{{{_INKSTITCH_NS}}}trim_after") is None):
@@ -2102,13 +2309,15 @@ def _plan_travel(ctx: PipelineContext, ready_svg: Path) -> int:
                 prev_exit = exit_
             for k in range(len(pieces) - 1):           # drop trims where the law allows
                 p, q = exits[k], entries[k + 1]
-                if np.hypot(*(q - p)) > max_uu:
-                    continue
                 # Authored-prior override: a category whose production connectors are
                 # "Trim after: Off" (arb trio: jump connectors, no tie-in, 2 trims in
-                # 46k stitches) chains on travel length alone — the cover law would
-                # keep trims production provably sews through.
+                # 46k stitches) trims ONLY at colour changes — every within-colour
+                # connector stays a draped jump the operator scissors (the reference
+                # sews ~275mm of untrimmed connectors), so neither the 12mm travel cap
+                # nor the cover law applies.
                 if not trim_off:
+                    if np.hypot(*(q - p)) > max_uu:
+                        continue
                     cover = later[base + k + 1] | colour_union
                     if _segment_covered(p, q, cover, origin, res) < _TRAVEL_COVER_MIN:
                         continue
@@ -2121,9 +2330,10 @@ def _plan_travel(ctx: PipelineContext, ready_svg: Path) -> int:
             _ensure_command_symbols(root, symbols)
         tree.write(str(ready_svg), xml_declaration=True, encoding="UTF-8")
         if dropped:
-            print(f"      travel plan -> {dropped} trim(s) dropped "
-                  f"(covered travel <= {_TRAVEL_MAX_MM:g}mm), {n_cmd} entry/exit "
-                  f"command(s)", flush=True)
+            law = ("authored Trim-after-Off: colour changes only" if trim_off
+                   else f"covered travel <= {_TRAVEL_MAX_MM:g}mm")
+            print(f"      travel plan -> {dropped} trim(s) dropped ({law}), "
+                  f"{n_cmd} entry/exit command(s)", flush=True)
         return dropped
     except Exception as exc:
         print(f"      travel plan skipped ({type(exc).__name__}: {exc})", flush=True)
@@ -2228,10 +2438,53 @@ def _path_mean_width_units(p) -> float:
     return 2.0 * abs(area) / perim * _path_scale(p)
 
 
+def _authored_satin_spacing(ctx: PipelineContext) -> float | None:
+    """The authored satin zigzag density for a SATIN-ONLY category, converted to
+    Ink-Stitch semantics, else None (Ink-Stitch default). Only satin-only production
+    gets it: elsewhere the authored value would come from a different object mix and
+    isn't the satin density the category actually sews. FLAT — the arb video shows
+    ALL 1,618 objects selected with one auto-spacing display (0.24mm @ 90%); constant
+    spacing means constant areal thread density regardless of column width. (A
+    width-opening curve toward the manual-spacing median was tried and DROPPED: it
+    under-stitched to 35k vs the 41-51k band.)
+
+    SEMANTICS: Wilcom's Fills-tab "Spacing" is the advance PER NEEDLE PENETRATION
+    (measured in the arb reference: 46k stitches over ~19k mm2 of 1.75mm columns =
+    4.2 throws/mm = one throw each 0.24mm), while Ink-Stitch's zigzag_spacing_mm is
+    PEAK-TO-PEAK — one full zig+zag cycle = TWO stitches. Passing the authored value
+    straight through sews exactly double density (measured: 82k vs 46k), so it is
+    doubled here."""
+    if priors.satin_only(ctx.config.category):
+        v = priors.authored_satin_spacing_mm(ctx.config.category)
+        return 2.0 * v if v else None
+    return None
+
+
+def _resolved_pull_comp(ctx: PipelineContext) -> float:
+    """resolved_pull_comp_mm, zeroed by the authored prior — the trio props show
+    production digitizing the category with pull compensation OFF (arb: Process
+    Stitches 0.00, per-object checkbox disabled) — unless the user passed
+    --pull-comp-mm explicitly."""
+    if (ctx.config.pull_compensation_mm is None
+            and priors.authored_pull_comp_off(ctx.config.category)):
+        return 0.0
+    return ctx.config.resolved_pull_comp_mm
+
+
+def _resolved_satin_underlay(ctx: PipelineContext) -> bool:
+    """Config satin_underlay, overridden OFF by the authored underlay prior: a category
+    whose trio props show the digitizer sewing satins WITHOUT the default underlay
+    passes (arb: ~89% disabled) drops the center-walk/contour default. Wide vwidth
+    columns keep their zigzag underlay (the authored Double-Tatami-on-Column-A analogue,
+    set independently in _build_vwidth_satin)."""
+    return (ctx.config.satin_underlay
+            and not priors.authored_underlay_off(ctx.config.category))
+
+
 def _apply_fill_params(
     root, fill_method: str = "auto_fill",
     pull_comp_mm: float = 0.2, fill_underlay: bool = True,
-    satin_underlay: bool = True,
+    satin_underlay: bool = True, satin_spacing_mm: float | None = None,
 ) -> None:
     """Set fill params on fills and satin params on satin columns.
 
@@ -2242,9 +2495,11 @@ def _apply_fill_params(
     thickening that over-fattens fine decoration; `satin_underlay` toggles the
     center-walk + contour underlay under satin columns. Running-stitch strokes
     already carry their params (set in the pre-pass) and are left untouched here.
+    `satin_spacing_mm` is the flat authored zigzag density for a satin-only category
+    (see _authored_satin_spacing), or None for Ink-Stitch's default.
     """
     fill_params = _fill_params(pull_comp_mm, fill_underlay)
-    satin_params = _satin_params(pull_comp_mm, satin_underlay)
+    satin_params = _satin_params(pull_comp_mm, satin_underlay, satin_spacing_mm)
     # gradient blocks carry their own variable row/end spacing + angle from
     # gradient_blocks — give them underlay/pull-comp/trim but DON'T touch row spacing
     # or the fill method (auto_fill honours the per-block angle that makes the gradient).
@@ -2276,12 +2531,12 @@ def _apply_fill_params(
 def _inject_params(
     src: Path, dst: Path, fill_method: str = "auto_fill",
     pull_comp_mm: float = 0.2, fill_underlay: bool = True,
-    satin_underlay: bool = True,
+    satin_underlay: bool = True, satin_spacing_mm: float | None = None,
 ) -> None:
     """Fill-only path: every region is a fill; set params on all of them."""
     tree = etree.parse(str(src))
     _apply_fill_params(tree.getroot(), fill_method, pull_comp_mm, fill_underlay,
-                       satin_underlay)
+                       satin_underlay, satin_spacing_mm)
     tree.write(str(dst), xml_declaration=True, encoding="UTF-8")
 
 

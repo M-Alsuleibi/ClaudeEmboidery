@@ -18,11 +18,19 @@
    "n_objects": 21,
    "fill_spacing_mm": {
     "med": 0.45,
-    "n": 15
+    "n": 16
    },
    "fill_length_mm": {
     "med": 7.0,
     "n": 15
+   },
+   "satin_spacing_mm": {
+    "med": 0.425,
+    "n": 10
+   },
+   "satin_auto_spacing_mm": {
+    "med": 0.24,
+    "n": 2
    },
    "pull_comp_disabled_frac": 0.533,
    "pull_comp_mm": {

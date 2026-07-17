@@ -154,3 +154,73 @@ def test_border_width_prefers_prior(tmp_path, monkeypatch):
     assert _outline_border_w_mm("anime") == 2.7             # prior med, inside clamp
     w = _outline_border_w_mm("letters")                     # no pairs -> profile med
     assert 1.5 <= w <= 3.0
+
+
+# --------------------------------------------------------------------------- #
+# the satin-only law (the arb trio): flag, authored spacing, ceiling precedence
+# --------------------------------------------------------------------------- #
+def _satin_only_record(**authored):
+    rec = {"n_pairs": 8, "satin_only": True, "crossover_mm": 3.5,
+           "satin_w_mm": {"p10": 0.8, "med": 1.75, "p90": 3.5},
+           "authored": {"fill_length_mm": {"med": 7.0, "n": 15}}}
+    rec["authored"].update(authored)
+    return rec
+
+
+def test_satin_only_flag_and_authored_spacing(tmp_path, monkeypatch):
+    _write_priors(tmp_path, monkeypatch, {
+        "arabic": _satin_only_record(
+            satin_spacing_mm={"med": 0.42, "n": 10},
+            satin_auto_spacing_mm={"med": 0.24, "n": 2}),
+        "anime": {"n_pairs": 1, "crossover_mm": 2.4,
+                  "satin_w_mm": {"p10": 1.0, "med": 1.5, "p90": 2.4}},
+    })
+    assert priors.satin_only("arabic") is True
+    assert priors.satin_only("anime") is False       # record without the flag
+    assert priors.satin_only("letters") is False     # no record at all
+    # the auto-spacing displayed value (what production actually sews) outranks
+    # the manual-spacing median; a category without authored spacing gets None
+    assert priors.authored_satin_spacing_mm("arabic") == 0.24
+    assert priors.authored_satin_spacing_mm("anime") is None
+
+
+def test_satin_only_ceiling_is_auto_split_and_outranks_regimes(tmp_path, monkeypatch):
+    _write_priors(tmp_path, monkeypatch, {"arabic": _satin_only_record()})
+    # ceiling = the authored Auto-Split length (7.0) whatever the regime flags say:
+    # the trio's authored settings define correct, not the 9mm lean/lettering blanket
+    assert _satin_ceiling(False, False, True, "arabic") == 7.0
+    assert _satin_ceiling(False, True, True, "arabic") == 7.0
+    assert _satin_ceiling(True, False, True, "arabic") == 7.0
+
+
+def test_aggregation_splits_satin_spacing_by_auto_state():
+    props = {
+        "screenshots": [
+            # arb-style: Satin type, auto spacing ON, spacing greyed (auto owns it)
+            {"active_tab": "Fills",
+             "settings": {"Dropdown": "Satin",
+                          "Stitch values": {"Spacing": "0.24 mm (greyed)"},
+                          "Auto spacing": {"enabled": True,
+                                           "displayed_value": {"Adjust": "90 %"}}}},
+            # 7-style: everything greyed under displayed_value, auto CHECKED
+            {"active_tab": "Fills",
+             "settings": {"Dropdown": {"enabled": False, "displayed_value": "Satin"},
+                          "Stitch values": {"Spacing": {"enabled": False,
+                                                        "displayed_value": "0.24 mm"}},
+                          "Auto spacing": {"enabled": False, "checked": True}}},
+            # manual satin spacing
+            {"active_tab": "Fills",
+             "settings": {"Type": "Satin",
+                          "Stitch values": {"Spacing": "0.40 mm"},
+                          "Auto spacing": {"enabled": False}}},
+            # tatami screenshot: its spacing must NOT land in either satin bucket
+            {"active_tab": "Fills",
+             "settings": {"Fill type": "Tatami",
+                          "Stitch values": {"Spacing": "0.65 mm",
+                                            "Length": "6.20 mm"}}},
+        ],
+    }
+    out = bpp.aggregate_props([props])
+    assert out["satin_auto_spacing_mm"] == {"med": 0.24, "n": 2}
+    assert out["satin_spacing_mm"] == {"med": 0.4, "n": 1}
+    assert out["fill_spacing_mm"]["n"] == 4          # informational: every spacing

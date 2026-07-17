@@ -173,6 +173,12 @@ def aggregate(rows: list[dict]) -> dict:
             "med": round(float(np.median(v)), 3),
             "p25": round(float(np.percentile(v, 25)), 3),
             "p75": round(float(np.percentile(v, 75)), 3),
+            # the observed ground-truth RANGE: drift_check bounds on lo/hi, so a value a
+            # reference file itself takes can never be flagged as drift (the arb trio is
+            # 3 colour stops while the arabic p25-p75 band is [1,1] — the production file
+            # defines correct, the band must contain it)
+            "lo": round(float(v.min()), 3),
+            "hi": round(float(v.max()), 3),
             "n": len(vals),
         }
     return prof
@@ -239,15 +245,20 @@ def nearest_category(feat: dict, profiles: dict) -> str | None:
 
 
 def drift_check(feat: dict, profile: dict) -> list[dict]:
-    """Compare a design's features to a category profile's p25–p75 bands. Returns a list of
-    {feature, value, lo, hi, ok} for the production-style signals — `ok=False` means drift."""
+    """Compare a design's features to a category profile's observed ground-truth range
+    (lo/hi = min/max over the reference files; p25–p75 for profiles built before lo/hi
+    existed). Returns a list of {feature, value, lo, hi, ok} for the production-style
+    signals — `ok=False` means drift. Bounding on the RANGE, not the interquartile band,
+    is deliberate: the reference files define correct, so a value one of them takes
+    (the arb trio's 3 colour stops vs the arabic p25-p75 of [1,1]) is never drift."""
     out = []
     for k in _DRIFT_KEYS:
         band = profile.get(k)
         val = feat.get(k)
         if not band or val is None:
             continue
-        lo, hi = band["p25"], band["p75"]
+        lo = band.get("lo", band["p25"])
+        hi = band.get("hi", band["p75"])
         out.append({"feature": k, "value": round(float(val), 2),
                     "lo": lo, "hi": hi, "ok": lo <= val <= hi})
     return out

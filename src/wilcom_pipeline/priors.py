@@ -64,6 +64,39 @@ def satin_ceiling_mm(category: str | None) -> tuple[float, int] | None:
     return min(max(c, CEILING_MIN_MM), CEILING_MAX_MM), int(rec["n_pairs"])
 
 
+def satin_only(category: str | None) -> bool:
+    """True when the category's measured production is SATIN-ONLY — fill-verdict objects
+    are a rounding error across every ingested pair (the arb trio: 1,618 objects, 46k
+    stitches, zero real fills). Step 5 then takes the satin-lean path AUTOMATICALLY
+    (turning-satin / vwidth columns for every region, uncapped column count, no tatami
+    fallback) with no flag: the trio defines correct, whatever the category is called."""
+    rec = category_prior(category)
+    return bool((rec or {}).get("satin_only"))
+
+
+def authored_satin_spacings_mm(category: str | None) -> tuple[float | None, float | None]:
+    """(auto_med, manual_med) — the AUTHORED satin densities from the trio props'
+    Fills tabs: the auto-spacing displayed value (what production actually sews under
+    Auto spacing — arb: 0.24 mm @ 90 %) and the median of the spacings digitizers set
+    BY HAND on satin objects (arb designs: 0.30-0.50, med ~0.43 — the density they
+    choose when authoring wider satin manually). Either may be None."""
+    rec = category_prior(category)
+    authored = (rec or {}).get("authored") or {}
+    out = []
+    for key in ("satin_auto_spacing_mm", "satin_spacing_mm"):
+        med = (authored.get(key) or {}).get("med")
+        out.append(float(med) if med else None)
+    return out[0], out[1]
+
+
+def authored_satin_spacing_mm(category: str | None) -> float | None:
+    """The single authored satin density: the auto-spacing display when present, else
+    the manual median. None when the category has no authored satin spacing (step 5
+    then leaves Ink-Stitch's default)."""
+    auto, manual = authored_satin_spacings_mm(category)
+    return auto or manual
+
+
 def satin_width_band_mm(category: str | None) -> tuple[float, float] | None:
     """(p10, p90) of the category's measured satin widths — the vwidth clamp band."""
     rec = category_prior(category)
@@ -79,6 +112,27 @@ def border_width_mm(category: str | None) -> float | None:
     rec = category_prior(category)
     med = ((rec or {}).get("satin_w_mm") or {}).get("med")
     return float(med) if med else None
+
+
+def authored_pull_comp_off(category: str | None) -> bool:
+    """True when the category's AUTHORED Pull-comp states say production digitizes with
+    pull compensation OFF (the arb trio: Process Stitches shows 0.00, the per-object
+    checkbox is disabled on most inspected objects). Step 5 then zeroes the default
+    pull-comp for the category unless the user passed --pull-comp-mm explicitly."""
+    rec = category_prior(category)
+    frac = ((rec or {}).get("authored") or {}).get("pull_comp_disabled_frac")
+    return frac is not None and float(frac) >= 0.5
+
+
+def authored_underlay_off(category: str | None) -> bool:
+    """True when the category's AUTHORED Underlay-tab states say production sews its
+    satins WITHOUT the default underlay passes (the arb trio: First/Second underlay
+    disabled on ~89% of inspected objects — only wide Column-A pieces carry a Double
+    Tatami). Step 5 then drops the default center-walk/contour underlay; wide
+    variable-width columns keep their zigzag underlay (the Column-A analogue)."""
+    rec = category_prior(category)
+    frac = ((rec or {}).get("authored") or {}).get("underlay_disabled_frac")
+    return frac is not None and float(frac) >= 0.5
 
 
 def trim_after_off(category: str | None) -> bool:

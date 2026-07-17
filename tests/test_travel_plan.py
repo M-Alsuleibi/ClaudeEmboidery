@@ -122,3 +122,52 @@ def test_command_symbols_load_from_vendor_bundle():
     if syms is None:                                     # vendor bundle absent -> planner off
         return
     assert set(syms) == {"inkstitch_starting_point", "inkstitch_ending_point"}
+
+
+# --------------------------------------------------------------------------- #
+# authored Trim-after-Off (the arb trio): trims only at colour changes
+# --------------------------------------------------------------------------- #
+def _plan_doc(tmp_path):
+    """Two fills 60mm apart (far beyond the 12mm cap, nothing covering the gap)."""
+    svg = (f'<svg xmlns="{_SVG}" xmlns:inkstitch="{_INK}" width="100mm" height="100mm" '
+           f'viewBox="0 0 100 100"><g id="color0_x">'
+           + _rect_xml("A", 0, 0) + _rect_xml("B", 70, 0) + "</g></svg>")
+    f = tmp_path / "plan.svg"
+    f.write_text(svg)
+    return f
+
+
+def _fake_ctx(category):
+    from types import SimpleNamespace
+    return SimpleNamespace(config=SimpleNamespace(category=category))
+
+
+def _trims_left(path):
+    root = etree.parse(str(path)).getroot()
+    return sum(1 for p in root.iter(f"{{{_SVG}}}path")
+               if p.get(f"{{{_INK}}}trim_after") is not None)
+
+
+def test_trim_after_off_prior_drops_every_within_colour_trim(tmp_path, monkeypatch):
+    from wilcom_pipeline import priors
+    from wilcom_pipeline.steps.stitches import _plan_travel
+    if _load_command_symbols() is None:
+        return                                           # vendor bundle absent -> planner off
+    pf = tmp_path / "pair_priors.json"
+    import json
+    pf.write_text(json.dumps({
+        "arabic": {"n_pairs": 8, "satin_only": True, "crossover_mm": 3.5,
+                   "satin_w_mm": {"p10": 0.8, "med": 1.75, "p90": 3.5},
+                   "authored": {"trim_after_off_frac": 1.0}}}))
+    monkeypatch.setattr(priors, "PRIORS_PATH", pf)
+
+    # authored "Trim after: Off": the 60mm uncovered travel still loses its trim —
+    # a draped jump the operator scissors, exactly like the reference VP3's ~275mm
+    doc = _plan_doc(tmp_path)
+    assert _plan_travel(_fake_ctx("arabic"), doc) == 1
+    assert _trims_left(doc) == 1                         # only the colour-final trim stays
+
+    # without the authored prior the cover law holds: long uncovered travel keeps it
+    doc2 = _plan_doc(tmp_path)
+    assert _plan_travel(_fake_ctx("letters"), doc2) == 0
+    assert _trims_left(doc2) == 2
