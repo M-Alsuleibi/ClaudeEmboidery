@@ -87,6 +87,28 @@ def test_requires_stitch_pattern(tmp_path):
         verify.run(ctx)
 
 
+def test_budget_ceiling_is_the_densest_reference():
+    """The stitch budget must never warn on a stitch count the category's own
+    reference files reach: the ceiling is the observed density hi + 10% (the arb
+    trio sews 0.67 st/mm2 vs the arabic median 0.42 — median x1.8 flagged counts
+    inside the trio's correct band), while genuinely bloated counts still warn."""
+    from types import SimpleNamespace
+    from wilcom_pipeline.steps.verify import _budget_check
+    from wilcom_pipeline import fingerprint
+
+    prof = fingerprint.load_profiles().get("arabic", {})
+    band = prof.get("density") or {}
+    if not (prof.get("n_files") and band.get("hi")):
+        pytest.skip("no arabic profile with observed range")
+    hi = float(band["hi"])
+    ctx = SimpleNamespace(config=SimpleNamespace(category="arabic"))
+    area = 60000.0
+    ok, _ = _budget_check(ctx, int(hi * area), area)          # the densest reference
+    assert ok is True
+    ok, _ = _budget_check(ctx, int(hi * 1.3 * area), area)    # 30% denser = bloat
+    assert ok is False
+
+
 @pytest.mark.skipif(not stitches.binary_available(), reason="Ink-Stitch binary not vendored")
 def test_real_logo_passes_gate(tmp_path):
     arr = np.full((160, 160, 3), 255, np.uint8)

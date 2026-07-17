@@ -188,17 +188,27 @@ def _penetration_check(stitches) -> tuple[bool, str]:
 
 
 def _budget_check(ctx: PipelineContext, n_stitch: int, area_mm2: float):
-    """Stitch budget: expected = bbox area x the category ground truth's median density;
-    beyond _BUDGET_FACTOR x that = runaway stitch count. None when no category/profile."""
+    """Stitch budget: the ceiling is the densest the category's REFERENCE files ever
+    sew (observed density hi + 10%) — a rebuild of the densest reference must never
+    warn (the arb trio sews 0.67 st/mm2 while the arabic median is 0.42; median x1.8
+    flagged stitch counts the trio itself declares correct). Profiles without the
+    observed range fall back to median x _BUDGET_FACTOR. The tighter per-run signal
+    stays the production_fit density band. None when no category/profile."""
     cat = ctx.config.category
     prof = fingerprint.load_profiles().get(cat or "", {})
-    med = (prof.get("density") or {}).get("med") if prof.get("n_files") else None
-    if not med:
+    band = (prof.get("density") or {}) if prof.get("n_files") else {}
+    hi, med = band.get("hi"), band.get("med")
+    if hi:
+        limit = float(hi) * 1.1 * area_mm2
+        detail = (f"{n_stitch} stitches vs <= {limit:.0f} for {cat} "
+                  f"(densest reference {float(hi):g} st/mm2 + 10%)")
+    elif med:
+        limit = _BUDGET_FACTOR * float(med) * area_mm2
+        detail = (f"{n_stitch} stitches vs ~{float(med) * area_mm2:.0f} expected for "
+                  f"{cat} (warn beyond {_BUDGET_FACTOR:g}x)")
+    else:
         return None
-    expected = float(med) * area_mm2
-    ok = n_stitch <= _BUDGET_FACTOR * expected
-    return ok, (f"{n_stitch} stitches vs ~{expected:.0f} expected for {cat} "
-                f"(warn beyond {_BUDGET_FACTOR:g}x)")
+    return n_stitch <= limit, detail
 
 
 # --------------------------------------------------------------------------- #
