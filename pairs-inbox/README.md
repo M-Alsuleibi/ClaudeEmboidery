@@ -52,3 +52,22 @@ there). `ingest_pairs.py` files it into the pair folder automatically and
 `build_pair_priors.py` aggregates the authored values, flagging disagreements with
 the stitch-inferred numbers. Name files by style when known (e.g.
 `thuluth-basmala-1.svg`) so per-style priors can split later.
+
+## Video trios — screen recording instead of screenshots (preferred since arb, 2026-07-17)
+
+The third element can be a **screen recording** (`<design>.webm`) of EmbroideryStudio
+instead of the props JSON — the assistant mines the frames and writes
+`<design>_props.json` itself during ingest (method: ffmpeg scene-select + 1 fps sweep →
+montages → full-res reads of dialog frames; see the arb trio and
+`docs/agent-memory/arb-trio-video-ground-truth.md`). Drop the `.webm` next to the
+SVG+VP3 in `pairs-inbox/` and ask the assistant to ingest; `ingest_pairs.py` ignores
+non-svg/vp3 files, so the video is transcribed first, then the trio is ingested.
+
+**What to record (3–5 focused minutes beats 20 of browsing):**
+1. Select ALL objects → click through every Object Properties tab: Fills, Special,
+   **Connectors** (the trim/tie-in truth lives here), Underlay, Pull Comp.
+2. One representative object per type (a wide Column A, a narrow Column C, a run)
+   through the same tabs — don't toggle checkboxes while recording if avoidable
+   (fluctuating states get flagged as uncertainties).
+3. The Design information dialog (stitch count, dims, colours, stops).
+4. A short Stitch Player run (start → a few seconds per colour stop) for sew order.

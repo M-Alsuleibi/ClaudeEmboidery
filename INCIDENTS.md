@@ -18,6 +18,26 @@ Template:
 
 ---
 
+## 2026-07-17 — arabic — middle calligraphy arc largely unstitched (region demoted to bean runs)
+- **Stage:** step 5 `_linework_prepass` run tier (per-region width tiering)
+- **Mechanism:** the middle arc traced as ONE 1,090 mm² connected region whose
+  **area-weighted average width was 1.36 mm** — thin inter-letter connectors dragged a
+  band full of 3–4 mm strokes under the 1.6 mm run threshold — so the run tier turned
+  the whole region into 6 bean runs and dropped its fill (~15 % coverage; verify still
+  PASSed — density/budget gates don't see a missing region). A first theory
+  ("fill_to_stroke consumed originals") was disproved by a standalone pass-A probe:
+  the on-disk `working_A.svg` is post-decision state, its "missing" originals were the
+  deliberately dropped run/satin regions. Found by stage bisection: quantized ok →
+  step-4 SVG ok (27.5k px in window) → working SVG 9k px.
+- **Fix:** `_run_demotion_ok` — a sub-1.6 mm region only demotes to runs when it is
+  small (≤ 150 mm²) OR its long centerlines carry ≥ 60 % of the skeleton (a genuine
+  hairline); a large spur-dominated region stays a fill (the "large regions = tatami"
+  hard rule) and the satin tier routes it via `_keep_as_fill`.
+- **Guard:** `test_run_demotion_guard_keeps_large_meshy_region_as_fill`
+  (tests/test_stitches.py, pure unit — proven to fail with the guard reverted)
+
+---
+
 ## 2026-07-13 — animals — sketch strokes read as FILL (satin_frac 4 vs truth 92–100)
 - **Stage:** step 5 (`steps/sketchstitch.py`), twice during construction
 - **Mechanism:** two turn-geometry traps: ① serpentine scanline rows turn 90° at row

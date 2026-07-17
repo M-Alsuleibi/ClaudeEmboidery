@@ -257,7 +257,48 @@ calligraphy exists only as an image; hand-satin to finish. See
 
 ---
 
-## 8. Provenance & how to reproduce
+## 8. The arb trio — how the master digitizer actually builds Arabic (video ground truth) ⭐⭐
+
+The `pairs/arb/` trio (SVG + VP3 + `arb.webm`, an 18-minute EmbroideryStudio screen
+recording — the video replaces the props-screenshot JSON for this design) is the first
+*process*-level ground truth: it shows the .emb being inspected object by object and the
+machine simulation sewing it. Ayat-al-Kursi composition, 279.6 × 245.2 mm, 46k stitches,
+3 stops (Red holder → Blue "Allah" → Red arcs), **1,618 objects and only 2 trims**.
+
+What the UI showed (all transcribed into `pairs/arb/arb_props.json`):
+
+- **Construction = dissection into ~1,600 tiny column objects.** The calligraphy is cut
+  into ~10 mm stroke pieces: 909 closed **Column A** shapes (two-rail, variable width)
+  + 703 **Column C** centerlines (base width 0.80 mm) — the SVG carries exactly these
+  as filled paths + stroke polylines, a 1:1 object map. Median piece = ~27 stitches.
+- **Everything is satin.** Fills tab for all 1,618 objects: Satin, **Auto spacing ON,
+  0.24 mm base @ 90 % adjust**, satin count 7, **Auto split ON: length 7.00 mm, min
+  0.40 mm**. Sewn rungs: red arcs median ~2.0 mm, blue Allah median ~4.1 mm, p95 7.5 mm
+  — the 7 mm satin width is REAL and auto-split keeps it sewable; nothing becomes
+  tatami.
+- **Connectors: Jump, Trim after OFF, Tie in OFF** (whole-design selection). Travel
+  between pieces is walked/jumped without trimming — that's the 2-trim total. Wide
+  Column A pieces carry Double-Tatami by-segment underlay (3.0/4.0/45°, margins 0.2);
+  pull comp is *disabled* (0.17 mm shown greyed).
+- **Machine run** (Stitch Player, TrueView): one continuous sew per stop, arc by arc,
+  pieces chained along the stroke direction.
+
+**Pipeline consequences (all prior-driven, wired 2026-07-17):**
+
+1. `register_pair.py` now classifies stitch-kind on a 2 mm-dilated object mask — the
+   tight mask chopped satin rungs into co-linear fragments that voted "fill"
+   (arb: 1,523/1,556 verdicts satin after the fix, matching the video).
+2. A category whose pairs are **satin-only** (< 5 % fill verdicts) takes its satin
+   ceiling from the digitizer's own **Auto-Split length (7.00 mm)** instead of a width
+   percentile → arabic ceiling is now 7.0 mm (was 3.6): wide strokes like the Allah
+   glyph stay satin, as production does.
+3. `authored.trim_after_off_frac` (from the Connectors tab) → step 5's travel planner
+   drops trims by travel length alone for arabic (the ≤ 12 mm cap stays; the cover law
+   is waived because production provably sews uncovered short travels).
+
+---
+
+## 9. Provenance & how to reproduce
 
 - Files parsed with `pyembroidery`; satin-vs-fill via consecutive-segment turn-angle
   (> 120° = reversal); pieces split on `TRIM`/`COLOR_CHANGE`.

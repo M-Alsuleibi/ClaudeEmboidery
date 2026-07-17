@@ -152,6 +152,7 @@ pipeline can safely default from.
 | 7 | arabic | 81 | 109 | 1.35 | 1 | 140.0 | 100.0 | 2.02 |
 | 3 | arabic | 0 | 10 | 10.0 | 1 | 144.6 | 100.0 | 2.55 |
 | 4 | arabic | 0 | 3 | 3.0 | 1 | 147.7 | 100.0 | 4.7 |
+| arb | arabic | 909 | 703 | 0.77 | 2 | 279.5 | 100.0 | 2.14 |
 
 ### Falahi — new category (n = 11), Palestinian tatreez cross-stitch
 
@@ -231,3 +232,21 @@ design as wireframe; 5's SVG holds only the bottom rosette/signature fragment of
 - Oddity: 3's props Design tab claims **8,618 stitches** but 3.VP3 holds 5,545 commands
   (4 and 5 match within ~3 %) — the screenshot may predate the exported VP3 state; the
   per-object settings still correspond (dims match 144.6 × 109.3 mm).
+
+### arb — the first VIDEO trio (SVG + VP3 + screen recording), 2026-07-17
+
+The trio's third element is an 18-min EmbroideryStudio screen recording (`arb.webm`)
+instead of a props JSON — the assistant transcribed the UI dialogs frame-by-frame into
+`arabic/pairs/arb/arb_props.json` (Fills: satin, auto-spacing 0.24 mm @ 90 %, Auto-Split
+7.00/0.40 mm; Special: Column C 0.80 mm centre input; Connectors: **Jump, Trim after
+Off, Tie in Off**; obj 61 Column A: Double-Tatami by-segment underlay, pull comp
+disabled). Ayat-al-Kursi, 279.6 × 245.2 mm, 46k stitches, **1,618 objects, 2 trims**:
+909 Column A closed shapes + 703 Column C centerlines — the CorelDRAW SVG carries the
+digitizing geometry 1:1 (fil1/fil2 filled paths = Column A, str0/str1 stroke polylines =
+Column C centerlines), so this SVG is the digitizer's dissection itself, not artwork or
+stitch wireframe. Ingest fallout: ① register_pair's stitch-kind verdicts now use a 2 mm
+dilated mask (tight masks chopped satin rungs into "fill" votes); ② arabic became
+`satin_only` → its ceiling is the authored Auto-Split length (7.0 mm, was 3.6 crossover);
+③ authored `trim_after_off_frac` → step 5 drops trims by travel length alone for arabic;
+④ the missing-middle-arc incident (see INCIDENTS.md) was found comparing the pipeline
+rebuild against this VP3.

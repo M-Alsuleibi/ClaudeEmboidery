@@ -18,14 +18,12 @@
    "area_mm2": 5477.44,
    "n_stitches": 15799,
    "density_st_mm2": 2.88,
-   "row_spacing_mm": 0.24,
+   "row_spacing_mm": 0.17,
    "stitch_kind": "satin",
    "kind_votes": {
-    "satin": 12485,
-    "fill": 100,
-    "mixed": 636
+    "satin": 17416
    },
-   "satin_w_mm": 1.82
+   "satin_w_mm": 1.78
   }
  ]
 }

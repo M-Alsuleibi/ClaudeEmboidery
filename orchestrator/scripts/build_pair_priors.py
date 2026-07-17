@@ -81,14 +81,23 @@ def aggregate_measures(measure_dicts: list[dict]) -> dict | None:
     # a category with no fill-verdict widths uses the satin p90 alone.
     satin_hi = _pct(satin_w, 90)
     fill_lo = _pct(fill_w, 10)
-    if satin_hi is not None and fill_lo is not None:
+    # A category whose fill-verdict objects are a rounding error (< 5% of verdicts) is
+    # SATIN-ONLY production (arb trio: 1,523 satin / 27 fill votes, the 27 being
+    # classifier residue on 46k all-satin stitches) — its "narrowest fills" are noise
+    # and must not midpoint the crossover down. Use where wide satin actually ends.
+    satin_only = (len(satin_w) + len(fill_w)) > 0 and (
+        len(fill_w) / (len(satin_w) + len(fill_w)) < 0.05)
+    if satin_only or fill_lo is None:
+        crossover = satin_hi
+    elif satin_hi is not None:
         crossover = round((satin_hi + fill_lo) / 2, 3)
     else:
-        crossover = satin_hi if satin_hi is not None else None
+        crossover = None
 
     return {
         "n_pairs": len(measure_dicts),
         "n_objects": n_objects,
+        "satin_only": satin_only,
         "satin_w_mm": {"p10": _pct(satin_w, 10), "med": _pct(satin_w, 50),
                        "p90": satin_hi, "n": len(satin_w)},
         "crossover_mm": crossover,
@@ -127,6 +136,7 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
     pull_comp_on: list[float] = []
     pc_states: list[bool] = []
     underlay_states: list[bool] = []
+    trim_off_states: list[bool] = []
     n_objects = 0
     for pj in props_dicts:
         n_objects += len(pj.get("objects", []))
@@ -168,7 +178,12 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
                 for p, v in flat.items():
                     if "first underlay" in p and (p.endswith("/enabled") or p.endswith("/selected")):
                         underlay_states.append(bool(v))
-    if not (fill_spacing or fill_length or pc_states or underlay_states):
+            elif tab == "connectors":
+                for p, v in flat.items():
+                    if "trim after" in p and p.endswith("/radio_selection"):
+                        trim_off_states.append(_norm(str(v)) == "off")
+    if not (fill_spacing or fill_length or pc_states or underlay_states
+            or trim_off_states):
         return None
     out: dict = {"n_designs": len(props_dicts), "n_objects": n_objects}
     if fill_spacing:
@@ -183,6 +198,9 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
     if underlay_states:
         out["underlay_disabled_frac"] = round(
             1.0 - sum(underlay_states) / len(underlay_states), 3)
+    if trim_off_states:
+        out["trim_after_off_frac"] = round(
+            sum(trim_off_states) / len(trim_off_states), 3)
     return out
 
 

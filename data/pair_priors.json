@@ -1,90 +1,96 @@
 {
  "arabic": {
-  "n_pairs": 7,
-  "n_objects": 1184,
+  "n_pairs": 8,
+  "n_objects": 2795,
+  "satin_only": true,
   "satin_w_mm": {
-   "p10": 1.025,
-   "med": 2.445,
-   "p90": 6.4,
-   "n": 556
+   "p10": 0.8,
+   "med": 1.75,
+   "p90": 3.532,
+   "n": 2579
   },
-  "crossover_mm": 3.6,
-  "fill_density_st_mm2": 2.73,
-  "row_spacing_mm": 0.79,
-  "outline_to_fill": 0.922,
+  "crossover_mm": 3.532,
+  "fill_density_st_mm2": 1.65,
+  "row_spacing_mm": 0.21,
+  "outline_to_fill": 0.834,
   "authored": {
-   "n_designs": 7,
-   "n_objects": 19,
+   "n_designs": 8,
+   "n_objects": 21,
    "fill_spacing_mm": {
     "med": 0.45,
-    "n": 14
+    "n": 15
    },
    "fill_length_mm": {
     "med": 7.0,
-    "n": 14
+    "n": 15
    },
    "pull_comp_disabled_frac": 0.533,
    "pull_comp_mm": {
     "med": 0.17,
     "n": 7
    },
-   "underlay_disabled_frac": 0.887
+   "underlay_disabled_frac": 0.887,
+   "trim_after_off_frac": 1.0
   }
  },
  "anime": {
   "n_pairs": 19,
   "n_objects": 1087,
+  "satin_only": true,
   "satin_w_mm": {
-   "p10": 0.84,
-   "med": 1.365,
-   "p90": 2.5,
-   "n": 574
+   "p10": 0.95,
+   "med": 1.49,
+   "p90": 2.44,
+   "n": 821
   },
-  "crossover_mm": 2.13,
-  "fill_density_st_mm2": 1.36,
-  "row_spacing_mm": 0.78,
+  "crossover_mm": 2.44,
+  "fill_density_st_mm2": 1.14,
+  "row_spacing_mm": 0.37,
   "outline_to_fill": 9.657
  },
  "decoration": {
   "n_pairs": 33,
   "n_objects": 3208,
+  "satin_only": true,
   "satin_w_mm": {
-   "p10": 0.61,
-   "med": 0.94,
-   "p90": 1.57,
-   "n": 2171
+   "p10": 0.64,
+   "med": 0.95,
+   "p90": 1.52,
+   "n": 2844
   },
-  "crossover_mm": 1.57,
-  "fill_density_st_mm2": 2.0,
-  "row_spacing_mm": 0.5,
+  "crossover_mm": 1.52,
+  "fill_density_st_mm2": 1.62,
+  "row_spacing_mm": 0.26,
   "outline_to_fill": 3208.0
  },
  "tatreez": {
   "n_pairs": 12,
   "n_objects": 523,
+  "satin_only": true,
   "satin_w_mm": {
-   "p10": 0.82,
-   "med": 1.45,
-   "p90": 2.37,
-   "n": 417
+   "p10": 0.84,
+   "med": 1.415,
+   "p90": 2.335,
+   "n": 506
   },
-  "crossover_mm": 2.37,
-  "fill_density_st_mm2": 0.54,
-  "row_spacing_mm": 4.76,
+  "crossover_mm": 2.335,
+  "fill_density_st_mm2": 0.07,
+  "row_spacing_mm": 2.25,
   "outline_to_fill": 523.0
  },
  "animals": {
   "n_pairs": 10,
   "n_objects": 1647,
+  "satin_only": true,
   "satin_w_mm": {
-   "p10": 0.78,
-   "med": 1.12,
-   "p90": 1.641,
-   "n": 1060
+   "p10": 0.796,
+   "med": 1.11,
+   "p90": 1.62,
+   "n": 1497
   },
-  "crossover_mm": 1.641,
-  "fill_density_st_mm2": 1.44,
-  "row_spacing_mm": 0.985,
+  "crossover_mm": 1.62,
+  "fill_density_st_mm2": 0.465,
+  "row_spacing_mm": 0.84,
   "outline_to_fill": 1647.0
  }
 }

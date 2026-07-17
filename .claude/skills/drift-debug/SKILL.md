@@ -90,6 +90,14 @@ guards it — an entry without a test is an open risk.
   threadlist.
 - **Tiny accents never get a k-means cluster** (~0.1 % of pixels: an iris, a gold trim)
   regardless of `--colors`; needs accent recovery/reservation, not more colours.
+- **Run-tier demotion swallows a merged band** — a large connected region (calligraphy
+  band, mesh) whose thin connectors drag its area-weighted width under 1.6 mm becomes
+  a handful of bean runs and its fill is dropped (~15 % coverage, verify green).
+  Guarded by `_RUN_MAX_REGION_AREA_MM2` + `test_large_thin_region_stays_fill`. NOTE:
+  `*_working_A.svg` on disk is POST-decision state — regions tiered to satin/run have
+  their originals deliberately removed; don't misread that as the extension eating
+  paths (this incident's first wrong theory). Probe pass A standalone before blaming
+  Ink-Stitch.
 
 ## When NOT to use this
 

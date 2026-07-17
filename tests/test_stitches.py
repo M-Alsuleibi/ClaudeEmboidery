@@ -134,6 +134,39 @@ def test_thin_line_run_can_be_disabled(tmp_path):
     assert 'stroke_method="running_stitch"' not in ready
 
 
+def test_run_demotion_guard_keeps_large_meshy_region_as_fill():
+    # The missing-middle-arc incident (arb trio, 2026-07-17): a 1,090mm2 connected
+    # calligraphy band whose thin connectors dragged its area-weighted width to
+    # "1.36mm" was demoted to 6 bean runs (long_frac 0.16 — spurs dominate), dropping
+    # its fill: ~15% coverage sewed, verify stayed green. The guard: a sub-1.6mm
+    # region may only demote to runs when it is small OR its long centerlines carry
+    # the skeleton. Pure-unit test of the decision (no Ink-Stitch binary needed).
+    from lxml import etree
+    from wilcom_pipeline.steps.stitches import _SVG_NS, _run_demotion_ok
+
+    def _line(length_uu):
+        return etree.fromstring(
+            f'<path xmlns="{_SVG_NS}" d="M0,0 L{length_uu:.1f},0"/>')
+
+    # the arb middle arc, to scale: 6 longs carrying ~16% of an 800mm skeleton
+    longs = [_line(85) for _ in range(6)]
+    spurs = [_line(3.4) for _ in range(198)]
+    assert not _run_demotion_ok(1.36, 1090.0, longs, longs + spurs)
+
+    # a genuine long hairline keyline (one centerline = the whole skeleton) still runs,
+    # even though its area exceeds the cap (140mm x 1.5mm = 210mm2)
+    hair = [_line(560)]
+    assert _run_demotion_ok(1.5, 210.0, hair, hair)
+
+    # a small diacritic/dot stays a run regardless of its (noisy) long fraction
+    dot_longs = [_line(12)]
+    dot_lines = dot_longs + [_line(20), _line(15)]
+    assert _run_demotion_ok(1.0, 8.0, dot_longs, dot_lines)
+
+    # at-or-above the satin threshold the run tier never applies
+    assert not _run_demotion_ok(1.7, 8.0, dot_longs, dot_lines)
+
+
 def test_requires_svg_path(tmp_path):
     path = tmp_path / "in.png"
     Image.fromarray(_two_colour_logo()).save(path)

@@ -138,6 +138,17 @@ _SATIN_FIXED_MAX_MM = 3.0   # within the satin band, columns up to this stay FIX
                             # proven); WIDER ones (3-7mm) build VARIABLE-width — a uniform width
                             # under-covers a modulated wide stroke — and get a zigzag underlay
                             # instead of relying on the center-walk (manual underlay-by-width p412).
+_RUN_MAX_REGION_AREA_MM2 = 150.0  # run-demotion guard, HALF 1: above this area a
+                            # sub-1.6mm-average region is suspect. Alone it would also
+                            # block a long genuine hairline (a 140mm wavy keyline is
+                            # ~210mm2), so demotion is only blocked when the region is
+                            # ALSO spur-dominated (long_frac < _BRANCH_COVER_MIN): a
+                            # merged calligraphy band (arb middle arc: 1,090mm2 at
+                            # "1.36mm" avg width, long_frac 0.16 — thin connectors
+                            # dragging broad strokes under the threshold) becomes bean
+                            # runs covering ~15% and its fill never sews (the
+                            # missing-middle-arc incident). Such a region stays a fill
+                            # (the "large regions = tatami" hard rule).
 _RUN_MAX_WIDTH_MM = 1.6     # below this a linework colour is too thin to satin ->
                             # running/bean stitch (the min-satin-width law, §0b.2)
 _MIN_REGION_PX = 20         # ignore speckle components when measuring a colour's width
@@ -597,6 +608,7 @@ def _linework_prepass(
         elif re.fullmatch(r"c\d+_\d+", pid):
             originals[pid] = p
 
+
     # Decide an action PER REGION (block) *before* mutating, so a satin-overflow
     # fallback can demote satins to fills while keeping the (cheap) runs. Each block's
     # own width (outline area / centerline length, in mm) picks its tier — so one
@@ -681,7 +693,8 @@ def _linework_prepass(
             satin_cands += [(c, idx, w_mm) for c in longs]
             drop_centerlines += [c for c in lines if c not in longs]
             drop_originals.add(orig)
-        elif run_enabled and 0 < w_mm < _RUN_MAX_WIDTH_MM:
+        elif run_enabled and _run_demotion_ok(
+                w_mm, _region_area_mm2(originals.get(orig), mm_per_uu), longs, lines):
             run_strokes += [(c, idx) for c in longs]
             drop_centerlines += [c for c in lines if c not in longs]
             drop_originals.add(orig)
@@ -969,6 +982,28 @@ def _poly_area_uu2(d: str) -> float:
     for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]):
         a += x0 * y1 - x1 * y0
     return abs(a) / 2.0
+
+
+def _region_area_mm2(original, mm_per_uu: float) -> float:
+    """A tiered region's ink area in mm² (0 when its original path is unavailable —
+    the run tier then stays permissive, matching the pre-guard behaviour)."""
+    if original is None:
+        return 0.0
+    return _poly_area_uu2(original.get("d") or "") * mm_per_uu * mm_per_uu
+
+
+def _run_demotion_ok(w_mm: float, area_mm2: float, longs, lines) -> bool:
+    """May a sub-1.6mm-average region be demoted from fill to bean runs? Yes for a
+    genuine hairline (small, or its long centerlines carry the skeleton); NO for a
+    large spur-dominated region — that is a merged band/mesh whose thin connectors
+    drag broad strokes under the width threshold (arb middle arc: 1,090mm² at
+    "1.36mm" avg, long_frac 0.16), where runs would cover ~15% and the dropped fill
+    never sews (the missing-middle-arc incident). Large regions stay fills (the
+    "large regions = tatami" hard rule)."""
+    if not (0 < w_mm < _RUN_MAX_WIDTH_MM):
+        return False
+    return (area_mm2 <= _RUN_MAX_REGION_AREA_MM2
+            or _long_frac(longs, lines) >= _BRANCH_COVER_MIN)
 
 
 def _polyline_len_uu(d: str) -> float:
@@ -2013,6 +2048,7 @@ def _plan_travel(ctx: PipelineContext, ready_svg: Path) -> int:
         symbols = _load_command_symbols()
         if symbols is None:
             return 0
+        trim_off = priors.trim_after_off(ctx.config.category)
         tree = etree.parse(str(ready_svg))
         root = tree.getroot()
         mm_per_uu = _mm_per_uu(root)
@@ -2068,11 +2104,17 @@ def _plan_travel(ctx: PipelineContext, ready_svg: Path) -> int:
                 p, q = exits[k], entries[k + 1]
                 if np.hypot(*(q - p)) > max_uu:
                     continue
-                cover = later[base + k + 1] | colour_union
-                if _segment_covered(p, q, cover, origin, res) >= _TRAVEL_COVER_MIN:
-                    if pieces[k]["el"].get(trim_attr) is not None:
-                        del pieces[k]["el"].attrib[trim_attr]
-                        dropped += 1
+                # Authored-prior override: a category whose production connectors are
+                # "Trim after: Off" (arb trio: jump connectors, no tie-in, 2 trims in
+                # 46k stitches) chains on travel length alone — the cover law would
+                # keep trims production provably sews through.
+                if not trim_off:
+                    cover = later[base + k + 1] | colour_union
+                    if _segment_covered(p, q, cover, origin, res) < _TRAVEL_COVER_MIN:
+                        continue
+                if pieces[k]["el"].get(trim_attr) is not None:
+                    del pieces[k]["el"].attrib[trim_attr]
+                    dropped += 1
             base += len(pieces)
 
         if n_cmd:

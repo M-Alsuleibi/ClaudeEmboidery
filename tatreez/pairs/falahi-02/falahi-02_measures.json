@@ -18,12 +18,13 @@
    "area_mm2": 20162.88,
    "n_stitches": 7191,
    "density_st_mm2": 0.36,
-   "row_spacing_mm": 1.84,
+   "row_spacing_mm": 0.58,
    "stitch_kind": "satin",
    "kind_votes": {
-    "satin": 3044
+    "satin": 9306,
+    "fill": 41
    },
-   "satin_w_mm": 3.85
+   "satin_w_mm": 3.82
   },
   {
    "i": 1,
@@ -33,13 +34,13 @@
    "area_mm2": 3978.56,
    "n_stitches": 1423,
    "density_st_mm2": 0.36,
-   "row_spacing_mm": 5.04,
+   "row_spacing_mm": 0.79,
    "stitch_kind": "satin",
    "kind_votes": {
-    "satin": 209,
-    "fill": 8
+    "satin": 1396,
+    "fill": 14
    },
-   "satin_w_mm": 3.87
+   "satin_w_mm": 3.85
   }
  ]
 }

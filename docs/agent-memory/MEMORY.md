@@ -1,5 +1,6 @@
 # Memory index
 
+- [arb trio video ground truth](arb-trio-video-ground-truth.md) — arabic process truth from screen recording: all-satin columns, auto-split 7mm ceiling, trim-after OFF; 3 prior-driven fixes (verdict-mask dilation, satin-only ceiling, trim policy)
 - [Arabic: --no-outline-objects](arabic-no-outline-objects.md) — Arabic runs MUST pass --no-outline-objects; the auto-on satin border wraps contour_fills = the "outline-satin + fill" hybrid the user rejects; forcing full satin fragments cursive (coverage 90→70%)
 - [AI digitizer repo](ai-digitizer-repo.md) — sibling repo ~/Projects/wilcom-ai-digitizer (photo→.vp3 AI); hybrid learn-the-decisions + variable-width satin; blocked on paired (artwork,.vp3) data; new-wilcom-v1 = its renderer/eval harness
 

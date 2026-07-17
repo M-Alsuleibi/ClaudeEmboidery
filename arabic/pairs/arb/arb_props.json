@@ -1,0 +1,284 @@
+{
+  "software": "(Ultimate Special Edition)",
+  "machine_format": "Tajima",
+  "source": "arb.webm screen recording (2026-07-17) — transcribed by assistant; video supersedes the screenshot set for this trio",
+  "design": {
+    "tabs_captured": [
+      "Color-Object List",
+      "Process Stitches"
+    ],
+    "settings": {
+      "SECTION A: GENERAL DESIGN INFORMATION": {
+        "Title": "Design1",
+        "Height": "245.21 mm",
+        "Width": "279.61 mm",
+        "Stitches": "46,081",
+        "Colors": "3",
+        "Objects": "1618"
+      },
+      "SECTION B: THREAD COLOR DETAILS": {
+        "Color chart list": "Stop 1: Red (block header shows 0-stitch holder), Stop 2: Blue (Allah glyph, ~3,269 stitches), Stop 3: Red (three calligraphy arcs, ~42,950 stitches); charts Default"
+      },
+      "SECTION C: STITCHING PARAMETERS": {
+        "Process Stitches dialog": {
+          "Target stitches": "46,430 @ 100 %",
+          "Satin spacing": "100 % (Auto spacing unchecked in this global dialog)",
+          "Zigzag spacing": "100 %",
+          "Tatami spacing": "100 %",
+          "Tatami length": "100 %",
+          "Program split spacing": "100 %",
+          "Program split length": "100 %",
+          "Run stitch length": "100 %",
+          "Pull compensation": "0.00 +/- mm",
+          "Width": "279.61 mm @ 100 %",
+          "Height": "245.21 mm @ 100 %"
+        }
+      }
+    }
+  },
+  "screenshots": [
+    {
+      "file": "arb.webm @ ~12:21 (scene_0004)",
+      "selected_object": {
+        "index": "all (1,618 objects selected)",
+        "type": "mixed (mostly Column C satin pieces + short run connectors)",
+        "stitches": 46061
+      },
+      "active_tab": "Fills",
+      "settings": {
+        "Dropdown": "Satin",
+        "Stitch values": {
+          "Spacing": "0.24 mm (greyed — auto spacing owns it)"
+        },
+        "Auto spacing": {
+          "enabled": true,
+          "displayed_value": {
+            "Adjust": "90 %"
+          }
+        },
+        "Satin count": {
+          "Adjust": "7"
+        },
+        "Auto split": {
+          "enabled": true,
+          "displayed_value": {
+            "Length": "7.00 mm",
+            "Min length": "0.40 mm"
+          }
+        }
+      },
+      "canvas_location": "whole design",
+      "object_list_visible_rows": [
+        {"index": 1, "stitches": 0},
+        {"index": 2, "stitches": 17},
+        {"index": 3, "stitches": 67},
+        {"index": 4, "stitches": 6},
+        {"index": 5, "stitches": 19},
+        {"index": 6, "stitches": 63},
+        {"index": 7, "stitches": 29},
+        {"index": 8, "stitches": 24},
+        {"index": 9, "stitches": 2},
+        {"index": 10, "stitches": 344},
+        {"index": 11, "stitches": 692},
+        {"index": 12, "stitches": 5},
+        {"index": 13, "stitches": 11},
+        {"index": 14, "stitches": 3}
+      ]
+    },
+    {
+      "file": "arb.webm @ ~12:33 (scene_0006)",
+      "selected_object": {
+        "index": "1,527 objects selected",
+        "type": "Column C",
+        "stitches": null
+      },
+      "active_tab": "Special",
+      "settings": {
+        "Dropdown": "Column C",
+        "Column": {
+          "Width": "0.80 mm"
+        },
+        "Input side": {
+          "radio_selection": "Center",
+          "Side 1": "50 % / 0.40 mm",
+          "Side 2": "50 % / 0.40 mm"
+        },
+        "Corner fraction": {
+          "Adjust": "1.00",
+          "Round sharp corners": false
+        },
+        "Angle": "90 °"
+      },
+      "canvas_location": "whole design"
+    },
+    {
+      "file": "arb.webm @ ~7:47 (f_0467)",
+      "selected_object": {
+        "index": "all (1,618 objects selected)",
+        "type": "mixed",
+        "stitches": null
+      },
+      "active_tab": "Connectors",
+      "settings": {
+        "Dropdown": "After object / Inside object (both inspected)",
+        "Type": {
+          "radio_selection": "Jump"
+        },
+        "Trim after": {
+          "radio_selection": "Off",
+          "displayed_value": {
+            "If next connector >": "6.00 mm"
+          }
+        },
+        "Tie in": {
+          "Off": true,
+          "Always tie in": false,
+          "After trim / CC": false,
+          "Previous connector >": "3.00 mm (unchecked)",
+          "Length": "1.00 mm",
+          "Number": "2"
+        }
+      },
+      "canvas_location": "whole design"
+    },
+    {
+      "file": "arb.webm tail (scene_0005): object list end",
+      "selected_object": {
+        "index": "rows 1605-1618",
+        "type": "Column pieces + runs",
+        "stitches": null
+      },
+      "active_tab": "Color-Object List",
+      "settings": {},
+      "object_list_visible_rows": [
+        {"index": 1605, "stitches": 48},
+        {"index": 1606, "stitches": 32},
+        {"index": 1607, "stitches": 9},
+        {"index": 1608, "stitches": 9},
+        {"index": 1609, "stitches": 4},
+        {"index": 1610, "stitches": 13},
+        {"index": 1611, "stitches": 3},
+        {"index": 1612, "stitches": 17},
+        {"index": 1613, "stitches": 3},
+        {"index": 1614, "stitches": 7},
+        {"index": 1615, "stitches": 59},
+        {"index": 1616, "stitches": 0},
+        {"index": 1617, "stitches": 0},
+        {"index": 1618, "stitches": 0}
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "index": 61,
+      "type": "Column A",
+      "stitches": 47,
+      "tabs_captured": [
+        "Underlay",
+        "Pull Comp"
+      ],
+      "settings": {
+        "Underlay": {
+          "First underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          },
+          "Second Underlay": {
+            "enabled": true,
+            "radio_selection": "By segment",
+            "Type": "Double Tatami",
+            "Spacing": "3.00 mm",
+            "Length": "4.00 mm",
+            "Angle": "45 °",
+            "Backstitch": "icon 1 selected",
+            "Margins": {
+              "1": "0.20 mm",
+              "2": "0.20 mm",
+              "3": "0.20 mm"
+            }
+          }
+        },
+        "Pull Comp": {
+          "Pull compensation": {
+            "enabled": false,
+            "displayed_value": "0.17 mm"
+          },
+          "Adjust column width": {
+            "enabled": false,
+            "displayed_value": "1.00 mm"
+          }
+        }
+      }
+    },
+    {
+      "index": "design-wide (1,618 objects)",
+      "type": "Column C (1,527 of 1,618) + boundary-digitized columns + run connectors",
+      "stitches": 46081,
+      "tabs_captured": [
+        "Fills",
+        "Special"
+      ],
+      "settings": {
+        "Fills": {
+          "Dropdown": "Satin",
+          "Stitch values": {
+            "Spacing": "0.24 mm"
+          },
+          "Auto spacing": {
+            "enabled": true,
+            "displayed_value": {
+              "Adjust": "90 %"
+            }
+          },
+          "Satin count": {
+            "Adjust": "7"
+          },
+          "Auto split": {
+            "enabled": true,
+            "displayed_value": {
+              "Length": "7.00 mm",
+              "Min length": "0.40 mm"
+            }
+          }
+        },
+        "Special": {
+          "Dropdown": "Column C",
+          "Column": {
+            "Width": "0.80 mm"
+          },
+          "Input side": {
+            "radio_selection": "Center",
+            "Side 1": "50 % / 0.40 mm",
+            "Side 2": "50 % / 0.40 mm"
+          },
+          "Corner fraction": {
+            "Adjust": "1.00"
+          },
+          "Angle": "90 °"
+        }
+      }
+    }
+  ],
+  "machine_run": {
+    "player": "EmbroideryStudio Stitch Player, TrueView on",
+    "speed": "7,080 then 30,240 stitches/min (player setting)",
+    "status_bar": "SATIN Auto 90% throughout; connector mode Jump (M)",
+    "sequence": "single continuous sew per colour block: Stop 1 Red holder -> Stop 2 Blue Allah -> Stop 3 Red arcs sewn arc by arc, pieces chained by run connectors; VP3 carries only 2 trims + 2 jumps for 46k stitches"
+  },
+  "uncertainties": [
+    "Object-list header shows 46,061/46,081 while Process Stitches shows 46,430 and the saved VP3 carries 46,227 records — counts drifted as the digitizer toggled settings during capture.",
+    "The Column C 'Width 0.80 mm' panel was read with 1,527 objects selected; per-object widths vary (VP3 zigzag rungs: red median ~2.0 mm, blue median ~4.1 mm, p95 7.5 mm) so 0.80 mm is the shared/base value, not every column's sewn width.",
+    "Object 61 (Column A, 4.10 mm wide) had its Underlay first+second checkboxes and stitch count (22/47/65) actively toggled during capture — the recorded 'enabled: true' is what the digitizer left ON-screen, and small Column C pieces were never inspected on that tab; underlay-by-width (wide Column A yes, narrow Column C no) is the safe reading.",
+    "Design height 245.21 mm includes connector overshoot; the artwork ink spans ~228.7 mm."
+  ]
+}

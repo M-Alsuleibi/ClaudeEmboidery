@@ -44,6 +44,7 @@ OUTLIER_MM = 2.0       # a sampled SVG point "hits" the design if a stitch is wi
 OUTLIER_PATH_FRAC = 0.5  # >this fraction of misses -> the whole path is a non-stitched outlier
 RASTER_MM_PX = 0.4     # per-object mask resolution
 OUTLINE_HALO_MM = 1.2  # half-width when rasterising an outline object's polyline mask
+VERDICT_DILATE_MM = 2.0  # mask growth for the stitch-kind verdict only (satin rung overshoot)
 
 # The CSS/SVG basic named colours (CorelDRAW exports use these instead of hex for
 # primaries). Resolved to #RRGGBB at parse time so downstream hex parsing is total.
@@ -350,7 +351,13 @@ def measure_objects(objs, pat, s, R, t, dist_per_pt, pt_path_idx):
             if w is not None:
                 rec["width_mm"] = round(w, 2)
 
-        # stitches inside the mask, from same-colour blocks only
+        # stitches inside the mask, from same-colour blocks only. The satin-vs-tatami
+        # verdict uses a DILATED mask: a satin column's zigzag rungs overshoot the
+        # authored geometry (pull comp + half the rung width), and the tight mask chops
+        # the path into short co-linear crossings that mis-vote "fill" (the Auto-Split
+        # trap's mask-level twin, measured on the arb trio: 3.6-4.2mm columns voted
+        # fill). Density/area keep the tight mask.
+        vmask = ndimage.binary_dilation(mask, iterations=max(int(VERDICT_DILATE_MM / res), 1))
         want = _rgb(o["colour"]) if o["colour"] else None
         n_in, thread_len, runs = 0, 0.0, []
         for ti, bpts in blocks:
@@ -363,7 +370,9 @@ def measure_objects(objs, pat, s, R, t, dist_per_pt, pt_path_idx):
             inside = np.zeros(len(bpts), bool)
             inside[ok] = mask[iy[ok], ix[ok]]
             n_in += int(inside.sum())
-            ids = np.where(inside)[0]
+            vinside = np.zeros(len(bpts), bool)
+            vinside[ok] = vmask[iy[ok], ix[ok]]
+            ids = np.where(vinside)[0]
             if ids.size < 2:
                 continue
             for run in np.split(ids, np.where(np.diff(ids) > 1)[0] + 1):

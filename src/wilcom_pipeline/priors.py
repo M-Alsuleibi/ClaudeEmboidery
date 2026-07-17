@@ -46,11 +46,21 @@ def category_prior(category: str | None) -> dict | None:
 
 def satin_ceiling_mm(category: str | None) -> tuple[float, int] | None:
     """(measured satin/fill crossover clamped to 3-9mm, n_pairs) or None.
-    This is the pair-calibrated replacement for the hand-chosen satin ceiling."""
+    This is the pair-calibrated replacement for the hand-chosen satin ceiling.
+
+    A SATIN-ONLY category (production digitizes zero fills — arabic per the arb trio)
+    keeps satin however wide the stroke runs and Auto-Splits the long stitches, so its
+    ceiling is the digitizer's own Auto-Split length (authored on the Fills tab,
+    captured as `authored.fill_length_mm`; 7.00 mm on every transcribed design) rather
+    than a width percentile, which under-sees the few wide columns."""
     rec = category_prior(category)
     if not rec or rec.get("crossover_mm") is None:
         return None
     c = float(rec["crossover_mm"])
+    if rec.get("satin_only"):
+        split = ((rec.get("authored") or {}).get("fill_length_mm") or {}).get("med")
+        if split:
+            c = max(c, float(split))
     return min(max(c, CEILING_MIN_MM), CEILING_MAX_MM), int(rec["n_pairs"])
 
 
@@ -69,6 +79,16 @@ def border_width_mm(category: str | None) -> float | None:
     rec = category_prior(category)
     med = ((rec or {}).get("satin_w_mm") or {}).get("med")
     return float(med) if med else None
+
+
+def trim_after_off(category: str | None) -> bool:
+    """True when the category's AUTHORED connector settings say "Trim after: Off" —
+    production sews the whole colour continuously on untrimmed jump/run connectors
+    (the arb trio: 1,618 objects, 46k stitches, 2 trims). Step 5's travel planner then
+    drops trims by travel length alone, without requiring the travel to be covered."""
+    rec = category_prior(category)
+    frac = ((rec or {}).get("authored") or {}).get("trim_after_off_frac")
+    return frac is not None and float(frac) >= 0.5
 
 
 def cross_stitch_pitch_mm(category: str | None) -> float | None:
