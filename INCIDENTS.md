@@ -18,6 +18,34 @@ Template:
 
 ---
 
+## 2026-07-18 — arabic — "converged" build looked nothing like production in Wilcom (rings, fans, fragmentation)
+- **Stage:** step 5 `_linework_prepass` region tiering + connector encoding
+- **Mechanism:** the previous convergence satisfied every aggregate gate (satin_frac
+  100, stitches in band) while the STRUCTURE was wrong — the fingerprint cannot see
+  stitch DIRECTION. The user's Wilcom screenshots (`input/arb.png` = production,
+  `input/arb-v2.svg` = our file exported through CorelDRAW) exposed three defects:
+  ① merged calligraphy regions failed the single-column/branch-dissection gates
+  (≤12 branches, long_frac ≥0.6) and fell to TURNING-SATIN RINGS — boundary-parallel
+  throws over ~95 % of the design where production sews ~1,600 per-stroke columns
+  with throws PERPENDICULAR to each pen stroke; ② ~3k un-split 8–20 mm travel moves
+  (production splits connectors into ≤7 mm Jump chains — its histogram: 812 @4–6 mm,
+  only 15 >8 mm) fragmented the design on Wilcom import; ③ closed-loop
+  centerlines/ring arcs mis-pair their rails in Ink-Stitch → sunburst fans (26 fan
+  windows vs reference 0). A first branch-only fix collapsed source-ink coverage to
+  62 % — skeleton branches don't TILE a region (junction lobes stay bare).
+- **Fix:** satin-only regions dissect into ALL skeleton branches (`keep = longs`,
+  min_pts 6, run demotion off — thin linework is narrow Column-C satin) + a
+  **residual-cover pass** (`_residual_cover_lines`: region raster (evenodd) minus the
+  built columns' swept footprints → ring/strip patch columns for leftovers ≥2.5 mm²);
+  `_split_long_travels` splits 8–20 mm travels into ≤`authored_jump_mm` chains;
+  closed loops (net turning >300°) cut into open half-arcs. Result: 47,601 stitches
+  (ref 46,081), 987 columns (ref 1,618), coverage 95.7 %, fans 2 (ref 0), stacking
+  2.2 mm²/5.7 layers (gate PASSES), stroke-following direction verified by render.
+- **Guard:** tests/test_vwidth_satin.py (hairpin split, loop halving, travel-split
+  chains); the fan detector + movement-histogram comparison documented in
+  agent memory (arabic-satin-only-law) — **render comparison is mandatory; never
+  accept satin_frac alone as convergence**
+
 ## 2026-07-17 — arabic — rebuild drifted from the arb trio (93% satin, 33 trims, 37k stitches vs 100%/2/46k)
 - **Stage:** step 5 (tiering gates + travel planner) and step 7 (drift bands)
 - **Mechanism:** five generic gates blocked convergence on the trio truth: ① the

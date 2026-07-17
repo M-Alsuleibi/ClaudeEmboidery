@@ -135,6 +135,16 @@ def authored_underlay_off(category: str | None) -> bool:
     return frac is not None and float(frac) >= 0.5
 
 
+def authored_jump_mm(category: str | None) -> float | None:
+    """The authored Connectors "Jump" segment length (arb: 7.0 mm) — production
+    splits every within-colour connector into segments of at most this length
+    (the reference movement histogram: 812 moves @4-6mm, 338 @6-8mm, only 15
+    longer than 8mm in 46k stitches). None when no authored connector length."""
+    rec = category_prior(category)
+    med = (((rec or {}).get("authored") or {}).get("jump_mm") or {}).get("med")
+    return float(med) if med else None
+
+
 def trim_after_off(category: str | None) -> bool:
     """True when the category's AUTHORED connector settings say "Trim after: Off" —
     production sews the whole colour continuously on untrimmed jump/run connectors

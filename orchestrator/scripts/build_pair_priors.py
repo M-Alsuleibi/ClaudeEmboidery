@@ -139,6 +139,7 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
     pc_states: list[bool] = []
     underlay_states: list[bool] = []
     trim_off_states: list[bool] = []
+    jump_len: list[float] = []
     n_objects = 0
     for pj in props_dicts:
         n_objects += len(pj.get("objects", []))
@@ -202,6 +203,12 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
                 for p, v in flat.items():
                     if "trim after" in p and p.endswith("/radio_selection"):
                         trim_off_states.append(_norm(str(v)) == "off")
+                    # authored jump segment length ("Jump: 7.0 mm" / Type=Jump +
+                    # displayed value) — production splits connectors into segments
+                    # of at most this length
+                    if "/jump" in p and p.endswith(
+                            ("/jump", "/displayed_value")) and (x := _mm(v)) is not None:
+                        jump_len.append(x)
     if not (fill_spacing or fill_length or pc_states or underlay_states
             or trim_off_states):
         return None
@@ -227,6 +234,8 @@ def aggregate_props(props_dicts: list[dict]) -> dict | None:
     if trim_off_states:
         out["trim_after_off_frac"] = round(
             sum(trim_off_states) / len(trim_off_states), 3)
+    if jump_len:
+        out["jump_mm"] = {"med": _pct(jump_len, 50), "n": len(jump_len)}
     return out
 
 

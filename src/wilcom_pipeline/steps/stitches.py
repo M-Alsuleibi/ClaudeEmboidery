@@ -281,18 +281,66 @@ def run(ctx: PipelineContext) -> None:
     ctx.stitch_svg_path = ready_svg
 
     pattern, group_svgs = _digitize(binary, ready_svg)
+
+    # Authored connector chains (see the block comment above _split_long_travels):
+    # a trim-after-off category with an authored Jump length splits its mid-length
+    # travels into <= jump_mm segments, exactly like the reference sews.
+    if priors.trim_after_off(ctx.config.category):
+        jump = priors.authored_jump_mm(ctx.config.category)
+        if jump:
+            n_split = _split_long_travels(pattern, jump)
+            if n_split:
+                print(f"      connectors -> {n_split} segment(s) added splitting "
+                      f"travels > {_TRAVEL_SPLIT_MIN_MM:g}mm into <= {jump:g}mm "
+                      f"chains (authored Connectors: Jump)", flush=True)
+
     ctx.stitch_pattern = pattern
     ctx.per_group_svgs = group_svgs
     _print_summary(pattern, n_satin, n_run)
 
 
-# NOTE on connectors: a STITCH->JUMP distance-thresholding pass (reclassify >8mm
-# movements as jumps) was implemented and REVERTED — measured against the reference
-# VP3, Wilcom encodes the untrimmed connectors as plain long STITCH movements (max
-# 275.7mm, 2 jump commands in the whole 46k-stitch file); the machine drapes an
-# overlong stitch by itself. Converting them bloated the file with writer-split jump
-# chains (7k jumps) and masked genuine fan-throw defects. Leave connectors as the
-# digitizer emits them.
+# Connector encoding, measured against the reference VP3 (arb trio):
+# - A STITCH->JUMP reclassification was tried and REVERTED: VP3 has no jump opcode
+#   (pyembroidery drops JUMPs on write / decodes the 80-01 long-move escape back as
+#   STITCH), so converting only bloated the file with writer-split chains.
+# - What production ACTUALLY does (movement histogram: 812 moves @4-6mm, 338 @6-8mm,
+#   only 15 >8mm in 46k stitches) is split every within-colour connector into
+#   segments of at most the authored Connectors "Jump" length (7.0mm), while the few
+#   big arc-to-arc repositioning moves stay single long moves (up to 275.7mm, VP3
+#   80-01 escapes). Our un-split 8-13mm hops (~3k of them) were the structural drift
+#   that fragmented the design on Wilcom import.
+_TRAVEL_SPLIT_MIN_MM = 8.0     # moves up to ~jump+tolerance stay single (ref keeps 6-8mm)
+_TRAVEL_SPLIT_MAX_MM = 20.0    # above this = repositioning; the reference drapes it single
+
+
+def _split_long_travels(pattern, jump_mm: float) -> int:
+    """Split mid-length STITCH travel moves (_TRAVEL_SPLIT_MIN_MM < d <=
+    _TRAVEL_SPLIT_MAX_MM) into equal segments of at most `jump_mm`, in place —
+    the authored connector chain production sews. Returns segments added."""
+    s_cmd = pe.STITCH & 0xFF
+    lo = _TRAVEL_SPLIT_MIN_MM * 10.0
+    hi = _TRAVEL_SPLIT_MAX_MM * 10.0
+    seg = jump_mm * 10.0
+    st = pattern.stitches
+    out = []
+    added = 0
+    prev = None
+    for stitch in st:
+        x, y, c = stitch[0], stitch[1], stitch[2]
+        if prev is not None and (c & 0xFF) == s_cmd and (prev[2] & 0xFF) == s_cmd:
+            d = ((x - prev[0]) ** 2 + (y - prev[1]) ** 2) ** 0.5
+            if lo < d <= hi:
+                n = int(np.ceil(d / seg))
+                for k in range(1, n):
+                    t = k / n
+                    out.append([prev[0] + t * (x - prev[0]),
+                                prev[1] + t * (y - prev[1]), pe.STITCH])
+                    added += 1
+        out.append(stitch)
+        prev = stitch
+    if added:
+        st[:] = out
+    return added
 
 
 def _run_cross_stitch(ctx: PipelineContext) -> None:
@@ -668,7 +716,9 @@ def _linework_prepass(
     satin_dominant = category_satin_dominant(ctx.config.category)
     satin_only = priors.satin_only(ctx.config.category)
     satin_lean = ((ctx.config.satin_lean and satin_dominant) or satin_only) and not lettering
-    run_enabled = ctx.config.thin_line_run and not lettering
+    # satin-only: no run demotion — production sews sub-1.6mm linework as NARROW satin
+    # (the arb video's 703 Column C pieces at 0.80mm), never as bean runs.
+    run_enabled = ctx.config.thin_line_run and not lettering and not satin_only
     branch_satin = (ctx.config.branch_satin or satin_lean) and not lettering
     # Spine-guided fill: a region that stays a fill keeps its longest centerline as a
     # guided_fill guide (rows follow the medial axis) instead of dropping all centerlines.
@@ -720,7 +770,11 @@ def _linework_prepass(
         else:
             drop_centerlines.extend(lines)
 
-    min_pts = _LETTERING_MIN_SATIN_PTS if lettering else _MIN_SATIN_PTS
+    # satin-only lowers the centerline floor to the vwidth minimum: production covers
+    # even short spurs with tiny columns (the arb object list starts 17/6/19-stitch
+    # pieces), and a 15-pt floor would drop them to the ring fallback.
+    min_pts = (_LETTERING_MIN_SATIN_PTS if lettering
+               else _VWIDTH_MIN_PTS if satin_only else _MIN_SATIN_PTS)
     width_ceiling = _satin_ceiling(lettering, satin_lean, satin_dominant,
                                    ctx.config.category)
     satin_max_mm = _LETTERING_SATIN_MAX_W_MM if (lettering or satin_lean) else _SATIN_MAX_W_MM
@@ -765,7 +819,15 @@ def _linework_prepass(
             # them leaves few gaps) — dissects into one satin per branch when --branch-satin
             # is on (generalising lettering's glyph dissection to organic strokes: a letter
             # ر, a forked ornament limb). Otherwise it stays ONE continuous fill.
-            if len(longs) == 1 and len(lines) <= _MAX_SPURS_FOR_SATIN:
+            # SATIN-ONLY (the arb trio): production dissects EVERY region into per-stroke
+            # columns — 1,618 of them, throws perpendicular to each pen stroke — so ALL
+            # skeleton branches become columns, uncapped and ungated. (The turning-ring
+            # cover this replaced sews boundary-parallel rings: satin_frac reads 100 but
+            # the stitch DIRECTION is wrong everywhere — the huge visual drift vs the
+            # reference in Wilcom.)
+            if satin_only:
+                keep = longs
+            elif len(longs) == 1 and len(lines) <= _MAX_SPURS_FOR_SATIN:
                 keep = longs[:1]
             elif (branch_satin and 2 <= len(longs) <= _MAX_BRANCH_SATINS
                   and _long_frac(longs, lines) >= _BRANCH_COVER_MIN):
@@ -829,10 +891,12 @@ def _linework_prepass(
     vwidth_all = ctx.config.vwidth_satin or satin_lean
     satin_ids: list[str] = []
     n_vwidth = 0
+    footprints: dict[str, list] = {}       # orig region id -> built columns' swept polys
     for c, idx, w_mm in satin_cands:
         color = thread_hex.get(idx, "#000000")
+        orig_id = (c.get("id") or "").rsplit("_", 1)[0]
         if vwidth_all or w_mm > _SATIN_FIXED_MAX_MM:
-            poly = originals.get((c.get("id") or "").rsplit("_", 1)[0])
+            poly = originals.get(orig_id)
             if poly is not None:
                 # split snaking centerlines at hairpins first (see the splitter):
                 # each short piece builds its own well-behaved column, like
@@ -842,20 +906,56 @@ def _linework_prepass(
                 except Exception:
                     pieces = [c]
                 for pc_el in pieces:
+                    rails: list = []
                     try:
                         if _build_vwidth_satin(pc_el, poly, color, mm_per_uu,
-                                               satin_max_mm, satin_min_mm):
+                                               satin_max_mm, satin_min_mm,
+                                               rails_out=rails):
                             n_vwidth += 1
+                            left, right = rails[0]
+                            footprints.setdefault(orig_id, []).append(
+                                np.vstack([left, right[::-1]]))
                             continue
                     except Exception:
                         pass  # degenerate geometry -> fixed-width fallback below
                     w_uu = float(np.clip(w_mm, satin_min_mm, satin_max_mm)) / mm_per_uu
                     _set_stroke_style(pc_el, w_uu, color)
                     satin_ids.append(pc_el.get("id"))
+                    try:
+                        pts = _xf(np.asarray(
+                            [(float(x), float(y)) for x, y in
+                             _COORD_RE.findall(pc_el.get("d") or "")], float),
+                            _ctm(pc_el))
+                        footprints.setdefault(orig_id, []).append(
+                            _stroke_footprint(pts, w_uu / 2))
+                    except Exception:
+                        pass
                 continue
         w_uu = float(np.clip(w_mm, satin_min_mm, satin_max_mm)) / mm_per_uu
         _set_stroke_style(c, w_uu, color)
         satin_ids.append(c.get("id"))
+
+    # SATIN-ONLY residual cover: per-branch columns don't TILE a region (junction
+    # lobes and wide spots between branches stay bare — measured 62% source-ink
+    # coverage vs 91%); production's per-stroke dissection covers everything. Tile
+    # what the built columns didn't sweep with ring/strip patch columns.
+    if satin_only and footprints:
+        n_patch = 0
+        for orig_id, fps in footprints.items():
+            poly = originals.get(orig_id)
+            if poly is None:
+                continue
+            try:
+                lines = _residual_cover_lines(poly, fps, mm_per_uu, strip_mm)
+            except Exception:
+                lines = []
+            if lines:
+                p_idx = int(re.match(r"c(\d+)_", orig_id).group(1))
+                strip_lines.extend((pts, p_idx) for pts in lines)
+                n_patch += len(lines)
+        if n_patch:
+            print(f"      satin-only residual cover -> {n_patch} patch column(s)",
+                  flush=True)
     # Broad-region satin centerlines (turning rings or straight strips) -> fixed-width
     # satin columns (root frame, no transform).
     # Every strip centerline (staggered turning ring or straight strip) goes through
@@ -873,7 +973,17 @@ def _linework_prepass(
         # the column sews a sunburst fan across the shape (measured: single-subpath
         # satin columns spanning ~20mm at the arb stacking hotspots).
         arr = np.asarray(pts, float)
-        for a, b in _hairpin_bounds(arr, mm_per_uu):
+        pieces = _hairpin_bounds(arr, mm_per_uu)
+        # A CLOSED ring that survived whole still fans: the two offset rails of a
+        # closed loop have no free ends, so Ink-Stitch's fractional pairing skews on
+        # tight curvature (the residual arb sunbursts). Cut it into two open
+        # half-arcs — open columns pair rails end-to-end cleanly. Closedness is
+        # detected by NET TURNING (~360deg for a loop): an endpoint-distance test
+        # misses rings because _ring_polyline overshoots the seam by ~one strip.
+        if len(pieces) == 1 and len(arr) >= 6 and abs(_net_turning_deg(arr)) > 300.0:
+            mid = len(arr) // 2
+            pieces = [(0, mid), (mid, len(arr) - 1)]
+        for a, b in pieces:
             if b - a < 1:
                 continue
             el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
@@ -1264,6 +1374,18 @@ _HAIRPIN_MIN_PIECE_MM = 3.0   # don't cut pieces shorter than this
 _HAIRPIN_STEP_MM = 0.75       # chord sampling step for the turn measurement
 
 
+def _net_turning_deg(R: np.ndarray) -> float:
+    """Net signed turning of a polyline in degrees (~+-360 for a closed loop)."""
+    D = np.diff(R, axis=0)
+    L = np.hypot(*D.T)
+    D = D[L > 1e-9]
+    if len(D) < 3:
+        return 0.0
+    ang = np.arctan2(D[:, 1], D[:, 0])
+    turn = (np.diff(ang) + np.pi) % (2 * np.pi) - np.pi
+    return float(np.degrees(turn.sum()))
+
+
 def _hairpin_bounds(R: np.ndarray, mm_per_unit: float) -> list[tuple[int, int]]:
     """Index bounds [(a,b), ...] splitting the polyline R (N,2; units where
     mm = units * mm_per_unit) at hairpin turns. [(0, N-1)] when there is none."""
@@ -1312,9 +1434,19 @@ def _split_centerline_at_hairpins(c, mm_per_uu: float) -> list:
     # chord directions measured in the ROOT frame (~0.75mm spacing — per-vertex angles
     # on a dense polyline are noise); the d is split on the LOCAL points at the same
     # indices, keeping the element's transform.
-    pieces = _hairpin_bounds(_xf(P, _ctm(c)), mm_per_uu)
+    R = _xf(P, _ctm(c))
+    pieces = _hairpin_bounds(R, mm_per_uu)
     if len(pieces) == 1:
-        return [c]
+        # A CLOSED-LOOP centerline (a letter counter, an annular stroke — net turning
+        # ~360deg) has no hairpin but still mis-pairs: rails offset around a loop have
+        # no free ends, and the fractional pairing skews into sunburst fans on tight
+        # curvature (the residual arb fans were exactly these). Cut it into two open
+        # half-arcs, like production's per-stroke Column A/C dissection.
+        if abs(_net_turning_deg(R)) > 300.0:
+            mid = len(P) // 2
+            pieces = [(0, mid), (mid, len(P) - 1)]
+        else:
+            return [c]
     parent = c.getparent()
     base_id = c.get("id") or "hp"
     out = []
@@ -1334,10 +1466,13 @@ def _split_centerline_at_hairpins(c, mm_per_uu: float) -> list:
 
 def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
                         satin_max_mm: float,
-                        satin_min_mm: float = _SATIN_MIN_W_MM) -> bool:
+                        satin_min_mm: float = _SATIN_MIN_W_MM,
+                        rails_out: list | None = None) -> bool:
     """Rewrite `center_el` in place from a centerline stroke into a variable-width satin column
     (two rails offset by the local half-width + rungs). Returns False (leaving it untouched) if
-    the geometry is degenerate, so the caller can fall back to fixed-width stroke_to_satin."""
+    the geometry is degenerate, so the caller can fall back to fixed-width stroke_to_satin.
+    When `rails_out` is given, the (left, right) root-frame rail arrays are appended to it —
+    the column's sewn FOOTPRINT, used by the satin-only residual-cover pass."""
     center = np.asarray(
         [(float(x), float(y)) for x, y in _COORD_RE.findall(center_el.get("d") or "")], float)
     if len(center) < _VWIDTH_MIN_PTS:
@@ -1363,6 +1498,8 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
     nrm = np.stack([-tan[:, 1], tan[:, 0]], axis=1)              # unit normal
     left = center + nrm * hw[:, None]
     right = center - nrm * hw[:, None]
+    if rails_out is not None:
+        rails_out.append((left, right))
 
     def _sub(pts):
         return "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts)
@@ -1406,6 +1543,62 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
 _STRIP_MM = 3.0             # width of each satin strip when tiling a broad region (fixed-width band)
 _STRIP_MIN_RUN_MM = 2.0     # skip strip runs shorter than this (slivers)
 _MAX_STRIPS_PER_REGION = 80
+_RESIDUAL_MIN_MM2 = 2.5     # a residual (branch-uncovered) patch smaller than this is left
+                            # to the neighbouring columns' pull-comp/overlap
+
+
+def _stroke_footprint(pts: np.ndarray, half_uu: float) -> np.ndarray | None:
+    """Closed polygon swept by a fixed-width column along `pts` (root frame)."""
+    if len(pts) < 2:
+        return None
+    tan = np.gradient(pts, axis=0)
+    tan /= np.hypot(tan[:, 0], tan[:, 1])[:, None] + 1e-9
+    nrm = np.stack([-tan[:, 1], tan[:, 0]], axis=1)
+    return np.vstack([pts + nrm * half_uu, (pts - nrm * half_uu)[::-1]])
+
+
+def _residual_cover_lines(poly_el, footprints: list, mm_per_uu: float,
+                          strip_mm: float) -> list:
+    """Cover the part of a region the per-branch columns did NOT sweep: rasterize the
+    region, subtract the built columns' footprints, and tile each substantial residual
+    component with turning rings (straight strips as fallback). This is what makes the
+    satin-only per-stroke dissection COMPLETE — skeleton branches alone leave junction
+    lobes and wide spots bare (measured: source-ink coverage 62% vs 91% with full-region
+    rings; production tiles everything with columns). Returns root-frame centerlines."""
+    from PIL import Image, ImageDraw
+    # evenodd: letter counters/holes must stay holes — a union fill would make the
+    # residual pass lay patch columns over them
+    mask, origin, res = _region_raster(poly_el, mm_per_uu, evenodd=True)
+    if mask is None:
+        return []
+    H, W = mask.shape
+    im = Image.new("L", (W, H), 0)
+    dr = ImageDraw.Draw(im)
+    for fp in footprints:
+        if fp is None or len(fp) < 3:
+            continue
+        dr.polygon([(float((x - origin[0]) / res), float((y - origin[1]) / res))
+                    for x, y in fp], fill=255)
+    resid = mask & ~(np.asarray(im) > 0)
+    px_mm = res * mm_per_uu
+    # open away sub-column slivers along column edges (they're covered by pull/overlap)
+    resid = ndimage.binary_opening(
+        resid, iterations=max(1, int(round(0.35 / px_mm))))
+    if not resid.any():
+        return []
+    lbl, n = ndimage.label(resid, structure=ndimage.generate_binary_structure(2, 2))
+    areas = np.bincount(lbl.ravel(), minlength=n + 1)
+    out = []
+    for k in range(1, n + 1):
+        if float(areas[k]) * px_mm * px_mm < _RESIDUAL_MIN_MM2:
+            continue
+        comp = lbl == k
+        lines = _turning_lines_from_mask(comp, origin, res, mm_per_uu, strip_mm)
+        if not lines:
+            lines = [np.asarray(seg, float) for seg in
+                     _strip_lines_from_mask(comp, origin, res, mm_per_uu, strip_mm)]
+        out.extend(lines)
+    return out
 _RDP_EPS_PX = 0.4           # iso-contour simplification tolerance (marching squares emits ~1
                             # point per pixel; a satin centerline doesn't need that resolution)
 
@@ -1456,12 +1649,23 @@ def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -
     mask, origin, res = _region_raster(poly_el, mm_per_uu)
     if mask is None:
         return []
+    return _strip_lines_from_mask(mask, origin, res, mm_per_uu, strip_mm)
+
+
+def _strip_lines_from_mask(mask, origin, res: float, mm_per_uu: float,
+                           strip_mm: float) -> list:
+    """PCA-banded straight strip centerlines for an arbitrary mask (see
+    _satin_strip_lines) — the mask-level core, shared with the residual-cover pass."""
     x0, y0 = origin
     H, W = mask.shape
     ys, xs = np.where(mask)
+    if not len(xs):
+        return []
     # Orient strips along the region's PRINCIPAL axis (PCA) so columns FOLLOW the shape (clean
     # ends, not stair-stepped horizontal bands); band across the minor axis every strip_mm.
     P = np.column_stack([xs, ys]).astype(float)
+    if len(P) < 3:
+        return []
     c = P.mean(0)
     evals, evecs = np.linalg.eigh(np.cov((P - c).T))
     u = evecs[:, int(np.argmax(evals))]                # principal (long) axis -> columns run along u
@@ -1832,6 +2036,14 @@ def _turning_satin_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM,
     mask, origin, res = _region_raster(poly_el, mm_per_uu)
     if mask is None:
         return []
+    return _turning_lines_from_mask(mask, origin, res, mm_per_uu, strip_mm, spiral)
+
+
+def _turning_lines_from_mask(mask, origin, res: float, mm_per_uu: float,
+                             strip_mm: float = _STRIP_MM,
+                             spiral: bool = False) -> list:
+    """Onion-peel ring centerlines for an arbitrary mask (see _turning_satin_lines) —
+    the mask-level core, shared with the residual-cover pass."""
     D = ndimage.distance_transform_edt(mask)
     dmax = float(D.max())
     strip_px = max(strip_mm / (res * mm_per_uu), 3.0)

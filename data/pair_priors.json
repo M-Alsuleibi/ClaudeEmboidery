@@ -38,7 +38,11 @@
     "n": 7
    },
    "underlay_disabled_frac": 0.887,
-   "trim_after_off_frac": 1.0
+   "trim_after_off_frac": 1.0,
+   "jump_mm": {
+    "med": 7.0,
+    "n": 1
+   }
   }
  },
  "anime": {

@@ -112,3 +112,39 @@ def test_gentle_curve_stays_whole():
     d = "M " + " ".join(f"{20*np.cos(t):.2f},{20*np.sin(t):.2f}" for t in ts)
     p = _in_group(d)
     assert stitches._split_centerline_at_hairpins(p, mm_per_uu=1.0) == [p]
+
+
+def test_closed_loop_centerline_halves():
+    # a full circle (letter counter): no hairpin, but a closed loop must cut into
+    # two open half-arcs — closed-loop rail pairing sunburst-fans (arb residuals)
+    import numpy as np
+    ts = np.linspace(0, 2 * np.pi, 80)
+    d = "M " + " ".join(f"{8*np.cos(t):.2f},{8*np.sin(t):.2f}" for t in ts)
+    p = _in_group(d)
+    pieces = stitches._split_centerline_at_hairpins(p, mm_per_uu=1.0)
+    assert len(pieces) == 2
+    for el in pieces:
+        pts = np.asarray(
+            [(float(x), float(y)) for x, y in
+             stitches._COORD_RE.findall(el.get("d"))], float)
+        assert abs(stitches._net_turning_deg(pts)) < 300.0   # each half is open
+
+
+# --- authored connector chains (stitches._split_long_travels) ---
+def test_mid_travels_split_into_jump_chains():
+    """The reference sews connectors as <=7mm segment chains (812 @4-6mm, 15 moves
+    >8mm in 46k): an 12mm hop splits into 2 segments, a 6mm hop and a 90mm
+    repositioning move stay single."""
+    import pyembroidery as pe
+    pat = pe.EmbPattern()
+    pat.add_stitch_absolute(pe.STITCH, 0, 0)
+    pat.add_stitch_absolute(pe.STITCH, 60, 0)      # 6mm: stays
+    pat.add_stitch_absolute(pe.STITCH, 180, 0)     # 12mm: -> 2 x 6mm
+    pat.add_stitch_absolute(pe.STITCH, 1080, 0)    # 90mm: repositioning, stays
+    added = stitches._split_long_travels(pat, 7.0)
+    assert added == 1
+    xs = [x for x, _, c in pat.stitches if (c & 0xFF) == (pe.STITCH & 0xFF)]
+    assert xs == [0, 60, 120, 180, 1080]           # midpoint inserted in the 12mm hop
+    import numpy as np
+    d = np.abs(np.diff(xs))
+    assert not ((80 < d) & (d <= 200)).any()       # no mid-length move survives
