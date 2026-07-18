@@ -23,7 +23,11 @@ by satin_frac alone.
 1. `priors.satin_only(cat)` **auto-enables the satin-lean path** (no `--satin-lean`
    flag) and **dissects EVERY region into ALL its skeleton branches** (`keep = longs`,
    uncapped/ungated; min_pts lowered to the vwidth floor 6; run demotion OFF — thin
-   linework = narrow Column-C satin, not bean runs). Each branch → hairpin-split →
+   linework = narrow Column-C satin, not bean runs). **Junction-continuity chaining**
+   (`_chain_branches_at_junctions`) then merges fragments that continue smoothly
+   through skeleton crossings (ends within 2 mm, turn ≤45° over 1.5 mm chords) back
+   into pen-stroke polylines — arb: 548 fragments → 477 strokes; chains only form
+   INSIDE one region so nothing joins across background. Each stroke → hairpin-split →
    vwidth column at local width (band clamps 0.8–3.5). **Then the RESIDUAL COVER pass**
    (`_residual_cover_lines`): rasterize the region (evenodd — keep counters), subtract
    the built columns' swept footprints, tile substantial leftovers (≥2.5 mm²) with

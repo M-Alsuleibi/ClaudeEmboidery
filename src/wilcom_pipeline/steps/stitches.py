@@ -860,6 +860,32 @@ def _linework_prepass(
             if orig not in centerlines and orig not in drop_originals:
                 _keep_as_fill(orig, [], int(re.match(r"c(\d+)_", orig).group(1)))
 
+    # Junction-continuity chaining (satin-only): the skeleton cuts every pen stroke
+    # wherever strokes cross, so a region's branch list is stroke FRAGMENTS. Merge the
+    # fragments that continue smoothly through each junction back into single
+    # pen-stroke polylines — what the calligrapher drew and the digitizer traces (one
+    # column sewn THROUGH the crossing, the other layered over it). Chains only ever
+    # form within one region's own branches, so nothing joins across background gaps.
+    if satin_only and satin_cands:
+        by_orig: dict[str, list] = {}
+        for entry in satin_cands:
+            by_orig.setdefault(
+                (entry[0].get("id") or "").rsplit("_", 1)[0], []).append(entry)
+        chained: list = []
+        n_before = len(satin_cands)
+        for _oid, group in by_orig.items():
+            if len(group) < 2:
+                chained.extend(group)
+                continue
+            try:
+                chained.extend(_chain_branches_at_junctions(group, mm_per_uu))
+            except Exception:
+                chained.extend(group)          # geometry hiccup -> unchained branches
+        satin_cands = chained
+        if len(satin_cands) < n_before:
+            print(f"      junction chaining -> {n_before} branch fragment(s) into "
+                  f"{len(satin_cands)} stroke(s)", flush=True)
+
     # Satin-overflow guard (pathological stroke_to_satin slowness): demote the
     # satin candidates back to fills but keep the runs. LIFTED for a satin-only
     # category — production digitizes however many columns the design needs (the
@@ -1372,6 +1398,126 @@ def _min_dist_to_segments(P: np.ndarray, A: np.ndarray, B: np.ndarray) -> np.nda
 _HAIRPIN_TURN_DEG = 75.0      # chord-direction change (over ~0.75mm steps) that marks a hairpin
 _HAIRPIN_MIN_PIECE_MM = 3.0   # don't cut pieces shorter than this
 _HAIRPIN_STEP_MM = 0.75       # chord sampling step for the turn measurement
+
+
+_CHAIN_JOIN_MM = 2.0        # branch ends within this of each other share a junction
+                            # (fill_to_stroke trims branch tips short of the true
+                            # junction centre, so ends don't exactly coincide; safe
+                            # because chains only form INSIDE one region's branches)
+_CHAIN_MAX_TURN_DEG = 45.0  # max direction change for a stroke to continue through
+_CHAIN_TANGENT_MM = 1.5     # chord length used to measure an end's direction
+
+
+def _chain_branches_at_junctions(cands: list, mm_per_uu: float) -> list:
+    """Merge one region's branch-fragment centerlines into pen-stroke polylines.
+
+    `cands` is [(element, colour idx, w_mm), ...] — ALL of one region. Branch ends
+    that meet at a junction are paired by DIRECTION CONTINUITY (incoming vs outgoing
+    chord within _CHAIN_MAX_TURN_DEG), then the paired fragments concatenate into one
+    root-frame polyline per pen stroke (the first fragment's element carries it; the
+    merged elements are removed from the tree). Cycles (a chained loop) are walked
+    from an arbitrary link — the downstream net-turning cut halves them. Returns the
+    new cands list; on any degenerate geometry the input is returned unchanged."""
+    P: list[np.ndarray] = []
+    keep_entries: list = []
+    passthrough: list = []
+    for el, idx, w_mm in cands:
+        pts = np.asarray([(float(x), float(y)) for x, y in
+                          _COORD_RE.findall(el.get("d") or "")], float)
+        if len(pts) < 2:
+            passthrough.append((el, idx, w_mm))
+            continue
+        P.append(_xf(pts, _ctm(el)))
+        keep_entries.append((el, idx, w_mm))
+    n = len(P)
+    if n < 2:
+        return cands
+
+    join_uu = _CHAIN_JOIN_MM / mm_per_uu
+    tang_uu = _CHAIN_TANGENT_MM / mm_per_uu
+
+    def _end_pt(bi: int, e: int) -> np.ndarray:
+        return P[bi][0] if e == 0 else P[bi][-1]
+
+    def _end_dir(bi: int, e: int) -> np.ndarray:
+        """Unit travel direction INTO the junction at end e of branch bi, measured
+        over the last ~_CHAIN_TANGENT_MM of arc before the end."""
+        pts = P[bi] if e == 1 else P[bi][::-1]          # end at pts[-1]
+        seg = np.hypot(*np.diff(pts, axis=0).T)
+        back = np.cumsum(seg[::-1])                     # arc distance walking back
+        k = min(int(np.searchsorted(back, tang_uu)) + 1, len(pts) - 1)
+        v = pts[-1] - pts[-1 - k]
+        L = float(np.hypot(*v))
+        return v / L if L > 1e-9 else np.array([1.0, 0.0])
+
+    ends = [(bi, e) for bi in range(n) for e in (0, 1)]
+    # candidate pairs: nearby ends of different branches, scored by continuation turn
+    scored = []
+    for i in range(len(ends)):
+        bi, ei = ends[i]
+        for j in range(i + 1, len(ends)):
+            bj, ej = ends[j]
+            if bi == bj:
+                continue
+            if float(np.hypot(*(_end_pt(bi, ei) - _end_pt(bj, ej)))) > join_uu:
+                continue
+            # travel continues: incoming direction at end i vs outgoing at end j
+            turn = float(np.degrees(np.arccos(np.clip(
+                np.dot(_end_dir(bi, ei), -_end_dir(bj, ej)), -1.0, 1.0))))
+            if turn <= _CHAIN_MAX_TURN_DEG:
+                scored.append((turn, (bi, ei), (bj, ej)))
+    if not scored:
+        return cands
+    scored.sort(key=lambda t: t[0])
+    pair: dict = {}
+    for _turn, a, b in scored:
+        if a in pair or b in pair:
+            continue
+        pair[a] = b
+        pair[b] = a
+
+    # walk chains (open chains from free ends first, then break any cycles)
+    visited: set[int] = set()
+    chains: list[list[tuple[int, int]]] = []
+
+    def _walk(start_b: int, enter_e: int) -> list[tuple[int, int]]:
+        chain = []
+        cur, ent = start_b, enter_e
+        while cur not in visited:
+            visited.add(cur)
+            chain.append((cur, ent))
+            nxt = pair.get((cur, 1 - ent))
+            if nxt is None:
+                break
+            cur, ent = nxt
+        return chain
+
+    for bi in range(n):
+        if bi in visited:
+            continue
+        free = next((e for e in (0, 1) if (bi, e) not in pair), None)
+        if free is not None:
+            chains.append(_walk(bi, free))
+    for bi in range(n):
+        if bi not in visited:
+            chains.append(_walk(bi, 0))       # cycle: break at an arbitrary link
+
+    out = list(passthrough)
+    for chain in chains:
+        parts = []
+        for k, (bi, ent) in enumerate(chain):
+            pts = P[bi] if ent == 0 else P[bi][::-1]
+            parts.append(pts[1:] if k else pts)
+        merged = np.vstack(parts)
+        el, idx, w_mm = keep_entries[chain[0][0]]
+        el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in merged))
+        el.attrib.pop("transform", None)      # merged points are root-frame
+        for bi, _ent in chain[1:]:
+            other = keep_entries[bi][0]
+            if other.getparent() is not None:
+                other.getparent().remove(other)
+        out.append((el, idx, w_mm))
+    return out
 
 
 def _net_turning_deg(R: np.ndarray) -> float:

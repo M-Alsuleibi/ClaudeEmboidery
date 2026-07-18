@@ -130,6 +130,63 @@ def test_closed_loop_centerline_halves():
         assert abs(stitches._net_turning_deg(pts)) < 300.0   # each half is open
 
 
+# --- junction-continuity chaining (stitches._chain_branches_at_junctions) ---
+def _branch_group(*ds):
+    g = etree.Element(f"{_SVG}g".replace(_SVG, "{" + _SVG + "}"))
+    out = []
+    for i, d in enumerate(ds):
+        p = etree.SubElement(g, "{" + _SVG + "}path")
+        p.set("d", d)
+        p.set("id", f"c0_1_{i}")
+        out.append((p, 0, 2.0))
+    return out
+
+
+def _chained_pts(entry):
+    import numpy as np
+    return np.asarray([(float(x), float(y)) for x, y in
+                       stitches._COORD_RE.findall(entry[0].get("d"))], float)
+
+
+def test_x_crossing_chains_into_two_strokes():
+    # four fragments meeting at (0,0): left/right halves of a horizontal stroke and
+    # top/bottom halves of a vertical one -> exactly 2 chained pen strokes
+    cands = _branch_group(
+        "M -20,0 -10,0 -0.5,0",   # left, toward junction
+        "M 0.5,0 10,0 20,0",      # right, away from junction
+        "M 0,-20 0,-10 0,-0.5",   # top, toward junction
+        "M 0,0.5 0,10 0,20",      # bottom, away
+    )
+    out = stitches._chain_branches_at_junctions(cands, mm_per_uu=1.0)
+    assert len(out) == 2
+    for entry in out:
+        pts = _chained_pts(entry)
+        span = pts.max(0) - pts.min(0)
+        assert span.max() > 35            # each stroke spans the full crossing
+        assert span.min() < 3             # and stays a straight line
+
+
+def test_t_junction_keeps_the_stem_separate():
+    # the bar's halves continue each other (180deg); the stem turns 90deg and must
+    # NOT be chained into the bar
+    cands = _branch_group(
+        "M -20,0 -10,0 -0.5,0",
+        "M 0.5,0 10,0 20,0",
+        "M 0,0.5 0,10 0,20",
+    )
+    out = stitches._chain_branches_at_junctions(cands, mm_per_uu=1.0)
+    assert len(out) == 2
+    spans = sorted(( _chained_pts(e).max(0) - _chained_pts(e).min(0) ).max()
+                   for e in out)
+    assert spans[0] < 25 and spans[1] > 35    # stem stays short, bar spans fully
+
+
+def test_far_apart_fragments_do_not_chain():
+    cands = _branch_group("M -20,0 -10,0 -5,0", "M 5,0 10,0 20,0")  # 10 units apart
+    out = stitches._chain_branches_at_junctions(cands, mm_per_uu=1.0)
+    assert len(out) == 2                      # gap >> _CHAIN_JOIN_MM: untouched
+
+
 # --- authored connector chains (stitches._split_long_travels) ---
 def test_mid_travels_split_into_jump_chains():
     """The reference sews connectors as <=7mm segment chains (812 @4-6mm, 15 moves
