@@ -245,6 +245,16 @@ class PipelineConfig:
     # and it reads satin_frac=100 like the ground truth. Falls back to fixed-width per column on
     # any geometry failure. Off by default on its own, but IMPLIED by --satin-lean.
     vwidth_satin: bool = False
+    # SLD stroke recovery (step 5, experimental): on the SATIN-ONLY path (arabic / a
+    # satin-only pair prior), recover each region's ordered pen strokes from its raster
+    # mask via the vendored SLD-Vectorization tool (CNN-resolved intersections + one
+    # Bezier spline per stroke — Magne & Sorkine-Hornung, CGF 2025) instead of skeleton
+    # branch fragments + junction chaining. Strokes still flow through the vwidth satin
+    # builder + hairpin split + residual cover. Falls back per region (and entirely,
+    # when vendor/sld-vectorization / $SLDVEC_BIN is absent) to the chaining path.
+    # See docs/research/sld-vectorization-eval.md. Off by default (slow: ~5-30 s per
+    # word-sized region on CPU).
+    sld_strokes: bool = False
     # Cross-stitch (step 5): generate counted cross-stitch (a fixed grid of X motifs) instead
     # of the run/satin/tatami tiers — the tatreez (Palestinian tatreez) technique. Built directly
     # as stitches (pyembroidery), so it needs no Ink-Stitch and never hits its router hangs on a

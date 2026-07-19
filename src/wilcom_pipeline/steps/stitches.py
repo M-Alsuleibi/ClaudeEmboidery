@@ -61,6 +61,7 @@ from scipy import ndimage
 from ..config import PipelineContext
 from ..fingerprint import category_satin_dominant, load_profiles
 from .. import priors
+from .. import sldvec
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_BIN = _REPO_ROOT / "vendor" / "inkstitch" / "bin" / "inkstitch"
@@ -743,6 +744,12 @@ def _linework_prepass(
             strip_mm = float(np.clip(med, 1.5, _STRIP_MM))
 
     def _keep_as_fill(orig, lines, idx):
+        # Under satin-only + --sld-strokes, even a BROAD region (w_mm over the ceiling —
+        # a whole merged glyph) tries recovered pen strokes first: production dissects
+        # everything into per-stroke columns, and the residual cover patches whatever
+        # the columns don't sweep. Rings/strips stay the fallback.
+        if sld_active and _try_sld(orig, lines, idx, None):
+            return
         # Under --satin-lean (satin-dominant category), cover a broad region with satin
         # instead of one tatami fill ("sombras con satin"), closing the fill->satin gap.
         # CONTOUR-FOLLOWING "turning satin" rings first (rails follow the region boundary,
@@ -794,6 +801,47 @@ def _linework_prepass(
                                                         # ((N,2) root-frame points, colour idx)
     drop_centerlines: list[object] = []
     drop_originals: set[str] = set()
+    # --sld-strokes (satin-only path): recover a region's ordered pen strokes from its
+    # raster mask (SLD-Vectorization: CNN-resolved crossings, one spline per stroke)
+    # instead of skeleton fragments + junction chaining. The recovered centerlines flow
+    # through the SAME hairpin-split -> vwidth-column -> residual-cover machinery; any
+    # per-region failure falls back to the chaining path below.
+    sld_active = satin_only and ctx.config.sld_strokes
+    if sld_active and not sldvec.available():
+        print("      --sld-strokes: SLD-Vectorization unavailable "
+              "(vendor/sld-vectorization or $SLDVEC_BIN) -> skeleton chaining",
+              flush=True)
+        sld_active = False
+    sld_origs: set[str] = set()
+    n_sld_strokes = 0
+
+    def _try_sld(orig: str, lines: list, idx: int, w_mm: float | None) -> bool:
+        """Attempt SLD stroke recovery for one region; on success the recovered
+        centerlines are emitted as root-frame satin candidates (they flow through the
+        same hairpin-split -> vwidth -> residual-cover machinery) and the region's
+        skeleton fragments are dropped. False -> caller keeps its normal path."""
+        nonlocal n_sld_strokes
+        poly = originals.get(orig)
+        if poly is None:
+            return False
+        try:
+            sld_pts = _sld_region_strokes(poly, mm_per_uu)
+        except Exception:
+            sld_pts = []
+        if not sld_pts:
+            return False
+        if w_mm is None:
+            w_mm = (_block_width_mm(poly, lines, mm_per_uu) if lines else 0.0) or strip_mm
+        for j, pts in enumerate(sld_pts):
+            el = etree.SubElement(root_a, f"{{{_SVG_NS}}}path")
+            el.set("id", f"{orig}_sld{j}")
+            el.set("d", "M " + " ".join(f"{x:.3f},{y:.3f}" for x, y in pts))
+            satin_cands.append((el, idx, w_mm))
+        drop_centerlines.extend(lines)
+        drop_originals.add(orig)
+        sld_origs.add(orig)
+        n_sld_strokes += len(sld_pts)
+        return True
     for orig, lines in centerlines.items():
         idx = int(re.match(r"c(\d+)_", orig).group(1))
         longs = [c for c in lines if _npts(c) >= min_pts]
@@ -825,6 +873,10 @@ def _linework_prepass(
             # cover this replaced sews boundary-parallel rings: satin_frac reads 100 but
             # the stitch DIRECTION is wrong everywhere — the huge visual drift vs the
             # reference in Wilcom.)
+            # SLD stroke recovery first; empty result (tiny region, tool failure,
+            # timeout) falls through to the fragment path below.
+            if sld_active and _try_sld(orig, lines, idx, w_mm):
+                continue
             if satin_only:
                 keep = longs
             elif len(longs) == 1 and len(lines) <= _MAX_SPURS_FOR_SATIN:
@@ -874,7 +926,9 @@ def _linework_prepass(
         chained: list = []
         n_before = len(satin_cands)
         for _oid, group in by_orig.items():
-            if len(group) < 2:
+            if len(group) < 2 or _oid in sld_origs:
+                # SLD-recovered strokes are already whole pen strokes — chaining
+                # could wrongly weld two separate strokes that share an endpoint.
                 chained.extend(group)
                 continue
             try:
@@ -885,6 +939,10 @@ def _linework_prepass(
         if len(satin_cands) < n_before:
             print(f"      junction chaining -> {n_before} branch fragment(s) into "
                   f"{len(satin_cands)} stroke(s)", flush=True)
+
+    if sld_origs:
+        print(f"      sld-strokes -> {len(sld_origs)} region(s) into "
+              f"{n_sld_strokes} recovered pen stroke(s)", flush=True)
 
     # Satin-overflow guard (pathological stroke_to_satin slowness): demote the
     # satin candidates back to fills but keep the runs. LIFTED for a satin-only
@@ -1782,6 +1840,33 @@ def _region_raster(poly_el, mm_per_uu: float, evenodd: bool = False):
     if int(mask.sum()) < 9:
         return None, None, 0.0
     return mask, np.array([x0 - pad * res, y0 - pad * res]), res
+
+
+_SLD_MIN_REGION_MM2 = 20.0  # below this (a dot, a tashkeel mark) the single-centerline
+                            # path is already correct and SLD's seconds-per-region cost
+                            # buys nothing
+_SLD_MIN_STROKE_MM = 1.0
+
+
+def _sld_region_strokes(poly_el, mm_per_uu: float) -> list:
+    """Recover a region's ordered pen-stroke centerlines with SLD-Vectorization
+    (--sld-strokes): rasterize the region (holes kept), run the tool on the mask, and
+    map the recovered spline polylines back into root-frame coordinates. Returns []
+    (caller falls back to skeleton fragments + chaining) for tiny regions, degenerate
+    geometry, or any tool failure."""
+    mask, origin, res = _region_raster(poly_el, mm_per_uu, evenodd=True)
+    if mask is None:
+        return []
+    px_mm = res * mm_per_uu
+    if float(mask.sum()) * px_mm * px_mm < _SLD_MIN_REGION_MM2:
+        return []
+    out = []
+    for pts in sldvec.recover_strokes(mask):
+        root_pts = np.asarray(origin, float) + np.asarray(pts, float) * res
+        seg = np.hypot(*np.diff(root_pts, axis=0).T)
+        if len(root_pts) >= 2 and float(seg.sum()) * mm_per_uu >= _SLD_MIN_STROKE_MM:
+            out.append(root_pts)
+    return out
 
 
 def _satin_strip_lines(poly_el, mm_per_uu: float, strip_mm: float = _STRIP_MM) -> list:

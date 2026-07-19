@@ -152,6 +152,14 @@ def build_parser() -> argparse.ArgumentParser:
                         "average width via stroke_to_satin. Fixes --satin-lean's under-coverage "
                         "on bold/modulated strokes. Falls back to fixed-width per column on "
                         "geometry failure. Off by default.")
+    p.add_argument("--sld-strokes", action=argparse.BooleanOptionalAction, default=False,
+                   help="SLD stroke recovery (experimental, satin-only path): recover each "
+                        "region's ordered pen strokes from its raster mask with the vendored "
+                        "SLD-Vectorization tool (CNN intersection resolution) instead of "
+                        "skeleton branch chaining, then build the usual variable-width "
+                        "columns + residual cover along them. Needs vendor/sld-vectorization "
+                        "(or $SLDVEC_BIN); falls back to chaining per region on any failure. "
+                        "Slow (~5-30s per word-sized region on CPU). Off by default.")
     p.add_argument("--auto-repair", action=argparse.BooleanOptionalAction, default=True,
                    help="Repair the artwork the way a digitizer would before digitizing: "
                         "merge sub-sewable specks (<1.5mm2) into their surrounding colour "
@@ -234,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
             satin_lean=args.satin_lean,
             spine_fill=args.spine_fill,
             vwidth_satin=args.vwidth_satin,
+            sld_strokes=args.sld_strokes,
             outline_objects=args.outline_objects,
             underlap_mm=args.underlap_mm,
             travel_plan=args.travel_plan,
