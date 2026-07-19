@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 9c5e2d6b-3552-4b6a-b2ce-6712c9d8dc2f
-  modified: 2026-07-19T07:17:44.426Z
+  modified: 2026-07-19T08:18:31.637Z
 ---
 
 The full-arb blobbiness ([[gemini-deep-research-report]] A/B) is bisected to PREPROCESS,
@@ -22,8 +22,13 @@ with numbers (2026-07-19, docs/research/sld-vectorization-eval.md):
 **Why:** these two account for the visible fused-word blobs and light colour that neither
 [[per-region-tiering]] nor --sld-strokes can repair downstream.
 
-**How to apply:** fix ① work size scales with target mm (~0.15mm/px for large designs, not
-flat 1200px); fix ② palette centroids from CORE pixels (erode masks pre-mean, or mode-snap).
-Both touch EVERY category — roll out gated + regression battery (letters/joker/tatreez OOM
-memory: big work images have blown memory before — check [[edge-touching-bg-separation]]
-tatreez OOM before raising work size).
+**BOTH FIXES BUILT (2026-07-19):** ① `_work_max_dim` — satin-only categories derive the
+work cap from physical size at 0.15mm/px clamped [1200, 2200] (small designs byte-identical,
+tatreez-OOM-safe cap); `--work-res-mm` forces any category. ② `_refine_palette` (median
+Lloyd) now runs EVERY run, not purify-only; snapped-black slot pinned. Measured: red
+components 137→182 of 255, palette salmon→pure (255,0,0), full arb gate PASS, render
+visibly closer (true red, better word separation). REMAINING arb gaps: bottom-arc fusion
+(the 1.2mm _CONSOLIDATE_MM neighbourhood still welds), skeletal blue الله (satin width
+band clamps at ~3.5mm vs its ~8mm strokes — needs auto-split-style wide columns), and
+pure primaries now match Madeira poorly → arb recipe should use isacord
+([[thread-chart-by-palette]]).
