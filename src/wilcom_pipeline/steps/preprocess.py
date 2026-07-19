@@ -49,6 +49,11 @@ _MIN_FEATURE_MM2 = 0.5
 # Majority-filter neighbourhood (mm) used to collapse dithered specks into solid
 # blocks. Bigger = fewer/larger blocks (simpler for the machine), coarser detail.
 _CONSOLIDATE_MM = 1.2
+# A SATIN-ONLY category (dense script) keeps a smaller neighbourhood: the 1.2 mm
+# majority filter closes legitimate sub-mm inter-word/inter-stroke gaps and welds
+# words the finer work raster just separated (arb: 182 of 255 components survived
+# 1.2 mm; the welds left were consolidate's, not the downscale's).
+_CONSOLIDATE_SATIN_ONLY_MM = 0.6
 
 # Black-ink snap (snap_black). A pixel is "black ink" (outline/keyline/pupil) when it
 # is both very dark (brightest channel below _BLACK_MAX) and near-neutral (chroma below
@@ -132,7 +137,9 @@ def run(ctx: PipelineContext) -> None:
         palette = [_purify_ink(c) for c in palette]
     # Consolidate dithered specks into fewer, larger continuous blocks (each
     # block becomes one stitched object downstream — fewer machine trims).
-    k = round(_CONSOLIDATE_MM / mm_per_px)
+    consolidate_mm = (_CONSOLIDATE_SATIN_ONLY_MM if priors.satin_only(cfg.category)
+                      else _CONSOLIDATE_MM)
+    k = round(consolidate_mm / mm_per_px)
     k = max(3, k + 1 - (k % 2))  # nearest odd >= 3
     idx_map = _consolidate(idx_map, len(palette), k)
     if black_mask is not None:

@@ -205,3 +205,29 @@ def test_mid_travels_split_into_jump_chains():
     import numpy as np
     d = np.abs(np.diff(xs))
     assert not ((80 < d) & (d <= 200)).any()       # no mid-length move survives
+
+
+def test_wide_region_escapes_band_clamp_with_autosplit():
+    # centerline in a 10-units-wide rect, band ceiling 3.5: without the escape the
+    # rails clamp at 3.5; with it they open to the true width (<= the 7mm auto-split
+    # ceiling) and the element carries max_stitch_length_mm
+    c, ok = _build(_straight_center(length=40, y=10), _rect_boundary(5), satin_max_mm=3.5)
+    assert ok
+    assert c.get(f"{{{_INK}}}max_stitch_length_mm") == "7"
+    import re as _re
+    import numpy as np
+    subs = _re.split(r"M ", c.get("d") or "")
+    rails = []
+    for sub in subs[1:3]:
+        pts = np.array([(float(a), float(b)) for a, b in
+                        _re.findall(r"(-?[\d.]+),(-?[\d.]+)", sub)])
+        rails.append(pts)
+    n = min(map(len, rails))
+    w = np.median(np.hypot(*(rails[0][:n] - rails[1][:n]).T))
+    assert w > 5.0, f"rails still band-clamped: {w:.2f}"
+
+
+def test_narrow_region_keeps_band_clamp_no_autosplit():
+    c, ok = _build(_straight_center(length=40, y=10), _rect_boundary(1.2), satin_max_mm=3.5)
+    assert ok
+    assert c.get(f"{{{_INK}}}max_stitch_length_mm") is None

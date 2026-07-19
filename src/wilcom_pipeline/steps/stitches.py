@@ -1378,6 +1378,10 @@ _VWIDTH_MIN_PTS = 6
 _VWIDTH_N_RUNGS = 14    # floor for short columns; long ones get one rung per _VWIDTH_RUNG_MM
 _VWIDTH_RUNG_MM = 4.0   # arc-length between rungs — keeps Ink-Stitch's fractional rail
                         # pairing LOCAL on long snaking centerlines (sparse rungs fan)
+_AUTOSPLIT_SATIN_MAX_MM = 7.0   # wide-column escape ceiling: the manual's Auto-Split
+                        # satin max (p452, "use 7.00mm to preserve the satin effect");
+                        # probed: inkstitch:max_stitch_length_mm splits satin throws
+                        # (allah control p99 3.26 -> 2.90mm with the param at 3)
 
 
 def _parse_transform(s: str) -> np.ndarray:
@@ -1695,6 +1699,18 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
     hw = np.convolve(hw, np.ones(5) / 5, mode="same")            # de-jitter
     lo = (satin_min_mm / 2) / mm_per_uu
     hi = (satin_max_mm / 2) / mm_per_uu
+    # Wide-column escape (the skeletal-glyph fix): when the region's TRUE width runs
+    # well past the band ceiling (arb blue "الله": ~8mm strokes vs the 3.5mm band p90,
+    # production sews them at up to 4.8mm), clamping to the band under-covers — the
+    # column reads skeletal over the ink. Open the ceiling to the measured p90 width,
+    # capped at the manual's ~7mm Auto-Split satin maximum (p452), and stamp
+    # max_stitch_length_mm so Ink-Stitch splits any throw the machine can't sew —
+    # the Wilcom "satin with Auto Split" object rather than a starved narrow column.
+    wide = False
+    p90_w_mm = float(np.percentile(hw, 90)) * 2 * mm_per_uu
+    if p90_w_mm > satin_max_mm:
+        hi = min(p90_w_mm, _AUTOSPLIT_SATIN_MAX_MM) / 2 / mm_per_uu
+        wide = True
     hw = np.clip(hw, lo, hi)
 
     tan = np.gradient(center, axis=0)
@@ -1740,6 +1756,9 @@ def _build_vwidth_satin(center_el, poly_el, color: str, mm_per_uu: float,
     if median_w_mm > _SATIN_FIXED_MAX_MM:
         center_el.set(f"{{{_INKSTITCH_NS}}}zigzag_underlay", "true")
         center_el.set(f"{{{_INKSTITCH_NS}}}center_walk_underlay", "true")
+    if wide:
+        center_el.set(f"{{{_INKSTITCH_NS}}}max_stitch_length_mm",
+                      f"{_AUTOSPLIT_SATIN_MAX_MM:g}")
     center_el.set("style", f"fill:none;stroke:{color};stroke-width:1")
     return True
 
