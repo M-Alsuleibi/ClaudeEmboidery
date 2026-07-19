@@ -111,5 +111,22 @@ keep `--sld-strokes` (structural consolidation, no regressions, glyph-scale
 wins) but the next fidelity lever on arb-class designs is preprocess region
 fusion + coverage, not stroke-recovery tuning.
 
+## Preprocess-fusion diagnosis (bisected, 2026-07-19)
+
+Source arb red script: **255** components ≥ 1.5 mm². Preprocessed work image
+(1200 px, 0.23 mm/px): **137** — the downscale + consolidate closes sub-0.5 mm
+inter-word gaps (1–2 px at work size) and welds neighbouring words. Trace is NOT
+at fault: it emitted ~175 regions for that colour (region ids to `c0_174`; the
+final SVG only retains the ~20 originals step 5 didn't consume — don't repeat
+that mis-read). Second, independent defect: quantization computes cluster MEANS
+including anti-aliased edge pixels, so pure red `(237,28,36)` became salmon
+`(254,109,110)` — washed-out renders and drifted cone matches.
+
+Proposed fixes (not yet implemented — both touch every category, need a gated
+rollout + regression battery): ① scale the work size with target mm (≈0.15 mm/px
+for large designs instead of the flat 1200 px cap); ② compute palette centroids
+on core pixels only (erode masks before the mean, or mode-snap) so AA edges stop
+dragging the colour.
+
 Scratch artifacts from this eval (overlays, diagnostics): session scratchpad
 `arb_allah_overlay*.png`, `arb_allah_graph_cover.png`, `diag_sld*.py`.
