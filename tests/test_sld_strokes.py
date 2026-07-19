@@ -80,7 +80,7 @@ def test_region_strokes_maps_px_to_root_frame(monkeypatch):
     monkeypatch.setattr(sldvec, "recover_strokes", lambda mask: fake_px)
     out = stitches._sld_region_strokes(poly, mm_per_uu=1.0)
     assert len(out) == 1
-    mask, origin, res = stitches._region_raster(poly, 1.0, evenodd=True)
+    mask, origin, res = stitches._region_raster(poly, 1.0, evenodd=True, res_mm=0.15)
     np.testing.assert_allclose(out[0][0], origin + fake_px[0][0] * res)
     np.testing.assert_allclose(out[0][-1], origin + fake_px[0][-1] * res)
 

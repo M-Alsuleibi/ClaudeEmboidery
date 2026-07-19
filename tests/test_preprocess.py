@@ -140,3 +140,50 @@ def test_working_resolution_is_capped(tmp_path):
     ctx = _run(tmp_path, arr)
     w, h = ctx.preprocessed_image.size
     assert max(w, h) <= preprocess._WORK_MAX_DIM
+
+
+# --------------------------------------------------------------------------- #
+# work-size by physical resolution (_work_max_dim) + median palette refine
+# --------------------------------------------------------------------------- #
+def _cfg(tmp_path, **kw):
+    return PipelineConfig(input_path=tmp_path / "x.png", output_dir=tmp_path,
+                          name="t", target_width_mm=kw.pop("width", 100.0), **kw)
+
+
+def test_work_dim_flat_by_default(tmp_path):
+    cfg = _cfg(tmp_path)
+    a = {"size_mm": {"width_mm": 280.0, "height_mm": 230.0}}
+    assert preprocess._work_max_dim(cfg, a) == preprocess._WORK_MAX_DIM
+
+
+def test_work_dim_forced_by_knob_and_clamped(tmp_path):
+    a = {"size_mm": {"width_mm": 280.0, "height_mm": 230.0}}
+    cfg = _cfg(tmp_path, work_res_mm=0.15)
+    assert preprocess._work_max_dim(cfg, a) == round(280 / 0.15)
+    # small design clamps UP to the historical cap (no behaviour change)
+    a_small = {"size_mm": {"width_mm": 90.0, "height_mm": 70.0}}
+    assert preprocess._work_max_dim(cfg, a_small) == preprocess._WORK_MAX_DIM
+    # garment-scale clamps DOWN to the memory cap
+    a_huge = {"size_mm": {"width_mm": 1100.0, "height_mm": 1000.0}}
+    assert preprocess._work_max_dim(cfg, a_huge) == preprocess._WORK_MAX_DIM_CAP
+
+
+def test_work_dim_auto_for_satin_only(tmp_path, monkeypatch):
+    monkeypatch.setattr(preprocess.priors, "satin_only", lambda c: c == "arabic")
+    a = {"size_mm": {"width_mm": 280.0, "height_mm": 230.0}}
+    assert (preprocess._work_max_dim(_cfg(tmp_path, category="arabic"), a)
+            == round(280 / preprocess._WORK_RES_SATIN_ONLY_MM))
+    assert preprocess._work_max_dim(_cfg(tmp_path, category="anime"), a) \
+        == preprocess._WORK_MAX_DIM
+
+
+def test_median_refine_corrects_aa_drift(tmp_path):
+    # a red block whose 2px border is salmon (anti-aliasing toward white): the
+    # refined palette entry must sit at the CORE red, not the mean-dragged salmon
+    arr = np.full((120, 120, 3), 255, np.uint8)
+    arr[20:100, 20:100] = (255, 120, 120)      # AA rim
+    arr[24:96, 24:96] = (237, 28, 36)          # core red
+    ctx = _run(tmp_path, arr, num_colors=1)
+    red = min(ctx.palette, key=lambda c: abs(c[0] - 237) + abs(c[1] - 28))
+    assert abs(red[0] - 237) <= 10 and abs(red[1] - 28) <= 25 and abs(red[2] - 36) <= 25, \
+        f"palette stayed AA-drifted: {ctx.palette}"

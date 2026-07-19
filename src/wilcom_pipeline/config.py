@@ -255,6 +255,13 @@ class PipelineConfig:
     # See docs/research/sld-vectorization-eval.md. Off by default (slow: ~5-30 s per
     # word-sized region on CPU).
     sld_strokes: bool = False
+    # Working-resolution override in mm/px (step 2). None = AUTO: the flat 1200 px cap
+    # historically, except a SATIN-ONLY category derives the cap from the physical size
+    # at 0.15 mm/px (clamped 1200-2200 px) — at 280 mm the flat cap is 0.23 mm/px, which
+    # closes sub-0.5 mm inter-word gaps in dense script and welds neighbouring words into
+    # one traced region (measured on arb: 255 source components -> 137). An explicit value
+    # forces mm-derived sizing for any category.
+    work_res_mm: float | None = None
     # Cross-stitch (step 5): generate counted cross-stitch (a fixed grid of X motifs) instead
     # of the run/satin/tatami tiers — the tatreez (Palestinian tatreez) technique. Built directly
     # as stitches (pyembroidery), so it needs no Ink-Stitch and never hits its router hangs on a
@@ -369,6 +376,8 @@ class PipelineConfig:
             raise ValueError("underlap_mm must be between 0 (off) and 2.0")
         if self.cross_stitch_pitch_mm is not None and not (0.5 <= self.cross_stitch_pitch_mm <= 10.0):
             raise ValueError("cross_stitch_pitch_mm must be between 0.5 and 10.0")
+        if self.work_res_mm is not None and not (0.05 <= self.work_res_mm <= 1.0):
+            raise ValueError("work_res_mm must be between 0.05 and 1.0")
         if self.sketch_row_spacing_mm is not None and not (0.2 <= self.sketch_row_spacing_mm <= 5.0):
             raise ValueError("sketch_row_spacing_mm must be between 0.2 and 5.0")
 

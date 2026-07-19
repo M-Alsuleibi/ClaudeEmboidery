@@ -27,10 +27,20 @@ from scipy import ndimage
 from ..color import srgb_to_lab
 from ..config import KEYLINE_DETAIL_RGB, PipelineContext
 from ..imaging import BG_DELTA_E, background_like, foreground_mask, load_rgb_alpha
+from .. import priors
 
 # Cap working resolution. Embroidery doesn't need photo-grade detail: at an 80 mm
 # design 1200 px is ~15 px/mm, well past machine resolution (~0.1 mm).
 _WORK_MAX_DIM = 1200
+# But the FLAT cap under-resolves large dense designs: a 280 mm calligraphy panel at
+# 1200 px is 0.23 mm/px, so sub-0.5 mm inter-word gaps are 1-2 px and the quantise +
+# consolidate passes weld neighbouring words into one traced region (measured on the
+# arb pair: 255 source components >= 1.5mm2 -> 137 in the work image). A satin-only
+# category therefore derives the cap from the physical size at this resolution;
+# --work-res-mm forces it for any category. The upper clamp keeps garment-scale
+# designs (tatreez up to ~1100 mm) from blowing memory in the border/flood passes.
+_WORK_RES_SATIN_ONLY_MM = 0.15
+_WORK_MAX_DIM_CAP = 2200
 
 # Foreground components smaller than this (real-world area) are background noise,
 # not stitchable features — drop them after the background is removed.
@@ -59,7 +69,7 @@ def run(ctx: PipelineContext) -> None:
     img = Image.open(cfg.input_path)
     img.load()
     rgb, alpha = load_rgb_alpha(img)
-    rgb, alpha = _downsample(rgb, alpha, _WORK_MAX_DIM)
+    rgb, alpha = _downsample(rgb, alpha, _work_max_dim(cfg, analysis))
 
     bg = analysis["background"]
     if bg.get("is_separable"):
@@ -103,16 +113,22 @@ def run(ctx: PipelineContext) -> None:
     idx_map = _assign_indices(rgb, mask, palette)
     if black_mask is not None:
         idx_map[black_mask] = palette.index((0, 0, 0))
+    # Refine each representative to the MEDIAN of its assigned source pixels (one
+    # Lloyd update) — for EVERY run, not just purify. _reduce_palette merges by
+    # area-weighted average, which drags a colour toward its neighbours: the letters
+    # teal absorbed gray anti-aliased / satin-sheen edge pixels and drifted light
+    # (126,169,169) vs the true ~(90,157,162), and the arb red drifted to salmon
+    # (237,28,36) -> (254,109,110), washing out both the render and the cone match.
+    # The cluster median is the truer ink — robust to the AA-edge minority. A slot
+    # the black snap reserved stays pinned at pure (0,0,0).
+    refined = _refine_palette(rgb, idx_map, palette)
+    if black_mask is not None:
+        refined[palette.index((0, 0, 0))] = (0, 0, 0)
+    palette = refined
     if cfg.purify:
-        # Refine each representative to the MEDIAN of its assigned source pixels (one
-        # Lloyd update) before purifying. _reduce_palette merges by area-weighted
-        # average, which drags a colour toward its neighbours: here the teal absorbed
-        # gray anti-aliased / satin-sheen edge pixels and drifted light (126,169,169)
-        # vs the true ~(90,157,162). The cluster median is the truer brand colour —
-        # robust to those edge outliers. Then _purify_ink still snaps the bright
-        # primaries to pure (Black/Yellow) while keeping the muted teal verbatim
-        # (see letters knowledge §8a). Decoupled from satin dissection via --purify-colors.
-        palette = _refine_palette(rgb, idx_map, palette)
+        # _purify_ink still snaps the bright primaries to pure (Black/Yellow) while
+        # keeping muted brand colours verbatim (letters knowledge §8a). Decoupled
+        # from satin dissection via --purify-colors.
         palette = [_purify_ink(c) for c in palette]
     # Consolidate dithered specks into fewer, larger continuous blocks (each
     # block becomes one stitched object downstream — fewer machine trims).
@@ -262,6 +278,23 @@ def _auto_repair(idx_map: np.ndarray, n_colors: int,
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
+def _work_max_dim(cfg, analysis) -> int:
+    """Working-resolution cap in px. Flat 1200 unless an explicit --work-res-mm (any
+    category) or the satin-only auto (see _WORK_RES_SATIN_ONLY_MM) derives it from the
+    design's physical size, clamped [1200, 2200] so small designs keep the historical
+    cap byte-identically and garment-scale ones can't blow memory."""
+    res = cfg.work_res_mm
+    if res is None and priors.satin_only(cfg.category):
+        res = _WORK_RES_SATIN_ONLY_MM
+    if not res:
+        return _WORK_MAX_DIM
+    size = (analysis or {}).get("size_mm") or {}
+    max_mm = max(float(size.get("width_mm") or 0.0), float(size.get("height_mm") or 0.0))
+    if max_mm <= 0:
+        return _WORK_MAX_DIM
+    return int(np.clip(round(max_mm / res), _WORK_MAX_DIM, _WORK_MAX_DIM_CAP))
+
+
 def _downsample(
     rgb: np.ndarray, alpha: np.ndarray | None, max_dim: int
 ) -> tuple[np.ndarray, np.ndarray | None]:

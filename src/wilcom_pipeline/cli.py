@@ -152,6 +152,12 @@ def build_parser() -> argparse.ArgumentParser:
                         "average width via stroke_to_satin. Fixes --satin-lean's under-coverage "
                         "on bold/modulated strokes. Falls back to fixed-width per column on "
                         "geometry failure. Off by default.")
+    p.add_argument("--work-res-mm", type=float, default=None,
+                   help="Working resolution in mm/px for step 2 (e.g. 0.15). Default: the "
+                        "flat 1200px cap, except satin-only categories auto-derive the cap "
+                        "from the physical size at 0.15mm/px (clamped 1200-2200px) so large "
+                        "dense script keeps its sub-0.5mm inter-word gaps instead of welding "
+                        "neighbouring words into one region.")
     p.add_argument("--sld-strokes", action=argparse.BooleanOptionalAction, default=False,
                    help="SLD stroke recovery (experimental, satin-only path): recover each "
                         "region's ordered pen strokes from its raster mask with the vendored "
@@ -243,6 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             spine_fill=args.spine_fill,
             vwidth_satin=args.vwidth_satin,
             sld_strokes=args.sld_strokes,
+            work_res_mm=args.work_res_mm,
             outline_objects=args.outline_objects,
             underlap_mm=args.underlap_mm,
             travel_plan=args.travel_plan,
