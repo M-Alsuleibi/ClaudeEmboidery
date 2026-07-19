@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 9c5e2d6b-3552-4b6a-b2ce-6712c9d8dc2f
-  modified: 2026-07-19T08:18:31.637Z
+  modified: 2026-07-19T17:44:53.793Z
 ---
 
 The full-arb blobbiness ([[gemini-deep-research-report]] A/B) is bisected to PREPROCESS,
@@ -27,8 +27,12 @@ work cap from physical size at 0.15mm/px clamped [1200, 2200] (small designs byt
 tatreez-OOM-safe cap); `--work-res-mm` forces any category. ② `_refine_palette` (median
 Lloyd) now runs EVERY run, not purify-only; snapped-black slot pinned. Measured: red
 components 137→182 of 255, palette salmon→pure (255,0,0), full arb gate PASS, render
-visibly closer (true red, better word separation). REMAINING arb gaps: bottom-arc fusion
-(the 1.2mm _CONSOLIDATE_MM neighbourhood still welds), skeletal blue الله (satin width
-band clamps at ~3.5mm vs its ~8mm strokes — needs auto-split-style wide columns), and
-pure primaries now match Madeira poorly → arb recipe should use isacord
-([[thread-chart-by-palette]]).
+visibly closer (true red, better word separation). FOLLOW-UP ALL FIXED (same day): ① wide-column
+escape in _build_vwidth_satin — p90 width over the band ceiling opens rails to true width
+capped at 7mm + stamps inkstitch:max_stitch_length_mm=7 (probed: the vendored binary DOES
+split satin throws; blue glyph med 3.39/p90 5.16 vs production 2.25/4.44 — full-bodied);
+② satin-only consolidate 1.2→0.6mm (_CONSOLIDATE_SATIN_ONLY_MM); ③ arb runs should pass
+--thread-chart isacord (pure red/blue cones; Madeira gives Fluo Pink/Purple Accent) —
+recipe-level, default unchanged. TRAP: a hand-built satin-column probe SVG with rungs at
+rail ENDPOINTS hangs the router — probe with interior rungs or a real working SVG.
+Residual smaller gaps: bottom-arc heavy patches, visible connector at the alif top.

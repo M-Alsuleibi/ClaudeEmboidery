@@ -1,6 +1,6 @@
 # Memory index
 
-- [Arb preprocess fusion](arb-preprocess-fusion.md) — bisected: downscale fuses 255→137 word components (trace fine at ~175 regions) + quantize means pull AA edges (red→salmon); 2 gated fixes proposed
+- [Arb preprocess fusion](arb-preprocess-fusion.md) — bisected + ALL FIXED: mm-scaled work size, median palette, 0.6mm satin-only consolidate, wide-column 7mm auto-split escape, isacord recipe; probe trap: endpoint rungs hang the router
 
 - [Gemini deep research report](gemini-deep-research-report.md) — triaged 2026-07-19: SLD-Vectorization (stroke recovery) + embroidery-streamlines (angle fields) = verified code-available hits for the top 2 gaps; auto-spacing satin + anisotropic pull-comp = build-ourselves; rest re-proposals/fluff
 - [Arabic satin-only law](arabic-satin-only-law.md) — arb trio absolute truth: PER-BRANCH dissection + junction-continuity CHAINING (fragments → pen strokes, 548→477) + residual patch cover (95.8% coverage), authored 0.24 spacing (×2 for Ink-Stitch peak-to-peak)/underlay-off/pull-comp-0, ≤7mm connector chains, loop halving; LESSON: satin_frac can read 100 with stitch DIRECTION wrong everywhere — compare renders, run the fan detector + movement histogram; raster stroke recovery has no external tool — vector source (Route A) or guides-SVG hook are the upgrades
