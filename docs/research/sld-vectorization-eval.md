@@ -94,7 +94,22 @@ baseline 34 columns / 5,119 st / worst stacking 5.0 layers (0.2 mm² over 5);
 Coverage 65.0→66.2 %, IoU 39.1→41.4, over-ink 1.31→1.26×. The visual difference
 is bigger than the numbers: solid full-width pen strokes vs the ring cover's
 hollow boundary-hugging rims. Cost: ~20-40 s per word-sized region (CPU).
-Next: A/B the full arb trio (fan detector + movement histogram).
+
+## Full-arb A/B (280 mm, 2 colours) — honest verdict
+
+Baseline 749 columns / 43.7k st; SLD 613 columns from 104 recovered strokes /
+43.4k st; SLD at 0.15 mm/px raster (the `res_mm` param) 632 columns / 44.2k st.
+All gate PASS, trims equal. **Local stitch direction vs the production VP3
+(trimmed-ICP registered, RMS 0.85 mm): ~45° median for ALL variants** — metric
+partly saturated by underlay/travel mixing, but the renders agree: production is
+crisp and legible; every variant of ours is equally blobby, with fused
+word-clusters and light coverage. SLD's microbenchmark win does not transfer to
+the dense full design because the damage is upstream of step 5: the traced
+regions themselves are fused blobs (preprocess consolidation at the ~1200 px
+work size), and coverage/density reads lighter than production. Conclusion:
+keep `--sld-strokes` (structural consolidation, no regressions, glyph-scale
+wins) but the next fidelity lever on arb-class designs is preprocess region
+fusion + coverage, not stroke-recovery tuning.
 
 Scratch artifacts from this eval (overlays, diagnostics): session scratchpad
 `arb_allah_overlay*.png`, `arb_allah_graph_cover.png`, `diag_sld*.py`.

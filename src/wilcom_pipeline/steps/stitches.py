@@ -1807,7 +1807,8 @@ _RDP_EPS_PX = 0.4           # iso-contour simplification tolerance (marching squ
                             # point per pixel; a satin centerline doesn't need that resolution)
 
 
-def _region_raster(poly_el, mm_per_uu: float, evenodd: bool = False):
+def _region_raster(poly_el, mm_per_uu: float, evenodd: bool = False,
+                   res_mm: float = 0.3):
     """Rasterise a region path into a bool mask on a ~0.3 mm/px grid (root frame), padded by
     2 background px so the EDT sees the true boundary even where the shape touches its own
     bbox. With `evenodd`, subpaths XOR (holes stay holes — needed when the pass must see the
@@ -1825,7 +1826,7 @@ def _region_raster(poly_el, mm_per_uu: float, evenodd: bool = False):
     allp = np.concatenate(subs)
     x0, y0 = allp.min(0)
     x1, y1 = allp.max(0)
-    res = max((0.3 / mm_per_uu), 1e-9)                 # uu per px (~0.3 mm/px)
+    res = max((res_mm / mm_per_uu), 1e-9)              # uu per px (default ~0.3 mm/px)
     W, H = int((x1 - x0) / res) + 1, int((y1 - y0) / res) + 1
     if W < 3 or H < 3 or W * H > 6_000_000:
         return None, None, 0.0
@@ -1854,7 +1855,11 @@ def _sld_region_strokes(poly_el, mm_per_uu: float) -> list:
     map the recovered spline polylines back into root-frame coordinates. Returns []
     (caller falls back to skeleton fragments + chaining) for tiny regions, degenerate
     geometry, or any tool failure."""
-    mask, origin, res = _region_raster(poly_el, mm_per_uu, evenodd=True)
+    # Finer raster than the 0.3 mm/px default: SLD's medial axis + intersection CNN
+    # need a few px of stroke body — at 0.3 mm/px a 2 mm calligraphy stroke is ~7 px
+    # and the recovered centerlines go mushy (measured on the full arb: no direction
+    # gain over chaining until the raster was refined).
+    mask, origin, res = _region_raster(poly_el, mm_per_uu, evenodd=True, res_mm=0.15)
     if mask is None:
         return []
     px_mm = res * mm_per_uu

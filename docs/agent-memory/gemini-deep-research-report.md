@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 9c5e2d6b-3552-4b6a-b2ce-6712c9d8dc2f
-  modified: 2026-07-19T06:09:50.381Z
+  modified: 2026-07-19T07:00:50.040Z
 ---
 
 The Gemini Deep Research report (prompt/brief in `docs/research/`, repo made public at
@@ -26,7 +26,11 @@ github.com/M-Alsuleibi/ClaudeEmboidery for it) landed 2026-07-19. Triage verdict
   _try_sld hook in BOTH the satin band and _keep_as_fill — broad merged glyphs otherwise go
   to rings; vendored at vendor/sld-vectorization, $SLDVEC_BIN override): allah A/B stacking
   5.0→4.4 layers, IoU +2.3, solid strokes vs hollow rims; per-region fallback to chaining;
-  flag off = byte-identical.
+  flag off = byte-identical. FULL-ARB A/B verdict: columns 749→613 (real consolidation),
+  gates PASS, but local direction vs production ~45° median for base AND sld AND sld@0.15mm/px
+  — renders equally blobby; bottleneck is UPSTREAM (preprocess word-cluster fusion at ~1200px
+  work size + light coverage), NOT stroke recovery. Next arb lever = preprocess fusion, not SLD
+  tuning.
 - **embroidery-streamlines** (Liu et al., "Directionality-Aware Design of Embroidery
   Patterns", CGF 2023, github.com/desmondlzy/embroidery-streamlines): divergence-field
   sources/sinks → equal-density streamlines from an image + direction field → the
