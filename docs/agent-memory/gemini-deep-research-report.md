@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 9c5e2d6b-3552-4b6a-b2ce-6712c9d8dc2f
-  modified: 2026-07-19T07:00:50.040Z
+  modified: 2026-07-19T07:14:29.744Z
 ---
 
 The Gemini Deep Research report (prompt/brief in `docs/research/`, repo made public at
@@ -37,9 +37,11 @@ github.com/M-Alsuleibi/ClaudeEmboidery for it) landed 2026-07-19. Triage verdict
   **stitch-angle-field for fills** gap; feeds guided_fill / [[spine-guided-fill]].
 
 **Solid medium-effort ideas (no turnkey code):**
-- Auto-spacing satin: modulate zigzag spacing along a column from the LOCAL half-widths the
-  vwidth builder already computes (Wilcom manual's auto-spacing; needs column segmentation
-  since Ink-Stitch spacing is per-path).
+- ~~Auto-spacing satin~~ **CLOSED — DISPROVEN 2026-07-19**: 7,500+ pair-corpus satin objects
+  show r(width,spacing) ≈ 0 in every category (flat penetration advance; density mildly
+  NEGATIVE with width) + the arb width-opening curve under-stitched 35k vs 41-51k band.
+  Production = constant pitch; our flat authored spacing already matches. Documented in
+  wilcom-manual-rules.md §2. Do not re-propose.
 - Anisotropic pull-comp: apply comp perpendicular to each object's stitch angle instead of a
   uniform buffer; report's physics citations are vague — needs own calibration.
 - Sibling-repo dataset loop [[ai-digitizer-repo]]: pyembroidery-parse public stitch archives →

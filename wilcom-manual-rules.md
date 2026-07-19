@@ -87,7 +87,7 @@ size. The governing facts:
 | **Tatami row spacing (recognized range)** | **0.4 – 1.5 mm** (0.4 dense → 1.5 open) | p1195/1197 | 0.4 mm ✓ |
 | **Tatami stitch length** | 1 – 4.5 mm (example set), min-stitch 0.4–1.2 mm | p231 | — |
 | **Satin density** | % of preset; **75 % "generally produces high quality"** (lower % = denser) | p223 | — |
-| **Satin auto-spacing** | recalculates spacing **wherever column width changes** | p221–25 | (we use fixed) |
+| **Satin auto-spacing** | recalculates spacing **wherever column width changes** | p221–25 | fixed — **validated, see below** |
 | **Run stitch length** | **1.8 mm** for sharp curves → **4.0 mm** to mimic hand look; chord gap 0.07 mm | p219–20 | — |
 | **Triple/Bean run** | repeats each stitch **3×** | p220 | ✓ |
 | **Auto Split min stitch** | **0.4 mm** | p452 | — |
@@ -95,6 +95,17 @@ size. The governing facts:
 
 Satin auto-spacing offsets by thread weight (p226): 40-wt `+0.01`, 30-wt `+0.03`, 80-wt
 `−0.03`, 100-wt `−0.06` — i.e. **finer thread ⇒ closer spacing**.
+
+> **Width-dependent spacing is DISPROVEN by the pair corpus (2026-07-19).** Across
+> 7,500+ measured satin-verdict objects (animals n=1480, anime n=813, arabic n=2427,
+> decoration n=2805), the correlation between column width and row spacing is
+> **+0.03 / −0.14 / +0.08 / −0.02** — production sews a FLAT penetration advance
+> regardless of width (density even trends mildly negative with width: constant
+> advance + longer throws). The manual's "recalculates wherever width changes" means
+> Wilcom *maintains* that constant pitch as width varies — not that density opens or
+> closes with width. An explicit width-opening curve was also tried on arb and
+> under-stitched (35 k vs the 41–51 k reference band; see
+> `stitches._authored_satin_spacing`). Do not re-propose width-dependent spacing.
 
 ---
 
