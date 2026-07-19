@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 9c5e2d6b-3552-4b6a-b2ce-6712c9d8dc2f
-  modified: 2026-07-19T07:14:29.744Z
+  modified: 2026-07-19T18:06:20.003Z
 ---
 
 The Gemini Deep Research report (prompt/brief in `docs/research/`, repo made public at
@@ -32,9 +32,14 @@ github.com/M-Alsuleibi/ClaudeEmboidery for it) landed 2026-07-19. Triage verdict
   work size + light coverage), NOT stroke recovery. Next arb lever = preprocess fusion, not SLD
   tuning.
 - **embroidery-streamlines** (Liu et al., "Directionality-Aware Design of Embroidery
-  Patterns", CGF 2023, github.com/desmondlzy/embroidery-streamlines): divergence-field
-  sources/sinks → equal-density streamlines from an image + direction field → the
-  **stitch-angle-field for fills** gap; feeds guided_fill / [[spine-guided-fill]].
+  Patterns", CGF 2023, github.com/desmondlzy/embroidery-streamlines): **EVALUATED,
+  ADOPT-worthy** (docs/research/embroidery-streamlines-eval.md): anime hair region +
+  our sketchstitch structure-tensor field → ONE continuous 4,876-pt line following the
+  hair flow, holes respected, 28s CPU; emits via pyembroidery (direct-primitive path,
+  zero trims/region); their production cover = fg field pass over bg ⊥ uniform pass.
+  Integration = new step-5 `--streamline-fill` primitive for 3D/anime fills; TRAPS:
+  y-flip negates angles, boundary must be closed, density is relative (calibrate vs
+  0.4mm), reads as FILL in fingerprint (correct). Python 3.12 works despite 3.10 pin.
 
 **Solid medium-effort ideas (no turnkey code):**
 - ~~Auto-spacing satin~~ **CLOSED — DISPROVEN 2026-07-19**: 7,500+ pair-corpus satin objects
